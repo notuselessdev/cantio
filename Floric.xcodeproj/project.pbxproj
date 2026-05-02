@@ -17,12 +17,14 @@
 		3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */; };
 		4DE00B56601CEDCA7BCBA57C /* LyricsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBEEC1D0436B931F17D6212 /* LyricsCache.swift */; };
 		5F17CA8C7FA28BAD3BF922E7 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80312E3E509BBE8B2803F718 /* HotKeyManager.swift */; };
+		6163A3FCCCC78117D7E8EE03 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = FDF12CD0693717979BC141B5 /* Sparkle */; };
 		63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */; };
 		887E027B6F8F09227B1A8C73 /* LyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1763C33665227A0ABABC2A40 /* LyricsStore.swift */; };
 		92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */; };
 		AC4A77A2CB1A265C1EB34A9F /* LyricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF203A672DE2636379F500D /* LyricsService.swift */; };
 		B23D490560F4C8E98F6E48E2 /* LRCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E944F2511C3CFE982729C /* LRCParser.swift */; };
 		BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */; };
+		D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */; };
 		F0B032E65C99C56516B2CDB8 /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02ED958E28D3377CCC675703 /* HotKey.swift */; };
 		F58A3166D42C86D067ACFAB4 /* HotKeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20AAD06EF6548EEC0326DC8 /* HotKeyRecorder.swift */; };
 /* End PBXBuildFile section */
@@ -43,12 +45,24 @@
 		80312E3E509BBE8B2803F718 /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		8BF203A672DE2636379F500D /* LyricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
 		99A35BD2D6C698AA3EBD7F7A /* Floric.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Floric.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		D20AAD06EF6548EEC0326DC8 /* HotKeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRecorder.swift; sourceTree = "<group>"; };
 		D99E944F2511C3CFE982729C /* LRCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParser.swift; sourceTree = "<group>"; };
 		DFF3CCEAC343576E261670E7 /* SpotifyPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyPermission.swift; sourceTree = "<group>"; };
 		FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		86A794802C3BB3959C146044 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6163A3FCCCC78117D7E8EE03 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		34F55CF2D335DF64908496BD /* Hotkey */ = {
@@ -71,6 +85,14 @@
 				1763C33665227A0ABABC2A40 /* LyricsStore.swift */,
 			);
 			path = Lyrics;
+			sourceTree = "<group>";
+		};
+		682FF27ECF4EF674884C3769 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */,
+			);
+			path = Updates;
 			sourceTree = "<group>";
 		};
 		A3AA00FD03DCF832001EB6EC /* Products */ = {
@@ -110,6 +132,7 @@
 				4AE690A933C7DCB8711E35F3 /* Lyrics */,
 				AF4A8AC41D11267A32613BCD /* Settings */,
 				F9048C3A0E4F391ED1751CB7 /* Spotify */,
+				682FF27ECF4EF674884C3769 /* Updates */,
 				C189E9822DC0406C40D94D4E /* Window */,
 			);
 			path = Floric;
@@ -142,6 +165,7 @@
 			buildPhases = (
 				8C749470F473045D828C284F /* Sources */,
 				B531ED102022CE5928A1AAAD /* Resources */,
+				86A794802C3BB3959C146044 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -149,6 +173,7 @@
 			);
 			name = Floric;
 			packageProductDependencies = (
+				FDF12CD0693717979BC141B5 /* Sparkle */,
 			);
 			productName = Floric;
 			productReference = 99A35BD2D6C698AA3EBD7F7A /* Floric.app */;
@@ -165,7 +190,7 @@
 				TargetAttributes = {
 					A7835E0A0B9ED2CA5C7A5281 = {
 						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -178,6 +203,9 @@
 			);
 			mainGroup = C6AD1E375ACE56846F1DB05C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A3AA00FD03DCF832001EB6EC /* Products */;
 			projectDirPath = "";
@@ -221,6 +249,7 @@
 				92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */,
 				63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */,
 				2995884991ACCF28C8F81FB5 /* SpotifyPermission.swift in Sources */,
+				D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -231,6 +260,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "arm64 x86_64";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -261,7 +291,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -304,11 +334,8 @@
 				CODE_SIGN_ENTITLEMENTS = Floric/Floric.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Floric;
-				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Floric reads the current Spotify track so it can display matching lyrics.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Floric/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -327,11 +354,8 @@
 				CODE_SIGN_ENTITLEMENTS = Floric/Floric.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Floric;
-				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Floric reads the current Spotify track so it can display matching lyrics.";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Floric/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -347,6 +371,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "arm64 x86_64";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -377,7 +402,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -397,6 +422,7 @@
 				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -428,6 +454,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FDF12CD0693717979BC141B5 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 05E9A42783B51D68FA0F618D /* Project object */;
 }

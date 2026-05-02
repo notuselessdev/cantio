@@ -81,6 +81,9 @@ private struct MenuBarContent: View {
             openSettings()
         }
         .keyboardShortcut(",")
+        Button("Check for Updates…") {
+            UpdateController.shared.checkForUpdates()
+        }
         Divider()
         Button("Quit Floric") {
             NSApplication.shared.terminate(nil)
