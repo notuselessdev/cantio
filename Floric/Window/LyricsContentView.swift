@@ -102,7 +102,7 @@ struct LyricsContentView: View {
         case .plain(let text):
             ScrollView {
                 Text(text)
-                    .font(.system(size: 14, weight: .regular))
+                    .font(.system(size: prefs.fontSize.bodySize, weight: .regular))
                     .tracking(0.1)
                     .multilineTextAlignment(.center)
             }
@@ -121,7 +121,7 @@ struct LyricsContentView: View {
 
     private func placeholder(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 14, weight: .medium))
+            .font(.system(size: prefs.fontSize.bodySize, weight: .medium))
             .tracking(0.1)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -141,7 +141,7 @@ struct LyricsContentView: View {
     private func singleLine(lines: [LyricLine], activeIndex: Int?) -> some View {
         let text = activeIndex.map { lines[$0].text } ?? "♪"
         Text(text.isEmpty ? "♪" : text)
-            .font(.system(size: 22, weight: .semibold))
+            .font(.system(size: prefs.fontSize.activeSize, weight: .semibold))
             .tracking(-0.26)
             .foregroundStyle(.primary)
             .multilineTextAlignment(.center)
@@ -193,7 +193,7 @@ struct LyricsContentView: View {
     private func lineView(line: LyricLine, isActive: Bool) -> some View {
         Text(line.text.isEmpty ? "♪" : line.text)
             .font(.system(
-                size: isActive ? 22 : 14,
+                size: isActive ? prefs.fontSize.activeSize : prefs.fontSize.bodySize,
                 weight: isActive ? .semibold : .regular
             ))
             .tracking(isActive ? -0.26 : 0.1)
