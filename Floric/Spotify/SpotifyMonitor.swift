@@ -31,6 +31,9 @@ end tell
 final class SpotifyMonitor: ObservableObject {
     @Published private(set) var availability: SpotifyAvailability = .notRunning
     @Published private(set) var nowPlaying: NowPlaying?
+    /// Anchor used to extrapolate the current playback position between polls.
+    /// Updated whenever a fresh poll arrives.
+    @Published private(set) var positionAnchor: PositionAnchor?
 
     private var task: Task<Void, Never>?
     private var script: NSAppleScript?
@@ -87,16 +90,38 @@ final class SpotifyMonitor: ObservableObject {
         case .notInstalled:
             if availability != .notInstalled { availability = .notInstalled }
             if nowPlaying != nil { nowPlaying = nil }
+            if positionAnchor != nil { positionAnchor = nil }
             emitIfChanged(nil)
         case .notRunning:
             if availability != .notRunning { availability = .notRunning }
             if nowPlaying != nil { nowPlaying = nil }
+            if positionAnchor != nil { positionAnchor = nil }
             emitIfChanged(nil)
         case .running(let np):
             if availability != .available { availability = .available }
             if nowPlaying != np { nowPlaying = np }
+            updateAnchor(for: np)
             emitIfChanged(np)
         }
+    }
+
+    /// Re-anchors playback position. Called on every poll so UI extrapolation
+    /// stays within Spotify's reported truth (±poll-jitter, ~tens of ms).
+    private func updateAnchor(for np: NowPlaying) {
+        positionAnchor = PositionAnchor(
+            position: np.positionSeconds,
+            sampledAt: Date(),
+            isPlaying: np.state == .playing
+        )
+    }
+
+    /// Returns the extrapolated playback position at `now`, advancing only
+    /// while the player is in the `playing` state.
+    func interpolatedPosition(now: Date = Date()) -> Double? {
+        guard let anchor = positionAnchor else { return nil }
+        guard anchor.isPlaying else { return anchor.position }
+        let delta = now.timeIntervalSince(anchor.sampledAt)
+        return anchor.position + max(0, delta)
     }
 
     private func emitIfChanged(_ value: NowPlaying?) {

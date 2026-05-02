@@ -8,9 +8,6 @@ struct LyricsContentView: View {
 
     var body: some View {
         ZStack {
-            // Slight background so the window has a draggable surface and
-            // remains visible against light or dark wallpapers. Translucent
-            // material works well over any background.
             VisualEffectBackground()
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
@@ -35,7 +32,15 @@ struct LyricsContentView: View {
         case .plain(let text):
             ScrollView { Text(text).font(.body).multilineTextAlignment(.center) }
         case .synced(let lines):
-            syncedView(lines: lines)
+            // Drives a redraw at ~30 Hz so the active line stays within
+            // ±200 ms of Spotify between polls (we extrapolate locally).
+            TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { context in
+                let position = monitor.interpolatedPosition(now: context.date)
+                    ?? monitor.nowPlaying?.positionSeconds
+                    ?? 0
+                let activeIndex = LyricLine.activeIndex(in: lines, at: position)
+                syncedView(lines: lines, activeIndex: activeIndex)
+            }
         }
     }
 
@@ -47,9 +52,7 @@ struct LyricsContentView: View {
     }
 
     @ViewBuilder
-    private func syncedView(lines: [LyricLine]) -> some View {
-        let position = monitor.nowPlaying?.positionSeconds ?? 0
-        let activeIndex = LyricLine.activeIndex(in: lines, at: position)
+    private func syncedView(lines: [LyricLine], activeIndex: Int?) -> some View {
         switch prefs.displayMode {
         case .singleLine:
             singleLine(lines: lines, activeIndex: activeIndex)
@@ -61,39 +64,63 @@ struct LyricsContentView: View {
     @ViewBuilder
     private func singleLine(lines: [LyricLine], activeIndex: Int?) -> some View {
         let text = activeIndex.map { lines[$0].text } ?? "♪"
-        Text(text)
+        Text(text.isEmpty ? "♪" : text)
             .font(.system(size: 22, weight: .semibold, design: .rounded))
             .foregroundStyle(.primary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, alignment: .center)
-            .animation(.easeInOut(duration: 0.2), value: activeIndex)
+            .id(activeIndex ?? -1)
+            .transition(.asymmetric(
+                insertion: .opacity.combined(with: .move(edge: .bottom)),
+                removal: .opacity.combined(with: .move(edge: .top))
+            ))
+            .animation(.spring(response: 0.25, dampingFraction: 0.85), value: activeIndex)
     }
 
     @ViewBuilder
     private func multiLine(lines: [LyricLine], activeIndex: Int?) -> some View {
-        VStack(alignment: .center, spacing: 6) {
-            ForEach(contextRange(activeIndex: activeIndex, total: lines.count), id: \.self) { idx in
-                let isActive = idx == activeIndex
-                Text(lines[idx].text.isEmpty ? "♪" : lines[idx].text)
-                    .font(.system(
-                        size: isActive ? 20 : 14,
-                        weight: isActive ? .semibold : .regular,
-                        design: .rounded
-                    ))
-                    .foregroundStyle(isActive ? .primary : .secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity, alignment: .center)
+        ScrollViewReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(alignment: .center, spacing: 8) {
+                    // Top spacer pushes the first line toward the centre on initial
+                    // render so it can scroll up smoothly.
+                    Color.clear.frame(height: 24).id("__top__")
+                    ForEach(Array(lines.enumerated()), id: \.offset) { idx, line in
+                        lineView(line: line, isActive: idx == activeIndex)
+                            .id(idx)
+                    }
+                    Color.clear.frame(height: 24).id("__bot__")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .frame(maxHeight: 160)
+            .onChange(of: activeIndex) { _, new in
+                guard let target = new else { return }
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+                    proxy.scrollTo(target, anchor: .center)
+                }
+            }
+            .onAppear {
+                if let target = activeIndex {
+                    proxy.scrollTo(target, anchor: .center)
+                }
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: activeIndex)
     }
 
-    private func contextRange(activeIndex: Int?, total: Int) -> [Int] {
-        guard total > 0 else { return [] }
-        let center = activeIndex ?? 0
-        let lower = max(0, center - 1)
-        let upper = min(total - 1, center + 1)
-        return Array(lower...upper)
+    @ViewBuilder
+    private func lineView(line: LyricLine, isActive: Bool) -> some View {
+        Text(line.text.isEmpty ? "♪" : line.text)
+            .font(.system(
+                size: isActive ? 22 : 14,
+                weight: isActive ? .semibold : .regular,
+                design: .rounded
+            ))
+            .foregroundStyle(isActive ? Color.primary : Color.secondary.opacity(0.7))
+            .scaleEffect(isActive ? 1.0 : 0.96)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .animation(.spring(response: 0.25, dampingFraction: 0.85), value: isActive)
     }
 }
 

@@ -31,3 +31,12 @@ enum SpotifyAvailability: Equatable {
     case notRunning
     case notInstalled
 }
+
+/// Snapshot of the player position at a known wall-clock instant. Used to
+/// extrapolate the current position between polls so synced lyrics can stay
+/// within ±200 ms of Spotify without polling at high frequency.
+struct PositionAnchor: Equatable {
+    var position: Double
+    var sampledAt: Date
+    var isPlaying: Bool
+}
