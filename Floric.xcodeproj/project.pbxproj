@@ -8,13 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		108639FE94380676BB5724CC /* FloricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F9940E15947E74FF3EECDC /* FloricApp.swift */; };
+		1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */; };
 		3346497B9984FD75FBD63970 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1853290EDED3FFB04F5F8432 /* Assets.xcassets */; };
+		63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		09F9940E15947E74FF3EECDC /* FloricApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricApp.swift; sourceTree = "<group>"; };
 		1853290EDED3FFB04F5F8432 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMonitor.swift; sourceTree = "<group>"; };
 		99A35BD2D6C698AA3EBD7F7A /* Floric.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Floric.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -31,6 +35,7 @@
 			children = (
 				1853290EDED3FFB04F5F8432 /* Assets.xcassets */,
 				09F9940E15947E74FF3EECDC /* FloricApp.swift */,
+				F9048C3A0E4F391ED1751CB7 /* Spotify */,
 			);
 			path = Floric;
 			sourceTree = "<group>";
@@ -41,6 +46,15 @@
 				C36393A070DBB12F44F225EE /* Floric */,
 				A3AA00FD03DCF832001EB6EC /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		F9048C3A0E4F391ED1751CB7 /* Spotify */ = {
+			isa = PBXGroup;
+			children = (
+				FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */,
+				6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */,
+			);
+			path = Spotify;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -115,6 +129,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				108639FE94380676BB5724CC /* FloricApp.swift in Sources */,
+				1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */,
+				63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,6 +216,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Floric;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Floric reads the current Spotify track so it can display matching lyrics.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -221,6 +238,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Floric;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Floric reads the current Spotify track so it can display matching lyrics.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
