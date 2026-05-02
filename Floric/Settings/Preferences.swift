@@ -45,6 +45,8 @@ final class Preferences: ObservableObject {
         static let clickThrough = "clickThrough"
         static let hideWhenPaused = "hideWhenPaused"
         static let windowVisible = "windowVisible"
+        static let hotKeyKeyCode = "hotKey.keyCode"
+        static let hotKeyModifiers = "hotKey.modifiers"
     }
 
     @Published var displayMode: LyricsDisplayMode {
@@ -67,6 +69,13 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(windowVisible, forKey: Key.windowVisible) }
     }
 
+    @Published var toggleHotKey: HotKey {
+        didSet {
+            defaults.set(Int(toggleHotKey.keyCode), forKey: Key.hotKeyKeyCode)
+            defaults.set(Int(toggleHotKey.modifiers), forKey: Key.hotKeyModifiers)
+        }
+    }
+
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
@@ -86,6 +95,13 @@ final class Preferences: ObservableObject {
             self.windowVisible = true
         } else {
             self.windowVisible = defaults.bool(forKey: Key.windowVisible)
+        }
+        if defaults.object(forKey: Key.hotKeyKeyCode) == nil {
+            self.toggleHotKey = .defaultToggle
+        } else {
+            let keyCode = UInt32(defaults.integer(forKey: Key.hotKeyKeyCode))
+            let mods = UInt32(defaults.integer(forKey: Key.hotKeyModifiers))
+            self.toggleHotKey = HotKey(keyCode: keyCode, modifiers: mods)
         }
     }
 }

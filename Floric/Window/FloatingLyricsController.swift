@@ -37,6 +37,7 @@ final class FloatingLyricsController {
         installClickMonitor()
         observePreferences()
         observePlayback()
+        installGlobalHotKey()
     }
 
     func toggleVisibility() {
@@ -149,6 +150,22 @@ final class FloatingLyricsController {
         prefs.$hideWhenPaused
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.applyVisibility(animated: true) }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Global hotkey
+
+    private func installGlobalHotKey() {
+        HotKeyManager.shared.onPress = { [weak self] in
+            self?.toggleVisibility()
+        }
+        HotKeyManager.shared.register(prefs.toggleHotKey)
+
+        prefs.$toggleHotKey
+            .receive(on: RunLoop.main)
+            .sink { hk in
+                HotKeyManager.shared.register(hk)
+            }
             .store(in: &cancellables)
     }
 
