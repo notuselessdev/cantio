@@ -94,12 +94,16 @@ final class FloatingLyricsController {
 
     private func computeShouldShow() -> Bool {
         guard prefs.windowVisible else { return false }
+        // Always keep the window visible when permission is denied so the
+        // user can see the recovery instructions and "Open System Settings"
+        // affordance — overriding `hideWhenPaused`.
+        if monitor.availability == .permissionDenied { return true }
         guard prefs.hideWhenPaused else { return true }
         // Hide when Spotify is unavailable or not playing.
         switch monitor.availability {
         case .available:
             return monitor.nowPlaying?.state == .playing
-        case .notInstalled, .notRunning:
+        case .notInstalled, .notRunning, .permissionDenied:
             return false
         }
     }

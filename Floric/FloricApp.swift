@@ -65,6 +65,13 @@ private struct MenuBarContent: View {
     let onAppear: () -> Void
 
     var body: some View {
+        if monitor.availability == .permissionDenied {
+            Text("Spotify access denied")
+            Button("Open System Settings…") {
+                SpotifyPermission.openSystemSettings()
+            }
+            Divider()
+        }
         Toggle(prefs.windowVisible ? "Hide Lyrics" : "Show Lyrics", isOn: $prefs.windowVisible)
             .keyboardShortcut("l", modifiers: [.command, .option])
         Divider()

@@ -90,6 +90,75 @@ struct LyricsContentView: View {
 
     @ViewBuilder
     private var content: some View {
+        // Player availability takes precedence over lyric state — if Spotify
+        // is missing, off, or hasn't been granted Automation access, that's
+        // what the user actually needs to fix.
+        switch monitor.availability {
+        case .permissionDenied:
+            permissionDeniedView
+        case .notInstalled:
+            placeholder("Install Spotify to see lyrics here")
+        case .notRunning:
+            emptyStateView
+        case .available:
+            availableContent
+        }
+    }
+
+    @ViewBuilder
+    private var availableContent: some View {
+        // Spotify is reachable but no track is loaded yet (or it's stopped).
+        if monitor.nowPlaying == nil || monitor.nowPlaying?.state == .stopped {
+            emptyStateView
+        } else {
+            lyricsStateContent
+        }
+    }
+
+    /// Shown on first launch and whenever Spotify is idle: a friendly nudge
+    /// to play a track. Acceptance criterion for US-009.
+    @ViewBuilder
+    private var emptyStateView: some View {
+        VStack(spacing: 6) {
+            Text("Open Spotify and play a song")
+                .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
+                .tracking(0.1)
+                .foregroundStyle(.primary)
+            Text("Floric will follow along with synced lyrics.")
+                .font(.system(size: max(11, prefs.fontSize.bodySize - 2), weight: .regular))
+                .foregroundStyle(.secondary)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+    }
+
+    /// Inline error shown when AppleEvents Automation access has been
+    /// denied (or not yet granted). Includes a button that opens System
+    /// Settings → Privacy & Security → Automation.
+    @ViewBuilder
+    private var permissionDeniedView: some View {
+        VStack(spacing: 10) {
+            Text("Spotify access needed")
+                .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
+                .tracking(0.1)
+                .foregroundStyle(.primary)
+            Text("Allow Floric to control Spotify in Privacy & Security → Automation.")
+                .font(.system(size: max(11, prefs.fontSize.bodySize - 2), weight: .regular))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Open System Settings") {
+                SpotifyPermission.openSystemSettings()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private var lyricsStateContent: some View {
         switch lyrics.state {
         case .idle:
             placeholder("—")

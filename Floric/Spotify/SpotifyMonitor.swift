@@ -34,10 +34,15 @@ final class SpotifyMonitor: ObservableObject {
     /// Anchor used to extrapolate the current playback position between polls.
     /// Updated whenever a fresh poll arrives.
     @Published private(set) var positionAnchor: PositionAnchor?
+    /// Current AppleEvents automation permission for Spotify.
+    /// `.notDetermined` until the first prompt resolves; `.denied` when the
+    /// user has refused or revoked access in System Settings.
+    @Published private(set) var permission: AutomationPermission = .targetNotRunning
 
     private var task: Task<Void, Never>?
     private var script: NSAppleScript?
     private var lastEmitted: NowPlaying?
+    private var didRequestPermission = false
 
     private let playingInterval: UInt64 = 500_000_000      // 500 ms
     private let pausedInterval: UInt64 = 2_000_000_000     // 2 s
@@ -91,14 +96,23 @@ final class SpotifyMonitor: ObservableObject {
             if availability != .notInstalled { availability = .notInstalled }
             if nowPlaying != nil { nowPlaying = nil }
             if positionAnchor != nil { positionAnchor = nil }
+            if permission != .targetNotRunning { permission = .targetNotRunning }
             emitIfChanged(nil)
         case .notRunning:
             if availability != .notRunning { availability = .notRunning }
             if nowPlaying != nil { nowPlaying = nil }
             if positionAnchor != nil { positionAnchor = nil }
+            if permission != .targetNotRunning { permission = .targetNotRunning }
+            emitIfChanged(nil)
+        case .permissionDenied:
+            if availability != .permissionDenied { availability = .permissionDenied }
+            if nowPlaying != nil { nowPlaying = nil }
+            if positionAnchor != nil { positionAnchor = nil }
+            if permission != .denied { permission = .denied }
             emitIfChanged(nil)
         case .running(let np):
             if availability != .available { availability = .available }
+            if permission != .granted { permission = .granted }
             if nowPlaying != np { nowPlaying = np }
             updateAnchor(for: np)
             emitIfChanged(np)
@@ -136,6 +150,7 @@ final class SpotifyMonitor: ObservableObject {
     private enum PollResult {
         case notInstalled
         case notRunning
+        case permissionDenied
         case running(NowPlaying)
     }
 
@@ -145,6 +160,31 @@ final class SpotifyMonitor: ObservableObject {
         }
         if NSRunningApplication.runningApplications(withBundleIdentifier: spotifyBundleId).isEmpty {
             return .notRunning
+        }
+        // Spotify is running. Surface the consent prompt the first time we
+        // see it; on subsequent polls just check the cached state.
+        // The `request()` path blocks until the user responds to the TCC
+        // prompt, so dispatch off the main actor to keep the menu bar UI
+        // responsive while the system dialog is on screen.
+        let askUser = !didRequestPermission
+        if askUser { didRequestPermission = true }
+        let permState: AutomationPermission = await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                let result = askUser
+                    ? SpotifyPermission.request()
+                    : SpotifyPermission.check()
+                continuation.resume(returning: result)
+            }
+        }
+        switch permState {
+        case .denied:
+            return .permissionDenied
+        case .notDetermined, .targetNotRunning, .unknown:
+            // User hasn't decided yet (or query hiccuped) — don't try to
+            // run the script; we'd only get a silent errAEEventNotPermitted.
+            return .notRunning
+        case .granted:
+            break
         }
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
@@ -157,7 +197,13 @@ final class SpotifyMonitor: ObservableObject {
         guard let script else { return .notRunning }
         var error: NSDictionary?
         let descriptor = script.executeAndReturnError(&error)
-        if error != nil { return .notRunning }
+        if let error {
+            // -1743 = errAEEventNotPermitted (TCC denied or revoked)
+            if let code = error[NSAppleScript.errorNumber] as? Int, code == -1743 {
+                return .permissionDenied
+            }
+            return .notRunning
+        }
         guard let raw = descriptor.stringValue else { return .notRunning }
         if raw == "ERR_NOT_RUNNING" { return .notRunning }
         if raw == "ERR_NO_TRACK" { return .notRunning }

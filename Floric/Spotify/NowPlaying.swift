@@ -30,6 +30,9 @@ enum SpotifyAvailability: Equatable {
     case available
     case notRunning
     case notInstalled
+    /// macOS denied AppleEvents Automation permission for Spotify. The user
+    /// must grant access in System Settings → Privacy & Security → Automation.
+    case permissionDenied
 }
 
 /// Snapshot of the player position at a known wall-clock instant. Used to
