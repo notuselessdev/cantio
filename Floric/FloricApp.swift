@@ -4,10 +4,29 @@ import SwiftUI
 struct FloricApp: App {
     @StateObject private var monitor = SpotifyMonitor()
     @StateObject private var lyrics = LyricsStore()
+    @StateObject private var prefs = Preferences.shared
+    @State private var floatingController: FloatingLyricsController?
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarContent(monitor: monitor, lyrics: lyrics)
+            MenuBarContent(
+                monitor: monitor,
+                lyrics: lyrics,
+                prefs: prefs,
+                onAppear: {
+                    monitor.start()
+                    lyrics.bind(to: monitor)
+                    if floatingController == nil {
+                        let controller = FloatingLyricsController(
+                            monitor: monitor,
+                            lyrics: lyrics,
+                            prefs: prefs
+                        )
+                        controller.start()
+                        floatingController = controller
+                    }
+                }
+            )
         } label: {
             Image(systemName: "music.note")
         }
@@ -18,6 +37,8 @@ struct FloricApp: App {
 private struct MenuBarContent: View {
     @ObservedObject var monitor: SpotifyMonitor
     @ObservedObject var lyrics: LyricsStore
+    @ObservedObject var prefs: Preferences
+    let onAppear: () -> Void
 
     var body: some View {
         Group {
@@ -37,14 +58,13 @@ private struct MenuBarContent: View {
             }
         }
         Divider()
+        PreferencesMenu(prefs: prefs)
+        Divider()
         Button("Quit Floric") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
-        .onAppear {
-            monitor.start()
-            lyrics.bind(to: monitor)
-        }
+        .onAppear(perform: onAppear)
     }
 
     private func lyricsLabel(_ state: LyricsState) -> String {

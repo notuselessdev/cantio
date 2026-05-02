@@ -7,26 +7,36 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		036EFBDB3F5F51D47521D0A3 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C343AEA8C1043F37E09B86 /* Preferences.swift */; };
 		108639FE94380676BB5724CC /* FloricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F9940E15947E74FF3EECDC /* FloricApp.swift */; };
 		1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */; };
+		26821024BDD609E21F32F98A /* LyricsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311193D96022FFDD167967DE /* LyricsContentView.swift */; };
 		2FA55B2D61207510B6AD42BA /* Lyrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738DC9A427DCACCCA78C93D4 /* Lyrics.swift */; };
 		3346497B9984FD75FBD63970 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1853290EDED3FFB04F5F8432 /* Assets.xcassets */; };
+		3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */; };
 		4DE00B56601CEDCA7BCBA57C /* LyricsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBEEC1D0436B931F17D6212 /* LyricsCache.swift */; };
 		63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */; };
 		887E027B6F8F09227B1A8C73 /* LyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1763C33665227A0ABABC2A40 /* LyricsStore.swift */; };
+		92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */; };
 		AC4A77A2CB1A265C1EB34A9F /* LyricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF203A672DE2636379F500D /* LyricsService.swift */; };
 		B23D490560F4C8E98F6E48E2 /* LRCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E944F2511C3CFE982729C /* LRCParser.swift */; };
+		BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		09F9940E15947E74FF3EECDC /* FloricApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricApp.swift; sourceTree = "<group>"; };
+		15C343AEA8C1043F37E09B86 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		1763C33665227A0ABABC2A40 /* LyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStore.swift; sourceTree = "<group>"; };
 		1853290EDED3FFB04F5F8432 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		311193D96022FFDD167967DE /* LyricsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsContentView.swift; sourceTree = "<group>"; };
 		3DBEEC1D0436B931F17D6212 /* LyricsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCache.swift; sourceTree = "<group>"; };
+		58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsWindow.swift; sourceTree = "<group>"; };
 		6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMonitor.swift; sourceTree = "<group>"; };
 		738DC9A427DCACCCA78C93D4 /* Lyrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lyrics.swift; sourceTree = "<group>"; };
+		7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsController.swift; sourceTree = "<group>"; };
 		8BF203A672DE2636379F500D /* LyricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
 		99A35BD2D6C698AA3EBD7F7A /* Floric.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Floric.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		D99E944F2511C3CFE982729C /* LRCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParser.swift; sourceTree = "<group>"; };
 		FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -52,13 +62,34 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		AF4A8AC41D11267A32613BCD /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				15C343AEA8C1043F37E09B86 /* Preferences.swift */,
+				BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		C189E9822DC0406C40D94D4E /* Window */ = {
+			isa = PBXGroup;
+			children = (
+				7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */,
+				58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */,
+				311193D96022FFDD167967DE /* LyricsContentView.swift */,
+			);
+			path = Window;
+			sourceTree = "<group>";
+		};
 		C36393A070DBB12F44F225EE /* Floric */ = {
 			isa = PBXGroup;
 			children = (
 				1853290EDED3FFB04F5F8432 /* Assets.xcassets */,
 				09F9940E15947E74FF3EECDC /* FloricApp.swift */,
 				4AE690A933C7DCB8711E35F3 /* Lyrics */,
+				AF4A8AC41D11267A32613BCD /* Settings */,
 				F9048C3A0E4F391ED1751CB7 /* Spotify */,
+				C189E9822DC0406C40D94D4E /* Window */,
 			);
 			path = Floric;
 			sourceTree = "<group>";
@@ -151,13 +182,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */,
+				BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */,
 				108639FE94380676BB5724CC /* FloricApp.swift in Sources */,
 				B23D490560F4C8E98F6E48E2 /* LRCParser.swift in Sources */,
 				2FA55B2D61207510B6AD42BA /* Lyrics.swift in Sources */,
 				4DE00B56601CEDCA7BCBA57C /* LyricsCache.swift in Sources */,
+				26821024BDD609E21F32F98A /* LyricsContentView.swift in Sources */,
 				AC4A77A2CB1A265C1EB34A9F /* LyricsService.swift in Sources */,
 				887E027B6F8F09227B1A8C73 /* LyricsStore.swift in Sources */,
 				1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */,
+				036EFBDB3F5F51D47521D0A3 /* Preferences.swift in Sources */,
+				92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */,
 				63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
