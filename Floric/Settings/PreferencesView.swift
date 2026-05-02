@@ -12,6 +12,11 @@ struct PreferencesMenu: View {
                 Text(mode.label).tag(mode)
             }
         }
+        Picker("Appearance", selection: $prefs.appearanceMode) {
+            ForEach(AppearanceMode.allCases) { mode in
+                Text(mode.label).tag(mode)
+            }
+        }
         Toggle("Click-through", isOn: $prefs.clickThrough)
         Toggle("Hide when paused", isOn: $prefs.hideWhenPaused)
         Toggle("Show floating lyrics", isOn: $prefs.windowVisible)
