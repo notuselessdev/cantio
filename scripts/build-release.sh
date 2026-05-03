@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build a signed, hardened, notarized, universal Floric.app and wrap it in a
+# Build a signed, hardened, notarized, universal Cantio.app and wrap it in a
 # DMG ready for distribution.
 #
 # Required env vars:
@@ -25,9 +25,9 @@ cd "$(dirname "$0")/.."
 
 CONFIGURATION="${CONFIGURATION:-Release}"
 BUILD_DIR="${BUILD_DIR:-build}"
-SCHEME="Floric"
-PROJECT="Floric.xcodeproj"
-APP_NAME="Floric"
+SCHEME="Cantio"
+PROJECT="Cantio.xcodeproj"
+APP_NAME="Cantio"
 ARCHIVE_PATH="${BUILD_DIR}/${APP_NAME}.xcarchive"
 EXPORT_DIR="${BUILD_DIR}/export"
 APP_PATH="${EXPORT_DIR}/${APP_NAME}.app"

@@ -1,7 +1,7 @@
 # TODO — Drag snap + alignment guides
 
 Scope: Raycast-style alignment guides + magnetic snap for floating lyrics window during drag. Bottom-center primary anchor (lyrics naturally sit low).
-Owner files: `Floric/Floating/FloatingLyricsController.swift`, `Floric/Floating/FloatingLyricsWindow.swift`, possibly new `Floric/Floating/DragSnapOverlay.swift`.
+Owner files: `Cantio/Floating/FloatingLyricsController.swift`, `Cantio/Floating/FloatingLyricsWindow.swift`, possibly new `Cantio/Floating/DragSnapOverlay.swift`.
 
 Reference: Raycast shows dashed crosshair at top-center with magnetic pull radius ~40pt while dragging.
 

@@ -1,4 +1,4 @@
-# Claude Code Workflow — Floric
+# Claude Code Workflow — Cantio
 
 Distilled from Boris Cherny (Claude Code creator) + applied to this Swift /
 macOS / Apple-HIG project. The big idea: **vanilla Claude Code + tight
@@ -11,7 +11,7 @@ verification loop + workflows-as-slash-commands**.
 > "Give Claude a way to verify its work. If Claude has that feedback loop, it
 > will 2-3× the quality of the final result." — Boris
 
-For Floric, verification = **`xcodebuild` + tests + (where possible) snapshot
+For Cantio, verification = **`xcodebuild` + tests + (where possible) snapshot
 diff or app-launch sanity check**. Every agent and every workflow ends with a
 verify step. No "I think it works" without proof.
 
@@ -28,7 +28,7 @@ verify step. No "I think it works" without proof.
 
 ## 3. Parallelism by default
 
-Boris runs **5 Claudes in terminal + 5–10 on claude.ai/code**. Floric is
+Boris runs **5 Claudes in terminal + 5–10 on claude.ai/code**. Cantio is
 smaller, so:
 
 - **Local terminal lead (this session)** — orchestrator, code edits, builds.
@@ -45,8 +45,8 @@ Boris: "Opus 4.5 with thinking for everything. Even though it's bigger &
 slower than Sonnet, you have to steer it less and it's better at tool use, so
 it's almost always faster than using a smaller model in the end."
 
-For Floric:
-- **Lead session:** Opus (Floric is small, edits matter, taste matters).
+For Cantio:
+- **Lead session:** Opus (Cantio is small, edits matter, taste matters).
 - **Subagents that build/verify:** Haiku (mechanical, no judgment).
 - **Subagents that review (HIG, a11y, code review):** Opus (judgment-heavy).
 - **Subagents that write tests:** Sonnet (volume + correctness, less taste).
@@ -55,7 +55,7 @@ For Floric:
 
 > "Anytime we see Claude do something incorrectly we add it to the CLAUDE.md."
 
-Floric's `CLAUDE.md` (project root) should contain:
+Cantio's `CLAUDE.md` (project root) should contain:
 - Build commands (`xcodebuild ...`).
 - "Always test pill+minimal+fullscreen × glass+solid × light+dark before
   declaring UI work done."
@@ -77,24 +77,24 @@ Anything done > 2× per session → slash command in `.claude/commands/`.
 Boris's example: `/commit-push-pr` with inline bash that pre-computes
 `git status`, branch name, etc. — saves a roundtrip.
 
-Floric slash commands to write (see `.claude/commands/` once defined):
+Cantio slash commands to write (see `.claude/commands/` once defined):
 
 | Command            | Does                                                        |
 | ------------------ | ----------------------------------------------------------- |
-| `/build-and-run`   | xcodebuild → killall Floric → open .app                     |
-| `/test-floric`     | xcodebuild test, terse output                               |
+| `/build-and-run`   | xcodebuild → killall Cantio → open .app                     |
+| `/test-cantio`     | xcodebuild test, terse output                               |
 | `/snapshot-record` | re-record snapshot tests, show diff                         |
 | `/hig-check`       | spawn `hig-reviewer` on uncommitted diff                    |
 | `/gap-audit`       | spawn `regression-auditor` to find untested code            |
-| `/commit-floric`   | conventional commit, includes test status check             |
-| `/spotify-permission-reset` | reset TCC for Floric's Spotify automation perm     |
+| `/commit-cantio`   | conventional commit, includes test status check             |
+| `/spotify-permission-reset` | reset TCC for Cantio's Spotify automation perm     |
 
 Use inline `!` bash inside command bodies for pre-computed context.
 
 ## 7. Subagents for repeated workflows
 
 Boris uses `code-simplifier` (post-work cleanup) and `verify-app` (E2E test).
-Floric mirrors this — see `.claude/agents/`:
+Cantio mirrors this — see `.claude/agents/`:
 
 - `swift-builder` — verify build (replaces `verify-app` for this domain).
 - `code-simplifier` — post-work cleanup (already a global skill — invoke).
@@ -108,7 +108,7 @@ Floric mirrors this — see `.claude/agents/`:
 Boris: "PostToolUse hook to format Claude's code... avoid formatting errors
 in CI later."
 
-Floric hooks (write to `.claude/settings.json`):
+Cantio hooks (write to `.claude/settings.json`):
 
 - **PostToolUse on `Edit`/`Write` for `*.swift`**:
   Run `swift-format` (if installed) or `swiftformat` to keep style consistent.
@@ -126,14 +126,14 @@ Floric hooks (write to `.claude/settings.json`):
 Boris: "I don't use `--dangerously-skip-permissions`. Instead, I use
 `/permissions` to pre-allow common bash commands."
 
-Floric `.claude/settings.json` should pre-allow:
+Cantio `.claude/settings.json` should pre-allow:
 
 ```json
 {
   "permissions": {
     "allow": [
       "Bash(xcodebuild:*)",
-      "Bash(killall Floric)",
+      "Bash(killall Cantio)",
       "Bash(open /Users/mayron/Library/Developer/Xcode/DerivedData/**)",
       "Bash(swift-format:*)",
       "Bash(swiftformat:*)",
@@ -149,17 +149,17 @@ Floric `.claude/settings.json` should pre-allow:
 Boris: For long tasks, use a Stop hook to deterministically verify, OR the
 `ralph-wiggum` plugin pattern.
 
-For Floric: `Stop` hook spawns `swift-builder` + runs snapshot tests if any
+For Cantio: `Stop` hook spawns `swift-builder` + runs snapshot tests if any
 `*.swift` changed in this session. Catches "Claude said it's done but didn't
 verify."
 
 ## 11. Use all tools
 
-Boris uses Slack MCP, BigQuery, Sentry, Chrome extension. For Floric:
+Boris uses Slack MCP, BigQuery, Sentry, Chrome extension. For Cantio:
 
 - **GitHub MCP** (if installed) — PR review, issue lookup.
 - **iTerm `it2` CLI** — for tmux split-pane teammates (already installed?).
-- **Chrome MCP / Chrome extension** — N/A (Floric is native macOS, not web).
+- **Chrome MCP / Chrome extension** — N/A (Cantio is native macOS, not web).
 - **Sentry** — N/A (no telemetry by design).
 
 ## 12. Capture wrong assumptions back into CLAUDE.md
@@ -181,6 +181,6 @@ This is how the project's agent layer compounds in quality over time.
 5. Spawn `swift-builder` to verify.
 6. If UI changed: spawn `hig-reviewer` + `a11y-auditor` in parallel.
 7. If logic changed: spawn `test-author` to extend tests.
-8. Run `/test-floric`.
-9. If green + reviews clean: `/commit-floric`.
+8. Run `/test-cantio`.
+9. If green + reviews clean: `/commit-cantio`.
 10. End-of-session: log any anti-patterns into CLAUDE.md.

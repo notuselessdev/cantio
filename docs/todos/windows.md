@@ -3,7 +3,7 @@
 Status: **All milestones complete (W1–W4).** Bundled as one Wave 1B "windows pass."
 
 Scope: floating lyrics window behavior across `pill` / `minimal` / `fullscreen` styles.
-Owner files: `Floric/Floating/FloatingLyricsController.swift`, `Floric/Floating/FloatingLyricsWindow.swift`, `Floric/Settings/Preferences.swift`.
+Owner files: `Cantio/Floating/FloatingLyricsController.swift`, `Cantio/Floating/FloatingLyricsWindow.swift`, `Cantio/Settings/Preferences.swift`.
 
 ---
 
@@ -41,11 +41,11 @@ Gotchas: `level = .floating` may sit below native fullscreen Spaces. May need `.
 
 ## W3 — Minimal: persist last size — ✅ DONE
 
-Autosave name: `FloricFloatingLyricsWindow.minimal` (separate from pill). Set before first `setFrame`.
+Autosave name: `CantioFloatingLyricsWindow.minimal` (separate from pill). Set before first `setFrame`.
 
 Today: minimal does not restore size across launches.
 
-- `setFrameAutosaveName("FloricFloatingLyricsWindow.minimal")` separate from pill autosave (pill is fixed-size capsule, minimal is resizable).
+- `setFrameAutosaveName("CantioFloatingLyricsWindow.minimal")` separate from pill autosave (pill is fixed-size capsule, minimal is resizable).
 - Ensure autosave runs after `setFrame` not before (Cocoa quirk — autosave reads frame from defaults only if name set BEFORE first setFrame).
 - Size constraints: `contentMinSize`, `contentMaxSize` so user can't shrink below readable.
 - On style switch pill→minimal: load saved minimal frame; minimal→pill: save minimal frame, apply pill default.

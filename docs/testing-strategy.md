@@ -1,4 +1,4 @@
-# Testing Strategy — Floric
+# Testing Strategy — Cantio
 
 Goal: every change is verified, not guessed. No regressions slip through. Tests
 exist at the right altitude for the cost of writing + maintaining them.
@@ -116,7 +116,7 @@ tests because we can't drive real Spotify in CI.
 
 ## 5. Snapshot recording workflow
 
-- Snapshots stored under `FloricTests/__Snapshots__/<TestCaseName>/`.
+- Snapshots stored under `CantioTests/__Snapshots__/<TestCaseName>/`.
 - Re-record only when intentional visual change: `record: true` flag → run → review diff → set back to `false`.
 - Commit snapshot images with the change. PR diff shows pixel changes.
 - Reviewer rejects PR if snapshot diff doesn't match described change.
@@ -136,7 +136,7 @@ tests because we can't drive real Spotify in CI.
 ## 7. Test naming + organization
 
 ```
-FloricTests/
+CantioTests/
 ├── Lyrics/
 │   ├── LyricLineTests.swift
 │   ├── LyricPositionTests.swift
@@ -158,7 +158,7 @@ FloricTests/
 │   ├── MockPlaybackSource.swift
 │   └── StubLyricsProvider.swift
 └── UI/
-    └── FloricUITests.swift  (XCUITest target)
+    └── CantioUITests.swift  (XCUITest target)
 ```
 
 Test method naming: `test_<unit>_<condition>_<expected>()`
@@ -224,14 +224,14 @@ Hooks (see `.claude/settings.json`):
 
 ## 10. Bootstrap order (next steps)
 
-1. Add `FloricTests` + `FloricUITests` targets to Xcode project.
+1. Add `CantioTests` + `CantioUITests` targets to Xcode project.
 2. Add `swift-snapshot-testing` via SPM.
 3. Refactor `SpotifyMonitor` + `LRCLibProvider` behind protocols.
 4. Write `MockPlaybackSource` + `StubLyricsProvider`.
 5. Write first 5 unit tests (LyricLine + LyricPosition + LyricsCache + Preferences migration + FlowLayout).
 6. Write first 3 snapshot tests (PillCapsule, MenuBarPanel, LyricsContentView pill+glass+dark).
 7. Write 1 UI smoke test (launch → menu opens).
-8. Wire CI script: `xcodebuild -scheme Floric test`.
+8. Wire CI script: `xcodebuild -scheme Cantio test`.
 9. Add hooks for build-on-edit + commit-gate.
 
 This order = each step verifies the previous before adding more surface.

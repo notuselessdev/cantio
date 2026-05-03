@@ -1,8 +1,8 @@
-# Apple HIG Checklist — Floric
+# Apple HIG Checklist — Cantio
 
 Purpose: every UI change validated against this list before merge. Distilled from
 Apple Human Interface Guidelines, focused on **macOS menu-bar utilities + floating
-panels** (Floric's two surfaces).
+panels** (Cantio's two surfaces).
 
 Use as: agent prompt material (HIG reviewer), PR review checklist, design test
 matrix.

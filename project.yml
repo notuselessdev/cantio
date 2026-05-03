@@ -1,6 +1,6 @@
-name: Floric
+name: Cantio
 options:
-  bundleIdPrefix: co.sultans.floric
+  bundleIdPrefix: com.mayronalves.cantio
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
@@ -37,44 +37,44 @@ packages:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     from: "1.17.0"
 targets:
-  Floric:
+  Cantio:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Floric
+      - path: Cantio
         excludes:
           - "Info.plist"
     dependencies:
       - package: Sparkle
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: co.sultans.floric
-        PRODUCT_NAME: Floric
+        PRODUCT_BUNDLE_IDENTIFIER: com.mayronalves.cantio
+        PRODUCT_NAME: Cantio
         GENERATE_INFOPLIST_FILE: NO
-        INFOPLIST_FILE: Floric/Info.plist
+        INFOPLIST_FILE: Cantio/Info.plist
         ENABLE_HARDENED_RUNTIME: YES
         COMBINE_HIDPI_IMAGES: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CODE_SIGN_ENTITLEMENTS: Floric/Floric.entitlements
+        CODE_SIGN_ENTITLEMENTS: Cantio/Cantio.entitlements
     scheme:
       testTargets:
-        - FloricTests
+        - CantioTests
       gatherCoverageData: true
-  FloricTests:
+  CantioTests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: FloricTests
+      - path: CantioTests
     dependencies:
-      - target: Floric
+      - target: Cantio
       - package: SnapshotTesting
         product: SnapshotTesting
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: co.sultans.FloricTests
-        PRODUCT_NAME: FloricTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.mayronalves.CantioTests
+        PRODUCT_NAME: CantioTests
         GENERATE_INFOPLIST_FILE: YES
         BUNDLE_LOADER: "$(TEST_HOST)"
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Cantio.app/Contents/MacOS/Cantio"

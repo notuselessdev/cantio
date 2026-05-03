@@ -3,7 +3,7 @@
 Status: **All milestones complete (T1–T3).** See per-milestone notes below.
 
 Scope: lyric line + sub-line typography across pill / minimal / fullscreen.
-Owner files: `Floric/Settings/Preferences.swift` (FontSize enum), `Floric/Floating/LyricsContentView.swift` (or equivalent renderer), `Floric/Settings/PreferencesView.swift`.
+Owner files: `Cantio/Settings/Preferences.swift` (FontSize enum), `Cantio/Floating/LyricsContentView.swift` (or equivalent renderer), `Cantio/Settings/PreferencesView.swift`.
 
 ---
 

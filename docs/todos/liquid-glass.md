@@ -3,10 +3,10 @@
 Status: **All milestones complete (L1–L5).** Runtime-gated `#available(macOS 26, *)` everywhere; macOS 14/15 uses existing `NSVisualEffectView` paths. Reduce Transparency + Increase Contrast both force `.off` regardless of pref.
 
 Scope: native Liquid Glass material for pill mode + menubar panel. Settings-only configuration.
-Owner files: `Floric/MenuBarPanel.swift`, `Floric/Floating/PillContent*.swift`, `Floric/Settings/Preferences.swift`, `Floric/Settings/PreferencesView.swift`, `Floric/Theme/FL.Palette.swift` (or wherever materials live).
+Owner files: `Cantio/MenuBarPanel.swift`, `Cantio/Floating/PillContent*.swift`, `Cantio/Settings/Preferences.swift`, `Cantio/Settings/PreferencesView.swift`, `Cantio/Theme/FL.Palette.swift` (or wherever materials live).
 
 Reference: <https://claudeskills.club/skills/swiftui-liquid-glass-by-steipete>
-API note: skill targets iOS 26 — same `.glassEffect()` API ships on **macOS 26 (Tahoe)**. Floric deployment target = macOS 14. → MUST gate w/ `if #available(macOS 26, *)` + fallback to `NSVisualEffectView .hudWindow / .popover` (current impl).
+API note: skill targets iOS 26 — same `.glassEffect()` API ships on **macOS 26 (Tahoe)**. Cantio deployment target = macOS 14. → MUST gate w/ `if #available(macOS 26, *)` + fallback to `NSVisualEffectView .hudWindow / .popover` (current impl).
 
 ---
 

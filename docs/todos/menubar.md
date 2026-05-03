@@ -3,7 +3,7 @@
 Status: **All milestones complete (M1–M3).** See per-milestone notes below.
 
 Scope: `MenuBarExtra(.window)` panel UX.
-Owner files: `Floric/MenuBarPanel.swift`, `Floric/Settings/SettingsScene.swift` (or wherever `SettingsLink` lives), `Floric/Spotify/SpotifyMonitor.swift`.
+Owner files: `Cantio/MenuBarPanel.swift`, `Cantio/Settings/SettingsScene.swift` (or wherever `SettingsLink` lives), `Cantio/Spotify/SpotifyMonitor.swift`.
 
 ---
 

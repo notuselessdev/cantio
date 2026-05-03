@@ -1,4 +1,4 @@
-# Floric
+# Cantio
 
 Floating, time-synced song lyrics for macOS. Reads the currently-playing
 track directly from the local Spotify app — no Spotify Web API, no OAuth.
@@ -16,35 +16,35 @@ whenever you add files or change build settings.
 
 ```sh
 xcodegen generate
-open Floric.xcodeproj
+open Cantio.xcodeproj
 ```
 
 Or build and run from the command line:
 
 ```sh
 xcodegen generate
-xcodebuild -project Floric.xcodeproj -scheme Floric -configuration Debug build
-open ~/Library/Developer/Xcode/DerivedData/Floric-*/Build/Products/Debug/Floric.app
+xcodebuild -project Cantio.xcodeproj -scheme Cantio -configuration Debug build
+open ~/Library/Developer/Xcode/DerivedData/Cantio-*/Build/Products/Debug/Cantio.app
 ```
 
-Floric runs as a menu-bar (status item) app — no Dock icon — driven by
+Cantio runs as a menu-bar (status item) app — no Dock icon — driven by
 `LSUIElement = true`. Look for the music-note glyph in your menu bar.
 
 ## Project Layout
 
 ```
-Floric/              SwiftUI sources
-  FloricApp.swift    @main entry point + MenuBarExtra scene
+Cantio/              SwiftUI sources
+  CantioApp.swift    @main entry point + MenuBarExtra scene
   Assets.xcassets    AppIcon catalog
 project.yml          XcodeGen spec — source of truth for the Xcode project
 ```
 
-`Floric.xcodeproj` is generated; do not hand-edit. Modify `project.yml`
+`Cantio.xcodeproj` is generated; do not hand-edit. Modify `project.yml`
 and re-run `xcodegen generate`.
 
 ## Packaging & distribution
 
-Floric ships as a universal (Apple Silicon + Intel) `.app` inside a
+Cantio ships as a universal (Apple Silicon + Intel) `.app` inside a
 drag-to-Applications DMG. Release builds use a hardened runtime, are
 signed with Developer ID, and are notarized + stapled.
 
@@ -55,7 +55,7 @@ export APPLE_ID="you@example.com"
 export APPLE_APP_PASSWORD="abcd-efgh-ijkl-mnop"   # app-specific password
 
 scripts/build-release.sh
-# → build/Floric.dmg
+# → build/Cantio.dmg
 ```
 
 `SKIP_NOTARIZE=1 scripts/build-release.sh` skips notarization (useful for
@@ -70,7 +70,7 @@ The script:
    `runtime` flag.
 5. Submits to Apple Notary Service (`xcrun notarytool ... --wait`) and
    staples the ticket.
-6. Builds a `Floric.dmg` with a `/Applications` symlink for drag-to-install.
+6. Builds a `Cantio.dmg` with a `/Applications` symlink for drag-to-install.
 
 ### Auto-update (Sparkle)
 

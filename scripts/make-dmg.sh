@@ -3,7 +3,7 @@
 # Build a drag-to-Applications DMG from a signed .app bundle.
 #
 # Usage:
-#   scripts/make-dmg.sh <path/to/Floric.app> <path/to/output.dmg>
+#   scripts/make-dmg.sh <path/to/Cantio.app> <path/to/output.dmg>
 
 set -euo pipefail
 
@@ -17,13 +17,13 @@ if [[ ! -d "${APP_PATH}" ]]; then
   exit 1
 fi
 
-WORK_DIR="$(mktemp -d -t floric-dmg)"
+WORK_DIR="$(mktemp -d -t cantio-dmg)"
 trap 'rm -rf "${WORK_DIR}"' EXIT
 
 STAGE="${WORK_DIR}/stage"
 mkdir -p "${STAGE}"
 
-# Layout: Floric.app + symlink to /Applications. Drag-to-install.
+# Layout: Cantio.app + symlink to /Applications. Drag-to-install.
 cp -R "${APP_PATH}" "${STAGE}/"
 ln -s /Applications "${STAGE}/Applications"
 

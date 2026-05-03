@@ -1,4 +1,4 @@
-# Floric Test Inventory
+# Cantio Test Inventory
 
 Prioritized list of unit-testable units, ranked by `value × ease`. No tests exist yet.
 
@@ -93,9 +93,9 @@ Pure logic, no AppKit/network/Spotify deps. Zero refactor.
 - `Settings/PreferencesView.swift` — snapshot.
 - `Spotify/SpotifyPermission.swift` — wraps TCC; can't drive in unit tests.
 - `Spotify/SpotifyMonitor.poll()` / `loop()` — orchestrates AppleScript + global queue + permission prompt; defer until protocol seam exists, then test via `MockPlaybackSource` at the call site (LyricsStore).
-- `Design/FloricIcon.swift` — Canvas drawing → snapshot.
+- `Design/CantioIcon.swift` — Canvas drawing → snapshot.
 - `Lyrics/LyricsCache.summary()` ByteCountFormatter output — locale-dependent; low value.
-- `Updates/*`, `MenuBarPanel.swift`, `FloricApp.swift` — wiring; UI smoke test covers.
+- `Updates/*`, `MenuBarPanel.swift`, `CantioApp.swift` — wiring; UI smoke test covers.
 - `HotKey.keyName` non-table path (UCKeyTranslate) — depends on system keyboard layout, brittle.
 
 ---
