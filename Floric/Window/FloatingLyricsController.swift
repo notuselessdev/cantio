@@ -18,9 +18,12 @@ final class FloatingLyricsController {
     private let monitor: SpotifyMonitor
     private let lyrics: LyricsStore
     private let prefs: Preferences
+    private let hitTarget: PillHitTarget
 
     private var window: FloatingLyricsWindow?
     private var clickMonitor: Any?
+    private var localMouseMovedMonitor: Any?
+    private var globalMouseMovedMonitor: Any?
     private var fullscreenEscMonitor: Any?
     /// Style remembered before entering fullscreen so Esc can restore it.
     private var preFullscreenStyle: WindowStyle?
@@ -46,10 +49,12 @@ final class FloatingLyricsController {
     private static let minimalDefaultSize = NSSize(width: 520, height: 120)
     private static let pillDefaultSize = NSSize(width: 520, height: 80)
 
-    init(monitor: SpotifyMonitor, lyrics: LyricsStore, prefs: Preferences) {
+    init(monitor: SpotifyMonitor, lyrics: LyricsStore, prefs: Preferences,
+         hitTarget: PillHitTarget) {
         self.monitor = monitor
         self.lyrics = lyrics
         self.prefs = prefs
+        self.hitTarget = hitTarget
     }
 
     /// Creates the window if needed and applies current preferences.
@@ -98,7 +103,7 @@ final class FloatingLyricsController {
             monitor: monitor,
             lyrics: lyrics,
             prefs: prefs
-        ))
+        ).environmentObject(hitTarget))
         host.translatesAutoresizingMaskIntoConstraints = false
         window.contentView = host
 
@@ -240,22 +245,77 @@ final class FloatingLyricsController {
         guard let window else { return }
         switch prefs.windowStyle {
         case .pill:
-            // Per-pixel alpha hit-test breaks against `.glassEffect()` (Metal
-            // compositor writes the glass blend after the bitmap snapshot, so
-            // sampled pixels read transparent). Make the whole pill window
-            // interactive — the borderless frame is sized to the visible
-            // silhouette, so pixels outside the pill body don't exist to
-            // intercept clicks.
-            window.ignoresMouseEvents = false
+            // Shape-based hit-test: the 520x80 borderless frame contains a
+            // capsule that hugs its content, leaving transparent margins.
+            // Per-pixel alpha sampling can't probe `.glassEffect()` reliably
+            // (Metal blend happens after the bitmap snapshot), so instead we
+            // toggle `ignoresMouseEvents` on mouse move based on whether the
+            // cursor sits inside the published capsule rect. Default to
+            // pass-through until the first move event lands.
+            window.ignoresMouseEvents = true
+            installPillMouseMovedMonitors()
         case .minimal:
             // W1: minimal is always interactive regardless of any other state.
             window.ignoresMouseEvents = false
+            removePillMouseMovedMonitors()
         case .fullscreen:
             // Fullscreen accepts clicks so the user can interact with the
             // overlay (and so Esc / future close affordance lives inside it).
             window.ignoresMouseEvents = false
+            removePillMouseMovedMonitors()
         }
         installFullscreenEscMonitorIfNeeded()
+    }
+
+    private func installPillMouseMovedMonitors() {
+        if localMouseMovedMonitor == nil {
+            localMouseMovedMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
+                Task { @MainActor in self?.updatePillIgnoresMouseEvents() }
+                return event
+            }
+        }
+        if globalMouseMovedMonitor == nil {
+            globalMouseMovedMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+                Task { @MainActor in self?.updatePillIgnoresMouseEvents() }
+            }
+        }
+    }
+
+    private func removePillMouseMovedMonitors() {
+        if let m = localMouseMovedMonitor { NSEvent.removeMonitor(m); localMouseMovedMonitor = nil }
+        if let m = globalMouseMovedMonitor { NSEvent.removeMonitor(m); globalMouseMovedMonitor = nil }
+    }
+
+    private func updatePillIgnoresMouseEvents() {
+        guard let window, prefs.windowStyle == .pill else { return }
+        let mouse = NSEvent.mouseLocation
+        let inside = Self.pointInsideCapsuleRect(
+            mouseScreen: mouse,
+            capsuleInContentView: hitTarget.capsuleRectInContentView,
+            windowFrame: window.frame
+        )
+        let shouldIgnore = !inside
+        if window.ignoresMouseEvents != shouldIgnore {
+            window.ignoresMouseEvents = shouldIgnore
+        }
+    }
+
+    /// Pure helper: is the screen-space mouse point inside the capsule's
+    /// SwiftUI rect (top-left origin, content-view space)? Converts the
+    /// SwiftUI rect into AppKit screen coords by Y-flipping against the
+    /// window's height, then offsetting by the window's bottom-left origin.
+    /// Exposed for unit tests — no `NSWindow` required.
+    static func pointInsideCapsuleRect(mouseScreen: NSPoint,
+                                       capsuleInContentView: CGRect,
+                                       windowFrame: NSRect) -> Bool {
+        guard capsuleInContentView != .zero else { return false }
+        let h = windowFrame.height
+        let screenMinX = windowFrame.minX + capsuleInContentView.minX
+        let screenMinY = windowFrame.minY + (h - capsuleInContentView.maxY)
+        let screenRect = NSRect(x: screenMinX, y: screenMinY,
+                                width: capsuleInContentView.width,
+                                height: capsuleInContentView.height)
+        return screenRect.contains(mouseScreen)
     }
 
     /// Esc key exits fullscreen — without this the user has no way out

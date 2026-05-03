@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let monitor = SpotifyMonitor()
     let lyrics = LyricsStore()
     let prefs = Preferences.shared
+    let pillHitTarget = PillHitTarget()
     private var floatingController: FloatingLyricsController?
     private var didBootstrap = false
 
@@ -44,7 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = FloatingLyricsController(
             monitor: monitor,
             lyrics: lyrics,
-            prefs: prefs
+            prefs: prefs,
+            hitTarget: pillHitTarget
         )
         controller.start()
         floatingController = controller

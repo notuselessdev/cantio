@@ -1,6 +1,17 @@
 import SwiftUI
 import AppKit
 
+/// Shared bridge between the SwiftUI capsule geometry and the AppKit window's
+/// hit-testing. The pill window stays the same fixed 520x80 NSWindow but the
+/// visible capsule hugs its content, leaving transparent margins. The view
+/// publishes the capsule's frame (in the SwiftUI host's content coordinate
+/// space — top-left origin) and the controller flips `ignoresMouseEvents`
+/// based on whether the cursor is inside that rect.
+@MainActor
+final class PillHitTarget: ObservableObject {
+    @Published var capsuleRectInContentView: CGRect = .zero
+}
+
 /// Floating lyrics window content. Implements the six visual presets from
 /// the design handoff: pill / pillStack / glass / solid / minimal /
 /// fullscreen.
@@ -8,6 +19,11 @@ struct LyricsContentView: View {
     @ObservedObject var monitor: SpotifyMonitor
     @ObservedObject var lyrics: LyricsStore
     @ObservedObject var prefs: Preferences
+    @EnvironmentObject var hitTarget: PillHitTarget
+
+    /// Coordinate space declared at the root of `pillBody` so PillCapsule
+    /// can report its frame relative to the NSHostingView's contentView.
+    private static let pillCoordinateSpace = "pillContent"
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -66,14 +82,16 @@ struct LyricsContentView: View {
             // No window chrome — capsule(s) hover over wallpaper.
             switch monitor.availability {
             case .permissionDenied:
-                permissionCapsule
+                permissionCapsule.modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
             case .notInstalled:
                 placeholderCapsule("Install Spotify to see lyrics")
+                    .modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
             case .notRunning, .available:
                 lyricsContent(forPill: true, linesAround: linesAround)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .coordinateSpace(name: Self.pillCoordinateSpace)
     }
 
     // MARK: - Window (glass / solid / minimal)
@@ -299,6 +317,7 @@ struct LyricsContentView: View {
                             glassOpacity: prefs.glassOpacity,
                             glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
                             reduceTransparency: reduceTransparency)
+                    .modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
                 if linesAround >= 1 {
                     pillSibling(words: lp.next?.words, exists: lp.next != nil,
                                 size: pillNear, opacity: 1)
@@ -934,6 +953,44 @@ extension LyricLine {
             if lines[mid].timestamp <= position { lo = mid } else { hi = mid - 1 }
         }
         return lo
+    }
+}
+
+// MARK: - Pill capsule frame reporter
+
+/// Reports the visible capsule's frame in the named coordinate space (which
+/// is anchored at the SwiftUI host's contentView origin) to the shared
+/// `PillHitTarget`. The controller reads this rect to gate
+/// `ignoresMouseEvents` so transparent areas around the capsule pass clicks
+/// through to the desktop.
+struct PillCapsuleFrameReporter: ViewModifier {
+    let space: String
+    @ObservedObject var hitTarget: PillHitTarget
+
+    func body(content: Content) -> some View {
+        content.background(
+            GeometryReader { geo in
+                Color.clear.preference(
+                    key: PillCapsuleFramePreferenceKey.self,
+                    value: geo.frame(in: .named(space))
+                )
+            }
+        )
+        .onPreferenceChange(PillCapsuleFramePreferenceKey.self) { rect in
+            Task { @MainActor in
+                if hitTarget.capsuleRectInContentView != rect {
+                    hitTarget.capsuleRectInContentView = rect
+                }
+            }
+        }
+    }
+}
+
+private struct PillCapsuleFramePreferenceKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        let next = nextValue()
+        if next != .zero { value = next }
     }
 }
 

@@ -63,4 +63,61 @@ final class EffectiveClickThroughTests: XCTestCase {
         XCTAssertFalse(FloatingLyricsController.shouldStartDrag(
             beginEvent: begin, currentEvent: drag, thresholdPoints: 4))
     }
+
+    // MARK: - Capsule shape hit-test
+
+    /// Window at screen origin (100, 200) sized 520x80. Capsule sits centered
+    /// horizontally (SwiftUI top-left coords): x in [160, 360], y in [20, 60]
+    /// → height 40, width 200. After Y-flip against window height (80):
+    /// AppKit screen y in [windowMinY + (80 - 60), windowMinY + (80 - 20)]
+    ///                  = [200 + 20, 200 + 60] = [220, 260].
+    /// AppKit screen x in [100 + 160, 100 + 360] = [260, 460].
+    private let testWindowFrame = NSRect(x: 100, y: 200, width: 520, height: 80)
+    private let testCapsuleRect = CGRect(x: 160, y: 20, width: 200, height: 40)
+
+    func test_pointInsideCapsuleRect_centerInside_returnsTrue() {
+        // Center: (360, 240) in screen coords.
+        XCTAssertTrue(FloatingLyricsController.pointInsideCapsuleRect(
+            mouseScreen: NSPoint(x: 360, y: 240),
+            capsuleInContentView: testCapsuleRect,
+            windowFrame: testWindowFrame))
+    }
+
+    func test_pointInsideCapsuleRect_outsideLeft_returnsFalse() {
+        XCTAssertFalse(FloatingLyricsController.pointInsideCapsuleRect(
+            mouseScreen: NSPoint(x: 200, y: 240),
+            capsuleInContentView: testCapsuleRect,
+            windowFrame: testWindowFrame))
+    }
+
+    func test_pointInsideCapsuleRect_outsideRight_returnsFalse() {
+        XCTAssertFalse(FloatingLyricsController.pointInsideCapsuleRect(
+            mouseScreen: NSPoint(x: 500, y: 240),
+            capsuleInContentView: testCapsuleRect,
+            windowFrame: testWindowFrame))
+    }
+
+    func test_pointInsideCapsuleRect_outsideAbove_returnsFalse() {
+        // SwiftUI top of capsule (y=20) maps to screen y=260; above = y > 260.
+        XCTAssertFalse(FloatingLyricsController.pointInsideCapsuleRect(
+            mouseScreen: NSPoint(x: 360, y: 270),
+            capsuleInContentView: testCapsuleRect,
+            windowFrame: testWindowFrame))
+    }
+
+    func test_pointInsideCapsuleRect_outsideBelow_returnsFalse() {
+        // SwiftUI bottom of capsule (y=60) maps to screen y=220; below = y < 220.
+        XCTAssertFalse(FloatingLyricsController.pointInsideCapsuleRect(
+            mouseScreen: NSPoint(x: 360, y: 210),
+            capsuleInContentView: testCapsuleRect,
+            windowFrame: testWindowFrame))
+    }
+
+    func test_pointInsideCapsuleRect_zeroRect_returnsFalse() {
+        // No capsule reported yet — must not falsely claim hits.
+        XCTAssertFalse(FloatingLyricsController.pointInsideCapsuleRect(
+            mouseScreen: NSPoint(x: 360, y: 240),
+            capsuleInContentView: .zero,
+            windowFrame: testWindowFrame))
+    }
 }
