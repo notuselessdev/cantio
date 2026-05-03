@@ -33,6 +33,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: "2.6.0"
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: "1.17.0"
 targets:
   Floric:
     type: application
@@ -54,3 +57,24 @@ targets:
         COMBINE_HIDPI_IMAGES: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Floric/Floric.entitlements
+    scheme:
+      testTargets:
+        - FloricTests
+      gatherCoverageData: true
+  FloricTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: FloricTests
+    dependencies:
+      - target: Floric
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: co.sultans.FloricTests
+        PRODUCT_NAME: FloricTests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric"

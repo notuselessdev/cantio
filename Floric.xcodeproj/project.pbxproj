@@ -27,6 +27,25 @@
 		D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */; };
 		F0B032E65C99C56516B2CDB8 /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02ED958E28D3377CCC675703 /* HotKey.swift */; };
 		F58A3166D42C86D067ACFAB4 /* HotKeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20AAD06EF6548EEC0326DC8 /* HotKeyRecorder.swift */; };
+		AAAA000000000000000000A1 /* MenuBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000B1 /* MenuBarPanel.swift */; };
+		AAAA000000000000000000A2 /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000B2 /* Tokens.swift */; };
+		AAAA000000000000000000A3 /* FloricIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000B3 /* FloricIcon.swift */; };
+		BBBB0000000000000000A007 /* FloricTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000A006 /* FloricTests.swift */; };
+		BBBB0000000000000000B011 /* LRCParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B001 /* LRCParserTests.swift */; };
+		BBBB0000000000000000B012 /* LyricLineActiveIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B002 /* LyricLineActiveIndexTests.swift */; };
+		BBBB0000000000000000B013 /* LyricPositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B003 /* LyricPositionTests.swift */; };
+		BBBB0000000000000000B014 /* LyricsCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B004 /* LyricsCacheTests.swift */; };
+		BBBB0000000000000000B015 /* PreferencesMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */; };
+		BBBB0000000000000000B016 /* HotKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B006 /* HotKeyTests.swift */; };
+		BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B007 /* FlowLayoutTests.swift */; };
+		BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B025 /* SpotifyParserTests.swift */; };
+		BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */; };
+		BBBB0000000000000000B040 /* LyricsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B041 /* LyricsStoreTests.swift */; };
+		BBBB0000000000000000B045 /* LyricsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B046 /* LyricsServiceTests.swift */; };
+		BBBB0000000000000000BC02 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = BBBB0000000000000000BC01 /* SnapshotTesting */; };
+		BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */; };
+		BBBB0000000000000000BD12 /* MenuBarPanelSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */; };
+		BBBB0000000000000000BD13 /* LyricsContentViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +70,25 @@
 		D99E944F2511C3CFE982729C /* LRCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParser.swift; sourceTree = "<group>"; };
 		DFF3CCEAC343576E261670E7 /* SpotifyPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyPermission.swift; sourceTree = "<group>"; };
 		FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
+		AAAA000000000000000000B1 /* MenuBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanel.swift; sourceTree = "<group>"; };
+		AAAA000000000000000000B2 /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
+		AAAA000000000000000000B3 /* FloricIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricIcon.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000A005 /* FloricTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FloricTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBBB0000000000000000A006 /* FloricTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B001 /* LRCParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParserTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B002 /* LyricLineActiveIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricLineActiveIndexTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B003 /* LyricPositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricPositionTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B004 /* LyricsCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCacheTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesMigrationTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B006 /* HotKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B007 /* FlowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayoutTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B025 /* SpotifyParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyParserTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtrapolatePositionTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B041 /* LyricsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStoreTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B046 /* LyricsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsServiceTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleSnapshotTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelSnapshotTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsContentViewSnapshotTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +97,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				6163A3FCCCC78117D7E8EE03 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBBB0000000000000000A00A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBBB0000000000000000BC02 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -99,8 +145,71 @@
 			isa = PBXGroup;
 			children = (
 				99A35BD2D6C698AA3EBD7F7A /* Floric.app */,
+				BBBB0000000000000000A005 /* FloricTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BBBB0000000000000000A008 /* FloricTests */ = {
+			isa = PBXGroup;
+			children = (
+				BBBB0000000000000000A006 /* FloricTests.swift */,
+				BBBB0000000000000000B021 /* Lyrics */,
+				BBBB0000000000000000B022 /* Settings */,
+				BBBB0000000000000000BD00 /* Snapshots */,
+				BBBB0000000000000000B024 /* Spotify */,
+				BBBB0000000000000000B023 /* Window */,
+			);
+			path = FloricTests;
+			sourceTree = "<group>";
+		};
+		BBBB0000000000000000BD00 /* Snapshots */ = {
+			isa = PBXGroup;
+			children = (
+				BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */,
+				BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */,
+				BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */,
+			);
+			path = Snapshots;
+			sourceTree = "<group>";
+		};
+		BBBB0000000000000000B021 /* Lyrics */ = {
+			isa = PBXGroup;
+			children = (
+				BBBB0000000000000000B001 /* LRCParserTests.swift */,
+				BBBB0000000000000000B002 /* LyricLineActiveIndexTests.swift */,
+				BBBB0000000000000000B003 /* LyricPositionTests.swift */,
+				BBBB0000000000000000B004 /* LyricsCacheTests.swift */,
+				BBBB0000000000000000B041 /* LyricsStoreTests.swift */,
+				BBBB0000000000000000B046 /* LyricsServiceTests.swift */,
+			);
+			path = Lyrics;
+			sourceTree = "<group>";
+		};
+		BBBB0000000000000000B022 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		BBBB0000000000000000B023 /* Window */ = {
+			isa = PBXGroup;
+			children = (
+				BBBB0000000000000000B006 /* HotKeyTests.swift */,
+				BBBB0000000000000000B007 /* FlowLayoutTests.swift */,
+			);
+			path = Window;
+			sourceTree = "<group>";
+		};
+		BBBB0000000000000000B024 /* Spotify */ = {
+			isa = PBXGroup;
+			children = (
+				BBBB0000000000000000B025 /* SpotifyParserTests.swift */,
+				BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */,
+			);
+			path = Spotify;
 			sourceTree = "<group>";
 		};
 		AF4A8AC41D11267A32613BCD /* Settings */ = {
@@ -128,6 +237,8 @@
 				1853290EDED3FFB04F5F8432 /* Assets.xcassets */,
 				1767A35D842857D3A56A7C1E /* Floric.entitlements */,
 				09F9940E15947E74FF3EECDC /* FloricApp.swift */,
+				AAAA000000000000000000B1 /* MenuBarPanel.swift */,
+				AAAA000000000000000000C1 /* Design */,
 				34F55CF2D335DF64908496BD /* Hotkey */,
 				4AE690A933C7DCB8711E35F3 /* Lyrics */,
 				AF4A8AC41D11267A32613BCD /* Settings */,
@@ -138,10 +249,20 @@
 			path = Floric;
 			sourceTree = "<group>";
 		};
+		AAAA000000000000000000C1 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				AAAA000000000000000000B2 /* Tokens.swift */,
+				AAAA000000000000000000B3 /* FloricIcon.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
 		C6AD1E375ACE56846F1DB05C = {
 			isa = PBXGroup;
 			children = (
 				C36393A070DBB12F44F225EE /* Floric */,
+				BBBB0000000000000000A008 /* FloricTests */,
 				A3AA00FD03DCF832001EB6EC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -179,6 +300,26 @@
 			productReference = 99A35BD2D6C698AA3EBD7F7A /* Floric.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BBBB0000000000000000A001 /* FloricTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BBBB0000000000000000A002 /* Build configuration list for PBXNativeTarget "FloricTests" */;
+			buildPhases = (
+				BBBB0000000000000000A009 /* Sources */,
+				BBBB0000000000000000A00A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BBBB0000000000000000A00B /* PBXTargetDependency */,
+			);
+			name = FloricTests;
+			packageProductDependencies = (
+				BBBB0000000000000000BC01 /* SnapshotTesting */,
+			);
+			productName = FloricTests;
+			productReference = BBBB0000000000000000A005 /* FloricTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -191,6 +332,11 @@
 					A7835E0A0B9ED2CA5C7A5281 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Manual;
+					};
+					BBBB0000000000000000A001 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+						TestTargetID = A7835E0A0B9ED2CA5C7A5281;
 					};
 				};
 			};
@@ -205,6 +351,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				BBBB0000000000000000BC00 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A3AA00FD03DCF832001EB6EC /* Products */;
@@ -212,6 +359,7 @@
 			projectRoot = "";
 			targets = (
 				A7835E0A0B9ED2CA5C7A5281 /* Floric */,
+				BBBB0000000000000000A001 /* FloricTests */,
 			);
 		};
 /* End PBXProject section */
@@ -250,10 +398,53 @@
 				63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */,
 				2995884991ACCF28C8F81FB5 /* SpotifyPermission.swift in Sources */,
 				D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */,
+				AAAA000000000000000000A1 /* MenuBarPanel.swift in Sources */,
+				AAAA000000000000000000A2 /* Tokens.swift in Sources */,
+				AAAA000000000000000000A3 /* FloricIcon.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBBB0000000000000000A009 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBBB0000000000000000A007 /* FloricTests.swift in Sources */,
+				BBBB0000000000000000B011 /* LRCParserTests.swift in Sources */,
+				BBBB0000000000000000B012 /* LyricLineActiveIndexTests.swift in Sources */,
+				BBBB0000000000000000B013 /* LyricPositionTests.swift in Sources */,
+				BBBB0000000000000000B014 /* LyricsCacheTests.swift in Sources */,
+				BBBB0000000000000000B015 /* PreferencesMigrationTests.swift in Sources */,
+				BBBB0000000000000000B016 /* HotKeyTests.swift in Sources */,
+				BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */,
+				BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */,
+				BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */,
+				BBBB0000000000000000B040 /* LyricsStoreTests.swift in Sources */,
+				BBBB0000000000000000B045 /* LyricsServiceTests.swift in Sources */,
+				BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */,
+				BBBB0000000000000000BD12 /* MenuBarPanelSnapshotTests.swift in Sources */,
+				BBBB0000000000000000BD13 /* LyricsContentViewSnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		BBBB0000000000000000A00C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 05E9A42783B51D68FA0F618D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A7835E0A0B9ED2CA5C7A5281;
+			remoteInfo = Floric;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		BBBB0000000000000000A00B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A7835E0A0B9ED2CA5C7A5281 /* Floric */;
+			targetProxy = BBBB0000000000000000A00C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0FC8472A0EC5E0A1D2D4A6B9 /* Debug */ = {
@@ -432,6 +623,38 @@
 			};
 			name = Release;
 		};
+		BBBB0000000000000000A003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
+			};
+			name = Debug;
+		};
+		BBBB0000000000000000A004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -453,6 +676,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		BBBB0000000000000000A002 /* Build configuration list for PBXNativeTarget "FloricTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBBB0000000000000000A003 /* Debug */,
+				BBBB0000000000000000A004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -464,6 +696,14 @@
 				minimumVersion = 2.6.0;
 			};
 		};
+		BBBB0000000000000000BC00 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -471,6 +711,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		BBBB0000000000000000BC01 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BBBB0000000000000000BC00 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
