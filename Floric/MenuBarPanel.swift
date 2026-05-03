@@ -36,13 +36,18 @@ struct MenuBarPanel: View {
     var body: some View {
         Group {
             if #available(macOS 26, *), panelGlassStyle != .off {
-                GlassEffectContainer(spacing: 0) { panelContent }
+                GlassEffectContainer(spacing: 0) {
+                    panelContent
+                        .glassEffectModifier(style: panelGlassStyle,
+                                             tint: palette.accent.opacity(prefs.glassOpacity),
+                                             in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             } else {
                 panelContent
+                    .background(panelBackground)
             }
         }
         .frame(width: 290)
-        .background(panelBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(palette.borderStrong, lineWidth: 0.5))
@@ -106,22 +111,16 @@ struct MenuBarPanel: View {
         }
     }
 
-    /// Panel chrome background. Three branches:
+    /// Panel chrome background for non-Liquid-Glass branches:
     /// 1. Reduce Transparency / Increase Contrast → solid `palette.bgElev`.
-    /// 2. macOS 26+ with Liquid Glass enabled → `.glassEffect()` (clear or
-    ///    accent-tinted). Sits in front of the popover material so the glass
-    ///    silhouette is what reads.
-    /// 3. Fallback (macOS 14/15 or `glassStyle == .off`) → existing
+    /// 2. Fallback (macOS 14/15 or `glassStyle == .off`) → existing
     ///    `NSVisualEffectView .popover`.
+    /// macOS 26+ glass is applied directly to `panelContent` in `body` —
+    /// `.glassEffect()` needs a real surface to render against.
     @ViewBuilder
     private var panelBackground: some View {
         if reduceTransparency || colorSchemeContrast == .increased {
             palette.bgElev
-        } else if #available(macOS 26, *), panelGlassStyle != .off {
-            Color.clear
-                .glassEffectModifier(style: panelGlassStyle,
-                                     tint: palette.accent.opacity(prefs.glassOpacity),
-                                     in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             VisualEffectBackground(material: .popover, blending: .behindWindow)
         }
@@ -690,6 +689,9 @@ struct MarqueeText: View {
     let color: Color
     var underline: Bool = false
     var gap: CGFloat = 32
+    /// Explicit line-height override. Defaults to 16pt (panel rows). Pill
+    /// callers pass the active font size so larger lyric text isn't clipped.
+    var lineHeight: CGFloat = 16
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -741,8 +743,6 @@ struct MarqueeText: View {
         }
         .frame(height: lineHeight)
     }
-
-    private var lineHeight: CGFloat { 16 }
 
     private func startScroll() {
         guard animate, contentWidth > 0 else { return }

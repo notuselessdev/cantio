@@ -7,101 +7,161 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0204EA286084D7BFB7A0789A /* test_pillCapsule_light_solid_short.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 4F3C01DBD56EC2ECEC7BD136 /* test_pillCapsule_light_solid_short.1.png */; };
 		036EFBDB3F5F51D47521D0A3 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C343AEA8C1043F37E09B86 /* Preferences.swift */; };
+		0E1ED400DAB19D0443CAE01F /* test_pillCapsule_dark_solid.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BD7D3B2CF500285D3C78D7E /* test_pillCapsule_dark_solid.1.png */; };
 		108639FE94380676BB5724CC /* FloricApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F9940E15947E74FF3EECDC /* FloricApp.swift */; };
+		111A37E082134E92E9EC76CA /* LyricsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74AD85B3B4C457CEFC8F071 /* LyricsStoreTests.swift */; };
 		1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */; };
+		1B041E3D757AE138DD7C3030 /* PillCapsuleSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF8AA031D6B3676181729F9 /* PillCapsuleSnapshotTests.swift */; };
 		26821024BDD609E21F32F98A /* LyricsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 311193D96022FFDD167967DE /* LyricsContentView.swift */; };
 		2995884991ACCF28C8F81FB5 /* SpotifyPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF3CCEAC343576E261670E7 /* SpotifyPermission.swift */; };
+		2B1E3789310190D68A03CB7A /* test_menuBarPanel_light_emptyState.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 551B78748B56B3BB2E9DDF6B /* test_menuBarPanel_light_emptyState.1.png */; };
+		2CAC4AC631AB37744165D5B4 /* MenuBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */; };
 		2FA55B2D61207510B6AD42BA /* Lyrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738DC9A427DCACCCA78C93D4 /* Lyrics.swift */; };
 		3346497B9984FD75FBD63970 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1853290EDED3FFB04F5F8432 /* Assets.xcassets */; };
 		3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */; };
+		390505B104D9415DB1D1D702 /* MenuBarPanelSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B1768B2F790BC6C74F2512 /* MenuBarPanelSnapshotTests.swift */; };
+		49588CFB23F48E3F4A864F6B /* LyricPositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149144520AF6EC3FC7A395B3 /* LyricPositionTests.swift */; };
 		4DE00B56601CEDCA7BCBA57C /* LyricsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBEEC1D0436B931F17D6212 /* LyricsCache.swift */; };
+		4FF4B58F9CA9A929C5AF8652 /* test_menuBarPanel_dark_emptyState.1.png in Resources */ = {isa = PBXBuildFile; fileRef = B0112047A8D80327EC24732B /* test_menuBarPanel_dark_emptyState.1.png */; };
+		59E6375BFF0FFE787D19A893 /* test_lyricsContent_minimal_solid_light.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A459DC927CCDD727199922D /* test_lyricsContent_minimal_solid_light.1.png */; };
 		5F17CA8C7FA28BAD3BF922E7 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80312E3E509BBE8B2803F718 /* HotKeyManager.swift */; };
 		6163A3FCCCC78117D7E8EE03 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = FDF12CD0693717979BC141B5 /* Sparkle */; };
+		63AAD3C36B1540416035DF87 /* test_pillCapsule_dark_glass_short.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 006DBF2BEEF18971C88B1DDC /* test_pillCapsule_dark_glass_short.1.png */; };
 		63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */; };
+		679DE7F603F4964083085685 /* HotKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E217993E1F526FDF1A6A1595 /* HotKeyTests.swift */; };
+		6931C8C1ABB9480A12F965C5 /* FloricTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8F6788BDA3C076839B069F5 /* FloricTests.swift */; };
+		6CE9CDB5A7DB9C53EB47629B /* PreferencesMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4066253DAE194334AFF8662 /* PreferencesMigrationTests.swift */; };
+		6F527B7A6197D0061319EAE3 /* GlassStyleMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D240FE087D1E6A837008AA3 /* GlassStyleMigrationTests.swift */; };
+		6F59629EE355B90D4B592142 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 738458AACD425100CC1B3CDA /* SnapshotTesting */; };
+		74E545A752A7A45C44177B26 /* test_pillCapsule_dark_solid_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = C48BD446BE6DD9D14A57F990 /* test_pillCapsule_dark_solid_long.1.png */; };
+		80C062575D649579E61B47D3 /* LyricsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FE653652870CAA939E4D36 /* LyricsServiceTests.swift */; };
+		8265E7C387EC589F1A3925FE /* test_pillCapsule_light_glass_short.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 898F45F2B08E2DE2B510CBEA /* test_pillCapsule_light_glass_short.1.png */; };
 		887E027B6F8F09227B1A8C73 /* LyricsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1763C33665227A0ABABC2A40 /* LyricsStore.swift */; };
+		8A9208C7FCBDB832711C50E3 /* PlaybackControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFF82C5E8754D77F1F612EB /* PlaybackControlTests.swift */; };
+		8F4D540D465B710231A1EF0E /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E7FD1E48B4E3B65A2A77F8 /* Tokens.swift */; };
 		92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */; };
+		94093F04D3293988F4C88081 /* test_pillCapsule_dark_solid_medium.1.png in Resources */ = {isa = PBXBuildFile; fileRef = E141AD413BD505B14CD4FEC5 /* test_pillCapsule_dark_solid_medium.1.png */; };
+		98E43B3F1BD2D146C3EA1F70 /* test_pillCapsule_dark_glass.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 0EACD902044C6E68196A07D1 /* test_pillCapsule_dark_glass.1.png */; };
+		9A4FC4054D74B0D33186E616 /* FontSizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F158C06BC6616031F872ED /* FontSizeTests.swift */; };
+		9C0C07D0407DFFE87AC8207B /* test_pillCapsule_dark_glass_medium.1.png in Resources */ = {isa = PBXBuildFile; fileRef = E5283BE27DF45807909549F1 /* test_pillCapsule_dark_glass_medium.1.png */; };
+		A0B85F0E3A0E9FAA96045C97 /* FlowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1C7ED9F2B4C98FF342E687 /* FlowLayoutTests.swift */; };
+		A960B696241B0065EB7E0288 /* SpotifyParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D239CDCEB5B0AD01F603AF5 /* SpotifyParserTests.swift */; };
+		AACAC0A692BE1CFE36D60696 /* test_pillCapsule_light_glass_medium.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 5948E7C0114649963CAAFE40 /* test_pillCapsule_light_glass_medium.1.png */; };
+		AB3725683FA7FDD443FE3597 /* LyricsCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEA6DE4D32BAD559EBB8DD6 /* LyricsCacheTests.swift */; };
 		AC4A77A2CB1A265C1EB34A9F /* LyricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF203A672DE2636379F500D /* LyricsService.swift */; };
+		AF8E417F0CCAF785CC0A5022 /* test_pillCapsule_light_solid_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BEECDE6AF92C0A7B5D17840 /* test_pillCapsule_light_solid_long.1.png */; };
 		B23D490560F4C8E98F6E48E2 /* LRCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E944F2511C3CFE982729C /* LRCParser.swift */; };
+		B39BB5018B70E1099305A70B /* PillCapsuleShadowLeakTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29B286F31B0505A9F5ED80A2 /* PillCapsuleShadowLeakTests.swift */; };
+		B3F5C9C0D1ECFCD2496CF930 /* test_lyricsContent_minimal_glass_dark.1.png in Resources */ = {isa = PBXBuildFile; fileRef = FEADF818577B60665BA69F39 /* test_lyricsContent_minimal_glass_dark.1.png */; };
+		B959989D8719EEBE3335A154 /* LRCParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90257AEB51D9B6EB5F77253C /* LRCParserTests.swift */; };
+		B9A6775786653020EE4D7450 /* test_pillCapsule_light_glass_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 41A9AA2FCBE8A234DB40EA6F /* test_pillCapsule_light_glass_long.1.png */; };
+		BAF3ED9C872CBDB2DFB8C427 /* EffectiveClickThroughTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C341C9D76A1F0508921B7CC /* EffectiveClickThroughTests.swift */; };
 		BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */; };
+		C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_pill_glass_dark.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */; };
+		CBBD40EEF40E2BBD4F4A8932 /* FloricIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 805895C7E283B2A97ABCEAF1 /* FloricIcon.swift */; };
+		D005B0D14D43093E93C9E1BA /* test_pillCapsule_dark_glass_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 5DB315D7A6379D8F9D91B6A8 /* test_pillCapsule_dark_glass_long.1.png */; };
 		D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */; };
+		D3B7CACFEE15A23F86F2C8FD /* test_pillCapsule_light_solid_medium.1.png in Resources */ = {isa = PBXBuildFile; fileRef = ACB0A9CB96F6468F8E5118BC /* test_pillCapsule_light_solid_medium.1.png */; };
+		D530605B4566B8F42DE2FFCA /* LyricsContentViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B03AD69AE8A072393965260 /* LyricsContentViewSnapshotTests.swift */; };
+		D77661BC4CC4FE117BF91B60 /* test_pillCapsule_dark_solid_short.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 5E98C21EB7B4D4E3C52C26E0 /* test_pillCapsule_dark_solid_short.1.png */; };
+		E5FB96438974D93281E7E8D0 /* test_pillCapsule_light_glass.1.png in Resources */ = {isa = PBXBuildFile; fileRef = FB49C7AA2338B1EA3513B262 /* test_pillCapsule_light_glass.1.png */; };
+		EE9F46DDCB33E26BB4A85D22 /* LyricLineActiveIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965B815EE366B502DE6C661B /* LyricLineActiveIndexTests.swift */; };
 		F0B032E65C99C56516B2CDB8 /* HotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02ED958E28D3377CCC675703 /* HotKey.swift */; };
 		F58A3166D42C86D067ACFAB4 /* HotKeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20AAD06EF6548EEC0326DC8 /* HotKeyRecorder.swift */; };
-		AAAA000000000000000000A1 /* MenuBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000B1 /* MenuBarPanel.swift */; };
-		AAAA000000000000000000A2 /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000B2 /* Tokens.swift */; };
-		AAAA000000000000000000A3 /* FloricIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000B3 /* FloricIcon.swift */; };
-		BBBB0000000000000000A007 /* FloricTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000A006 /* FloricTests.swift */; };
-		BBBB0000000000000000B011 /* LRCParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B001 /* LRCParserTests.swift */; };
-		BBBB0000000000000000B012 /* LyricLineActiveIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B002 /* LyricLineActiveIndexTests.swift */; };
-		BBBB0000000000000000B013 /* LyricPositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B003 /* LyricPositionTests.swift */; };
-		BBBB0000000000000000B014 /* LyricsCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B004 /* LyricsCacheTests.swift */; };
-		BBBB0000000000000000B015 /* PreferencesMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */; };
-		BBBB0000000000000000B061 /* FontSizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B060 /* FontSizeTests.swift */; };
-		BBBB0000000000000000BE02 /* GlassStyleMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BE01 /* GlassStyleMigrationTests.swift */; };
-		BBBB0000000000000000B016 /* HotKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B006 /* HotKeyTests.swift */; };
-		BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B007 /* FlowLayoutTests.swift */; };
-		BBBB0000000000000000B071 /* EffectiveClickThroughTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B070 /* EffectiveClickThroughTests.swift */; };
-		BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B025 /* SpotifyParserTests.swift */; };
-		BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */; };
-		BBBB0000000000000000B052 /* PlaybackControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B051 /* PlaybackControlTests.swift */; };
-		BBBB0000000000000000B040 /* LyricsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B041 /* LyricsStoreTests.swift */; };
-		BBBB0000000000000000B045 /* LyricsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B046 /* LyricsServiceTests.swift */; };
-		BBBB0000000000000000BC02 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = BBBB0000000000000000BC01 /* SnapshotTesting */; };
-		BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */; };
-		BBBB0000000000000000BD12 /* MenuBarPanelSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */; };
-		BBBB0000000000000000BD13 /* LyricsContentViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */; };
-		BBBB0000000000000000BD14 /* PillCapsuleShadowLeakTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD04 /* PillCapsuleShadowLeakTests.swift */; };
+		F9B84A122056D74BB95E7359 /* test_pillCapsule_dark_glass_inactive.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 6D9BC1D6BBB862313064AC9B /* test_pillCapsule_dark_glass_inactive.1.png */; };
+		FC90294A4DA9F1AD35538393 /* ExtrapolatePositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73A60FEC9E9290D971A10462 /* ExtrapolatePositionTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		707F34FCBCA9BC10BBE531E7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 05E9A42783B51D68FA0F618D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A7835E0A0B9ED2CA5C7A5281;
+			remoteInfo = Floric;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		006DBF2BEEF18971C88B1DDC /* test_pillCapsule_dark_glass_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_short.1.png; sourceTree = "<group>"; };
 		02ED958E28D3377CCC675703 /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
 		09F9940E15947E74FF3EECDC /* FloricApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricApp.swift; sourceTree = "<group>"; };
+		0CA18D8FABF82CCE2AE07C54 /* FloricTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FloricTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0EACD902044C6E68196A07D1 /* test_pillCapsule_dark_glass.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass.1.png; sourceTree = "<group>"; };
+		149144520AF6EC3FC7A395B3 /* LyricPositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricPositionTests.swift; sourceTree = "<group>"; };
 		15C343AEA8C1043F37E09B86 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		1763C33665227A0ABABC2A40 /* LyricsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStore.swift; sourceTree = "<group>"; };
 		1767A35D842857D3A56A7C1E /* Floric.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Floric.entitlements; sourceTree = "<group>"; };
 		1853290EDED3FFB04F5F8432 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1D240FE087D1E6A837008AA3 /* GlassStyleMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyleMigrationTests.swift; sourceTree = "<group>"; };
+		29B286F31B0505A9F5ED80A2 /* PillCapsuleShadowLeakTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleShadowLeakTests.swift; sourceTree = "<group>"; };
+		2EEA6DE4D32BAD559EBB8DD6 /* LyricsCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCacheTests.swift; sourceTree = "<group>"; };
 		311193D96022FFDD167967DE /* LyricsContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsContentView.swift; sourceTree = "<group>"; };
 		3DBEEC1D0436B931F17D6212 /* LyricsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCache.swift; sourceTree = "<group>"; };
+		41A9AA2FCBE8A234DB40EA6F /* test_pillCapsule_light_glass_long.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass_long.1.png; sourceTree = "<group>"; };
+		4B03AD69AE8A072393965260 /* LyricsContentViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsContentViewSnapshotTests.swift; sourceTree = "<group>"; };
+		4BD7D3B2CF500285D3C78D7E /* test_pillCapsule_dark_solid.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_solid.1.png; sourceTree = "<group>"; };
+		4E1C7ED9F2B4C98FF342E687 /* FlowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayoutTests.swift; sourceTree = "<group>"; };
+		4F3C01DBD56EC2ECEC7BD136 /* test_pillCapsule_light_solid_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_solid_short.1.png; sourceTree = "<group>"; };
+		551B78748B56B3BB2E9DDF6B /* test_menuBarPanel_light_emptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_menuBarPanel_light_emptyState.1.png; sourceTree = "<group>"; };
 		58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsWindow.swift; sourceTree = "<group>"; };
+		5948E7C0114649963CAAFE40 /* test_pillCapsule_light_glass_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass_medium.1.png; sourceTree = "<group>"; };
+		5DB315D7A6379D8F9D91B6A8 /* test_pillCapsule_dark_glass_long.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_long.1.png; sourceTree = "<group>"; };
+		5E98C21EB7B4D4E3C52C26E0 /* test_pillCapsule_dark_solid_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_solid_short.1.png; sourceTree = "<group>"; };
+		615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_pill_glass_dark.1.png; sourceTree = "<group>"; };
 		6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMonitor.swift; sourceTree = "<group>"; };
+		6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanel.swift; sourceTree = "<group>"; };
+		6D9BC1D6BBB862313064AC9B /* test_pillCapsule_dark_glass_inactive.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_inactive.1.png; sourceTree = "<group>"; };
 		738DC9A427DCACCCA78C93D4 /* Lyrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lyrics.swift; sourceTree = "<group>"; };
+		73A60FEC9E9290D971A10462 /* ExtrapolatePositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtrapolatePositionTests.swift; sourceTree = "<group>"; };
+		75FE653652870CAA939E4D36 /* LyricsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsServiceTests.swift; sourceTree = "<group>"; };
+		7C341C9D76A1F0508921B7CC /* EffectiveClickThroughTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectiveClickThroughTests.swift; sourceTree = "<group>"; };
+		7D239CDCEB5B0AD01F603AF5 /* SpotifyParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyParserTests.swift; sourceTree = "<group>"; };
 		7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsController.swift; sourceTree = "<group>"; };
 		80312E3E509BBE8B2803F718 /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		805895C7E283B2A97ABCEAF1 /* FloricIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricIcon.swift; sourceTree = "<group>"; };
+		898F45F2B08E2DE2B510CBEA /* test_pillCapsule_light_glass_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass_short.1.png; sourceTree = "<group>"; };
 		8BF203A672DE2636379F500D /* LyricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
+		90257AEB51D9B6EB5F77253C /* LRCParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParserTests.swift; sourceTree = "<group>"; };
+		965B815EE366B502DE6C661B /* LyricLineActiveIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricLineActiveIndexTests.swift; sourceTree = "<group>"; };
+		96F158C06BC6616031F872ED /* FontSizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeTests.swift; sourceTree = "<group>"; };
 		99A35BD2D6C698AA3EBD7F7A /* Floric.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Floric.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A459DC927CCDD727199922D /* test_lyricsContent_minimal_solid_light.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_minimal_solid_light.1.png; sourceTree = "<group>"; };
+		9BEECDE6AF92C0A7B5D17840 /* test_pillCapsule_light_solid_long.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_solid_long.1.png; sourceTree = "<group>"; };
+		A7B1768B2F790BC6C74F2512 /* MenuBarPanelSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelSnapshotTests.swift; sourceTree = "<group>"; };
+		A9E7FD1E48B4E3B65A2A77F8 /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
+		ABF8AA031D6B3676181729F9 /* PillCapsuleSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleSnapshotTests.swift; sourceTree = "<group>"; };
+		ACB0A9CB96F6468F8E5118BC /* test_pillCapsule_light_solid_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_solid_medium.1.png; sourceTree = "<group>"; };
 		AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		B0112047A8D80327EC24732B /* test_menuBarPanel_dark_emptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_menuBarPanel_dark_emptyState.1.png; sourceTree = "<group>"; };
+		B4066253DAE194334AFF8662 /* PreferencesMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesMigrationTests.swift; sourceTree = "<group>"; };
+		B8F6788BDA3C076839B069F5 /* FloricTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricTests.swift; sourceTree = "<group>"; };
 		BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		C48BD446BE6DD9D14A57F990 /* test_pillCapsule_dark_solid_long.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_solid_long.1.png; sourceTree = "<group>"; };
+		CCFF82C5E8754D77F1F612EB /* PlaybackControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControlTests.swift; sourceTree = "<group>"; };
 		D20AAD06EF6548EEC0326DC8 /* HotKeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyRecorder.swift; sourceTree = "<group>"; };
 		D99E944F2511C3CFE982729C /* LRCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParser.swift; sourceTree = "<group>"; };
 		DFF3CCEAC343576E261670E7 /* SpotifyPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyPermission.swift; sourceTree = "<group>"; };
+		E141AD413BD505B14CD4FEC5 /* test_pillCapsule_dark_solid_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_solid_medium.1.png; sourceTree = "<group>"; };
+		E217993E1F526FDF1A6A1595 /* HotKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyTests.swift; sourceTree = "<group>"; };
+		E5283BE27DF45807909549F1 /* test_pillCapsule_dark_glass_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_medium.1.png; sourceTree = "<group>"; };
+		E74AD85B3B4C457CEFC8F071 /* LyricsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStoreTests.swift; sourceTree = "<group>"; };
+		FB49C7AA2338B1EA3513B262 /* test_pillCapsule_light_glass.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass.1.png; sourceTree = "<group>"; };
+		FEADF818577B60665BA69F39 /* test_lyricsContent_minimal_glass_dark.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_minimal_glass_dark.1.png; sourceTree = "<group>"; };
 		FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
-		AAAA000000000000000000B1 /* MenuBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanel.swift; sourceTree = "<group>"; };
-		AAAA000000000000000000B2 /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
-		AAAA000000000000000000B3 /* FloricIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricIcon.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000A005 /* FloricTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FloricTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BBBB0000000000000000A006 /* FloricTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloricTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B001 /* LRCParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParserTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B002 /* LyricLineActiveIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricLineActiveIndexTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B003 /* LyricPositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricPositionTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B004 /* LyricsCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCacheTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesMigrationTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B060 /* FontSizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000BE01 /* GlassStyleMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyleMigrationTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B006 /* HotKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B007 /* FlowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayoutTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B070 /* EffectiveClickThroughTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectiveClickThroughTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B025 /* SpotifyParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyParserTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtrapolatePositionTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B051 /* PlaybackControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControlTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B041 /* LyricsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStoreTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000B046 /* LyricsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsServiceTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleSnapshotTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelSnapshotTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsContentViewSnapshotTests.swift; sourceTree = "<group>"; };
-		BBBB0000000000000000BD04 /* PillCapsuleShadowLeakTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleShadowLeakTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		36E435604FD543BD3A2F2192 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6F59629EE355B90D4B592142 /* SnapshotTesting in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		86A794802C3BB3959C146044 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -110,17 +170,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BBBB0000000000000000A00A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BBBB0000000000000000BC02 /* SnapshotTesting in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0209159C84F04670722A3193 /* FloricTests */ = {
+			isa = PBXGroup;
+			children = (
+				B8F6788BDA3C076839B069F5 /* FloricTests.swift */,
+				6E621BB450195A77B3E324F8 /* Lyrics */,
+				C2B3090BB3DF3D3502938E20 /* Settings */,
+				07517CE6AF5C4A3765D43BE6 /* Snapshots */,
+				DA3C231D7E578345547C1165 /* Spotify */,
+				F366B07477EBDB04CCD10C59 /* Window */,
+			);
+			path = FloricTests;
+			sourceTree = "<group>";
+		};
+		07517CE6AF5C4A3765D43BE6 /* Snapshots */ = {
+			isa = PBXGroup;
+			children = (
+				4B03AD69AE8A072393965260 /* LyricsContentViewSnapshotTests.swift */,
+				A7B1768B2F790BC6C74F2512 /* MenuBarPanelSnapshotTests.swift */,
+				29B286F31B0505A9F5ED80A2 /* PillCapsuleShadowLeakTests.swift */,
+				ABF8AA031D6B3676181729F9 /* PillCapsuleSnapshotTests.swift */,
+				6C24B03044B92D91B996E73F /* __Snapshots__ */,
+			);
+			path = Snapshots;
+			sourceTree = "<group>";
+		};
 		34F55CF2D335DF64908496BD /* Hotkey */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +206,16 @@
 				D20AAD06EF6548EEC0326DC8 /* HotKeyRecorder.swift */,
 			);
 			path = Hotkey;
+			sourceTree = "<group>";
+		};
+		397AA90597D685950C71BB90 /* LyricsContentViewSnapshotTests */ = {
+			isa = PBXGroup;
+			children = (
+				FEADF818577B60665BA69F39 /* test_lyricsContent_minimal_glass_dark.1.png */,
+				9A459DC927CCDD727199922D /* test_lyricsContent_minimal_solid_light.1.png */,
+				615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */,
+			);
+			path = LyricsContentViewSnapshotTests;
 			sourceTree = "<group>";
 		};
 		4AE690A933C7DCB8711E35F3 /* Lyrics */ = {
@@ -151,80 +238,36 @@
 			path = Updates;
 			sourceTree = "<group>";
 		};
-		A3AA00FD03DCF832001EB6EC /* Products */ = {
+		6C24B03044B92D91B996E73F /* __Snapshots__ */ = {
 			isa = PBXGroup;
 			children = (
-				99A35BD2D6C698AA3EBD7F7A /* Floric.app */,
-				BBBB0000000000000000A005 /* FloricTests.xctest */,
+				397AA90597D685950C71BB90 /* LyricsContentViewSnapshotTests */,
+				B47B2FD10F5A472654D7B05F /* MenuBarPanelSnapshotTests */,
+				C0400E9D8F25B5AD9DCACC32 /* PillCapsuleSnapshotTests */,
 			);
-			name = Products;
+			path = __Snapshots__;
 			sourceTree = "<group>";
 		};
-		BBBB0000000000000000A008 /* FloricTests */ = {
+		6E621BB450195A77B3E324F8 /* Lyrics */ = {
 			isa = PBXGroup;
 			children = (
-				BBBB0000000000000000A006 /* FloricTests.swift */,
-				BBBB0000000000000000B021 /* Lyrics */,
-				BBBB0000000000000000B022 /* Settings */,
-				BBBB0000000000000000BD00 /* Snapshots */,
-				BBBB0000000000000000B024 /* Spotify */,
-				BBBB0000000000000000B023 /* Window */,
-			);
-			path = FloricTests;
-			sourceTree = "<group>";
-		};
-		BBBB0000000000000000BD00 /* Snapshots */ = {
-			isa = PBXGroup;
-			children = (
-				BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */,
-				BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */,
-				BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */,
-				BBBB0000000000000000BD04 /* PillCapsuleShadowLeakTests.swift */,
-			);
-			path = Snapshots;
-			sourceTree = "<group>";
-		};
-		BBBB0000000000000000B021 /* Lyrics */ = {
-			isa = PBXGroup;
-			children = (
-				BBBB0000000000000000B001 /* LRCParserTests.swift */,
-				BBBB0000000000000000B002 /* LyricLineActiveIndexTests.swift */,
-				BBBB0000000000000000B003 /* LyricPositionTests.swift */,
-				BBBB0000000000000000B004 /* LyricsCacheTests.swift */,
-				BBBB0000000000000000B041 /* LyricsStoreTests.swift */,
-				BBBB0000000000000000B046 /* LyricsServiceTests.swift */,
+				90257AEB51D9B6EB5F77253C /* LRCParserTests.swift */,
+				965B815EE366B502DE6C661B /* LyricLineActiveIndexTests.swift */,
+				149144520AF6EC3FC7A395B3 /* LyricPositionTests.swift */,
+				2EEA6DE4D32BAD559EBB8DD6 /* LyricsCacheTests.swift */,
+				75FE653652870CAA939E4D36 /* LyricsServiceTests.swift */,
+				E74AD85B3B4C457CEFC8F071 /* LyricsStoreTests.swift */,
 			);
 			path = Lyrics;
 			sourceTree = "<group>";
 		};
-		BBBB0000000000000000B022 /* Settings */ = {
+		A3AA00FD03DCF832001EB6EC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */,
-				BBBB0000000000000000B060 /* FontSizeTests.swift */,
-				BBBB0000000000000000BE01 /* GlassStyleMigrationTests.swift */,
+				99A35BD2D6C698AA3EBD7F7A /* Floric.app */,
+				0CA18D8FABF82CCE2AE07C54 /* FloricTests.xctest */,
 			);
-			path = Settings;
-			sourceTree = "<group>";
-		};
-		BBBB0000000000000000B023 /* Window */ = {
-			isa = PBXGroup;
-			children = (
-				BBBB0000000000000000B006 /* HotKeyTests.swift */,
-				BBBB0000000000000000B007 /* FlowLayoutTests.swift */,
-				BBBB0000000000000000B070 /* EffectiveClickThroughTests.swift */,
-			);
-			path = Window;
-			sourceTree = "<group>";
-		};
-		BBBB0000000000000000B024 /* Spotify */ = {
-			isa = PBXGroup;
-			children = (
-				BBBB0000000000000000B025 /* SpotifyParserTests.swift */,
-				BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */,
-				BBBB0000000000000000B051 /* PlaybackControlTests.swift */,
-			);
-			path = Spotify;
+			name = Products;
 			sourceTree = "<group>";
 		};
 		AF4A8AC41D11267A32613BCD /* Settings */ = {
@@ -234,6 +277,38 @@
 				BBA708DBDD92F4F7DADE0518 /* PreferencesView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		B47B2FD10F5A472654D7B05F /* MenuBarPanelSnapshotTests */ = {
+			isa = PBXGroup;
+			children = (
+				B0112047A8D80327EC24732B /* test_menuBarPanel_dark_emptyState.1.png */,
+				551B78748B56B3BB2E9DDF6B /* test_menuBarPanel_light_emptyState.1.png */,
+			);
+			path = MenuBarPanelSnapshotTests;
+			sourceTree = "<group>";
+		};
+		C0400E9D8F25B5AD9DCACC32 /* PillCapsuleSnapshotTests */ = {
+			isa = PBXGroup;
+			children = (
+				6D9BC1D6BBB862313064AC9B /* test_pillCapsule_dark_glass_inactive.1.png */,
+				5DB315D7A6379D8F9D91B6A8 /* test_pillCapsule_dark_glass_long.1.png */,
+				E5283BE27DF45807909549F1 /* test_pillCapsule_dark_glass_medium.1.png */,
+				006DBF2BEEF18971C88B1DDC /* test_pillCapsule_dark_glass_short.1.png */,
+				0EACD902044C6E68196A07D1 /* test_pillCapsule_dark_glass.1.png */,
+				C48BD446BE6DD9D14A57F990 /* test_pillCapsule_dark_solid_long.1.png */,
+				E141AD413BD505B14CD4FEC5 /* test_pillCapsule_dark_solid_medium.1.png */,
+				5E98C21EB7B4D4E3C52C26E0 /* test_pillCapsule_dark_solid_short.1.png */,
+				4BD7D3B2CF500285D3C78D7E /* test_pillCapsule_dark_solid.1.png */,
+				41A9AA2FCBE8A234DB40EA6F /* test_pillCapsule_light_glass_long.1.png */,
+				5948E7C0114649963CAAFE40 /* test_pillCapsule_light_glass_medium.1.png */,
+				898F45F2B08E2DE2B510CBEA /* test_pillCapsule_light_glass_short.1.png */,
+				FB49C7AA2338B1EA3513B262 /* test_pillCapsule_light_glass.1.png */,
+				9BEECDE6AF92C0A7B5D17840 /* test_pillCapsule_light_solid_long.1.png */,
+				ACB0A9CB96F6468F8E5118BC /* test_pillCapsule_light_solid_medium.1.png */,
+				4F3C01DBD56EC2ECEC7BD136 /* test_pillCapsule_light_solid_short.1.png */,
+			);
+			path = PillCapsuleSnapshotTests;
 			sourceTree = "<group>";
 		};
 		C189E9822DC0406C40D94D4E /* Window */ = {
@@ -246,14 +321,24 @@
 			path = Window;
 			sourceTree = "<group>";
 		};
+		C2B3090BB3DF3D3502938E20 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				96F158C06BC6616031F872ED /* FontSizeTests.swift */,
+				1D240FE087D1E6A837008AA3 /* GlassStyleMigrationTests.swift */,
+				B4066253DAE194334AFF8662 /* PreferencesMigrationTests.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		C36393A070DBB12F44F225EE /* Floric */ = {
 			isa = PBXGroup;
 			children = (
 				1853290EDED3FFB04F5F8432 /* Assets.xcassets */,
 				1767A35D842857D3A56A7C1E /* Floric.entitlements */,
 				09F9940E15947E74FF3EECDC /* FloricApp.swift */,
-				AAAA000000000000000000B1 /* MenuBarPanel.swift */,
-				AAAA000000000000000000C1 /* Design */,
+				6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */,
+				EDD90D31AC2A9D8D0684F067 /* Design */,
 				34F55CF2D335DF64908496BD /* Hotkey */,
 				4AE690A933C7DCB8711E35F3 /* Lyrics */,
 				AF4A8AC41D11267A32613BCD /* Settings */,
@@ -264,22 +349,42 @@
 			path = Floric;
 			sourceTree = "<group>";
 		};
-		AAAA000000000000000000C1 /* Design */ = {
-			isa = PBXGroup;
-			children = (
-				AAAA000000000000000000B2 /* Tokens.swift */,
-				AAAA000000000000000000B3 /* FloricIcon.swift */,
-			);
-			path = Design;
-			sourceTree = "<group>";
-		};
 		C6AD1E375ACE56846F1DB05C = {
 			isa = PBXGroup;
 			children = (
 				C36393A070DBB12F44F225EE /* Floric */,
-				BBBB0000000000000000A008 /* FloricTests */,
+				0209159C84F04670722A3193 /* FloricTests */,
 				A3AA00FD03DCF832001EB6EC /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		DA3C231D7E578345547C1165 /* Spotify */ = {
+			isa = PBXGroup;
+			children = (
+				73A60FEC9E9290D971A10462 /* ExtrapolatePositionTests.swift */,
+				CCFF82C5E8754D77F1F612EB /* PlaybackControlTests.swift */,
+				7D239CDCEB5B0AD01F603AF5 /* SpotifyParserTests.swift */,
+			);
+			path = Spotify;
+			sourceTree = "<group>";
+		};
+		EDD90D31AC2A9D8D0684F067 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				805895C7E283B2A97ABCEAF1 /* FloricIcon.swift */,
+				A9E7FD1E48B4E3B65A2A77F8 /* Tokens.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		F366B07477EBDB04CCD10C59 /* Window */ = {
+			isa = PBXGroup;
+			children = (
+				7C341C9D76A1F0508921B7CC /* EffectiveClickThroughTests.swift */,
+				4E1C7ED9F2B4C98FF342E687 /* FlowLayoutTests.swift */,
+				E217993E1F526FDF1A6A1595 /* HotKeyTests.swift */,
+			);
+			path = Window;
 			sourceTree = "<group>";
 		};
 		F9048C3A0E4F391ED1751CB7 /* Spotify */ = {
@@ -295,6 +400,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3F42C0915C376796D484FD38 /* FloricTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7549E1172D81C03FB8B2B5CF /* Build configuration list for PBXNativeTarget "FloricTests" */;
+			buildPhases = (
+				8455CDA24B24A0F986670354 /* Sources */,
+				910DE79779D26AE3FF7A8268 /* Resources */,
+				36E435604FD543BD3A2F2192 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F5C594C94BB8D5EB6F407F0C /* PBXTargetDependency */,
+			);
+			name = FloricTests;
+			packageProductDependencies = (
+				738458AACD425100CC1B3CDA /* SnapshotTesting */,
+			);
+			productName = FloricTests;
+			productReference = 0CA18D8FABF82CCE2AE07C54 /* FloricTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		A7835E0A0B9ED2CA5C7A5281 /* Floric */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5A6A41AA457C05E5FB8B4DDF /* Build configuration list for PBXNativeTarget "Floric" */;
@@ -315,26 +441,6 @@
 			productReference = 99A35BD2D6C698AA3EBD7F7A /* Floric.app */;
 			productType = "com.apple.product-type.application";
 		};
-		BBBB0000000000000000A001 /* FloricTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = BBBB0000000000000000A002 /* Build configuration list for PBXNativeTarget "FloricTests" */;
-			buildPhases = (
-				BBBB0000000000000000A009 /* Sources */,
-				BBBB0000000000000000A00A /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BBBB0000000000000000A00B /* PBXTargetDependency */,
-			);
-			name = FloricTests;
-			packageProductDependencies = (
-				BBBB0000000000000000BC01 /* SnapshotTesting */,
-			);
-			productName = FloricTests;
-			productReference = BBBB0000000000000000A005 /* FloricTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -344,14 +450,13 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					A7835E0A0B9ED2CA5C7A5281 = {
+					3F42C0915C376796D484FD38 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Manual;
 					};
-					BBBB0000000000000000A001 = {
+					A7835E0A0B9ED2CA5C7A5281 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Manual;
-						TestTargetID = A7835E0A0B9ED2CA5C7A5281;
 					};
 				};
 			};
@@ -365,8 +470,8 @@
 			mainGroup = C6AD1E375ACE56846F1DB05C;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				95DB7F13DD134C65F0DD76B7 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */,
-				BBBB0000000000000000BC00 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A3AA00FD03DCF832001EB6EC /* Products */;
@@ -374,12 +479,40 @@
 			projectRoot = "";
 			targets = (
 				A7835E0A0B9ED2CA5C7A5281 /* Floric */,
-				BBBB0000000000000000A001 /* FloricTests */,
+				3F42C0915C376796D484FD38 /* FloricTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		910DE79779D26AE3FF7A8268 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3F5C9C0D1ECFCD2496CF930 /* test_lyricsContent_minimal_glass_dark.1.png in Resources */,
+				59E6375BFF0FFE787D19A893 /* test_lyricsContent_minimal_solid_light.1.png in Resources */,
+				C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_pill_glass_dark.1.png in Resources */,
+				4FF4B58F9CA9A929C5AF8652 /* test_menuBarPanel_dark_emptyState.1.png in Resources */,
+				2B1E3789310190D68A03CB7A /* test_menuBarPanel_light_emptyState.1.png in Resources */,
+				98E43B3F1BD2D146C3EA1F70 /* test_pillCapsule_dark_glass.1.png in Resources */,
+				F9B84A122056D74BB95E7359 /* test_pillCapsule_dark_glass_inactive.1.png in Resources */,
+				D005B0D14D43093E93C9E1BA /* test_pillCapsule_dark_glass_long.1.png in Resources */,
+				9C0C07D0407DFFE87AC8207B /* test_pillCapsule_dark_glass_medium.1.png in Resources */,
+				63AAD3C36B1540416035DF87 /* test_pillCapsule_dark_glass_short.1.png in Resources */,
+				0E1ED400DAB19D0443CAE01F /* test_pillCapsule_dark_solid.1.png in Resources */,
+				74E545A752A7A45C44177B26 /* test_pillCapsule_dark_solid_long.1.png in Resources */,
+				94093F04D3293988F4C88081 /* test_pillCapsule_dark_solid_medium.1.png in Resources */,
+				D77661BC4CC4FE117BF91B60 /* test_pillCapsule_dark_solid_short.1.png in Resources */,
+				E5FB96438974D93281E7E8D0 /* test_pillCapsule_light_glass.1.png in Resources */,
+				B9A6775786653020EE4D7450 /* test_pillCapsule_light_glass_long.1.png in Resources */,
+				AACAC0A692BE1CFE36D60696 /* test_pillCapsule_light_glass_medium.1.png in Resources */,
+				8265E7C387EC589F1A3925FE /* test_pillCapsule_light_glass_short.1.png in Resources */,
+				AF8E417F0CCAF785CC0A5022 /* test_pillCapsule_light_solid_long.1.png in Resources */,
+				D3B7CACFEE15A23F86F2C8FD /* test_pillCapsule_light_solid_medium.1.png in Resources */,
+				0204EA286084D7BFB7A0789A /* test_pillCapsule_light_solid_short.1.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B531ED102022CE5928A1AAAD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -391,6 +524,33 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		8455CDA24B24A0F986670354 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BAF3ED9C872CBDB2DFB8C427 /* EffectiveClickThroughTests.swift in Sources */,
+				FC90294A4DA9F1AD35538393 /* ExtrapolatePositionTests.swift in Sources */,
+				6931C8C1ABB9480A12F965C5 /* FloricTests.swift in Sources */,
+				A0B85F0E3A0E9FAA96045C97 /* FlowLayoutTests.swift in Sources */,
+				9A4FC4054D74B0D33186E616 /* FontSizeTests.swift in Sources */,
+				6F527B7A6197D0061319EAE3 /* GlassStyleMigrationTests.swift in Sources */,
+				679DE7F603F4964083085685 /* HotKeyTests.swift in Sources */,
+				B959989D8719EEBE3335A154 /* LRCParserTests.swift in Sources */,
+				EE9F46DDCB33E26BB4A85D22 /* LyricLineActiveIndexTests.swift in Sources */,
+				49588CFB23F48E3F4A864F6B /* LyricPositionTests.swift in Sources */,
+				AB3725683FA7FDD443FE3597 /* LyricsCacheTests.swift in Sources */,
+				D530605B4566B8F42DE2FFCA /* LyricsContentViewSnapshotTests.swift in Sources */,
+				80C062575D649579E61B47D3 /* LyricsServiceTests.swift in Sources */,
+				111A37E082134E92E9EC76CA /* LyricsStoreTests.swift in Sources */,
+				390505B104D9415DB1D1D702 /* MenuBarPanelSnapshotTests.swift in Sources */,
+				B39BB5018B70E1099305A70B /* PillCapsuleShadowLeakTests.swift in Sources */,
+				1B041E3D757AE138DD7C3030 /* PillCapsuleSnapshotTests.swift in Sources */,
+				8A9208C7FCBDB832711C50E3 /* PlaybackControlTests.swift in Sources */,
+				6CE9CDB5A7DB9C53EB47629B /* PreferencesMigrationTests.swift in Sources */,
+				A960B696241B0065EB7E0288 /* SpotifyParserTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8C749470F473045D828C284F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -398,6 +558,7 @@
 				3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */,
 				BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */,
 				108639FE94380676BB5724CC /* FloricApp.swift in Sources */,
+				CBBD40EEF40E2BBD4F4A8932 /* FloricIcon.swift in Sources */,
 				F0B032E65C99C56516B2CDB8 /* HotKey.swift in Sources */,
 				5F17CA8C7FA28BAD3BF922E7 /* HotKeyManager.swift in Sources */,
 				F58A3166D42C86D067ACFAB4 /* HotKeyRecorder.swift in Sources */,
@@ -407,66 +568,47 @@
 				26821024BDD609E21F32F98A /* LyricsContentView.swift in Sources */,
 				AC4A77A2CB1A265C1EB34A9F /* LyricsService.swift in Sources */,
 				887E027B6F8F09227B1A8C73 /* LyricsStore.swift in Sources */,
+				2CAC4AC631AB37744165D5B4 /* MenuBarPanel.swift in Sources */,
 				1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */,
 				036EFBDB3F5F51D47521D0A3 /* Preferences.swift in Sources */,
 				92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */,
 				63AB58355F8E0B4392B9DB67 /* SpotifyMonitor.swift in Sources */,
 				2995884991ACCF28C8F81FB5 /* SpotifyPermission.swift in Sources */,
+				8F4D540D465B710231A1EF0E /* Tokens.swift in Sources */,
 				D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */,
-				AAAA000000000000000000A1 /* MenuBarPanel.swift in Sources */,
-				AAAA000000000000000000A2 /* Tokens.swift in Sources */,
-				AAAA000000000000000000A3 /* FloricIcon.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		BBBB0000000000000000A009 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BBBB0000000000000000A007 /* FloricTests.swift in Sources */,
-				BBBB0000000000000000B011 /* LRCParserTests.swift in Sources */,
-				BBBB0000000000000000B012 /* LyricLineActiveIndexTests.swift in Sources */,
-				BBBB0000000000000000B013 /* LyricPositionTests.swift in Sources */,
-				BBBB0000000000000000B014 /* LyricsCacheTests.swift in Sources */,
-				BBBB0000000000000000B015 /* PreferencesMigrationTests.swift in Sources */,
-				BBBB0000000000000000B061 /* FontSizeTests.swift in Sources */,
-				BBBB0000000000000000BE02 /* GlassStyleMigrationTests.swift in Sources */,
-				BBBB0000000000000000B016 /* HotKeyTests.swift in Sources */,
-				BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */,
-				BBBB0000000000000000B071 /* EffectiveClickThroughTests.swift in Sources */,
-				BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */,
-				BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */,
-				BBBB0000000000000000B052 /* PlaybackControlTests.swift in Sources */,
-				BBBB0000000000000000B040 /* LyricsStoreTests.swift in Sources */,
-				BBBB0000000000000000B045 /* LyricsServiceTests.swift in Sources */,
-				BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */,
-				BBBB0000000000000000BD12 /* MenuBarPanelSnapshotTests.swift in Sources */,
-				BBBB0000000000000000BD13 /* LyricsContentViewSnapshotTests.swift in Sources */,
-				BBBB0000000000000000BD14 /* PillCapsuleShadowLeakTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXContainerItemProxy section */
-		BBBB0000000000000000A00C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 05E9A42783B51D68FA0F618D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A7835E0A0B9ED2CA5C7A5281;
-			remoteInfo = Floric;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXTargetDependency section */
-		BBBB0000000000000000A00B /* PBXTargetDependency */ = {
+		F5C594C94BB8D5EB6F407F0C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A7835E0A0B9ED2CA5C7A5281 /* Floric */;
-			targetProxy = BBBB0000000000000000A00C /* PBXContainerItemProxy */;
+			targetProxy = 707F34FCBCA9BC10BBE531E7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		00B9D776878CA42345BDAB0F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
+				PRODUCT_NAME = FloricTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
+			};
+			name = Debug;
+		};
 		0FC8472A0EC5E0A1D2D4A6B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -558,6 +700,25 @@
 			};
 			name = Debug;
 		};
+		57C5D504866919633446CCB0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
+				PRODUCT_NAME = FloricTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
+			};
+			name = Release;
+		};
 		61C32D265541CE7542914A3E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -643,38 +804,6 @@
 			};
 			name = Release;
 		};
-		BBBB0000000000000000A003 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.9;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
-			};
-			name = Debug;
-		};
-		BBBB0000000000000000A004 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.9;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -683,6 +812,15 @@
 			buildConfigurations = (
 				42508A61E46A61C59309E8F1 /* Debug */,
 				61C32D265541CE7542914A3E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7549E1172D81C03FB8B2B5CF /* Build configuration list for PBXNativeTarget "FloricTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00B9D776878CA42345BDAB0F /* Debug */,
+				57C5D504866919633446CCB0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -696,18 +834,17 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		BBBB0000000000000000A002 /* Build configuration list for PBXNativeTarget "FloricTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BBBB0000000000000000A003 /* Debug */,
-				BBBB0000000000000000A004 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		95DB7F13DD134C65F0DD76B7 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
 		A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
@@ -716,26 +853,18 @@
 				minimumVersion = 2.6.0;
 			};
 		};
-		BBBB0000000000000000BC00 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.17.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		738458AACD425100CC1B3CDA /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 95DB7F13DD134C65F0DD76B7 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
 		FDF12CD0693717979BC141B5 /* Sparkle */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A92DD6AEE9E035127BC67684 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
-		};
-		BBBB0000000000000000BC01 /* SnapshotTesting */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = BBBB0000000000000000BC00 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
-			productName = SnapshotTesting;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -5,10 +5,14 @@ import SwiftUI
 /// Owns the floating lyrics `NSWindow` and the SwiftUI hosting bridge.
 ///
 /// Click-through policy (W4) is derived from `windowStyle`:
-/// - `.pill` → always click-through (per-pixel alpha hit-test refines the silhouette;
-///   Option-click on opaque pixels still flips the grab affordance for drag).
+/// - `.pill` → window is interactive; `installClickMonitor` distinguishes a
+///   true click (mouseDown + mouseUp without movement past the drag
+///   threshold) from a drag, so future tap targets inside the pill receive
+///   the click while drags trigger `performDrag`. Option-click is the
+///   pass-through escape hatch — events propagate to whatever is beneath.
 /// - `.minimal` → never click-through (real chrome window, must be interactive).
-/// - `.fullscreen` → always click-through (overlay covers the screen edge-to-edge).
+/// - `.fullscreen` → interactive (Esc exits via global key monitor; future
+///   in-overlay controls need to receive clicks).
 @MainActor
 final class FloatingLyricsController {
     private let monitor: SpotifyMonitor
@@ -17,9 +21,14 @@ final class FloatingLyricsController {
 
     private var window: FloatingLyricsWindow?
     private var clickMonitor: Any?
-    private var globalMouseMonitor: Any?
-    private var localMouseMonitor: Any?
+    private var fullscreenEscMonitor: Any?
+    /// Style remembered before entering fullscreen so Esc can restore it.
+    private var preFullscreenStyle: WindowStyle?
     private var cancellables = Set<AnyCancellable>()
+
+    /// Drag detection threshold (points) — movement below this on mouseDown
+    /// is classified as a click, so embedded tap targets receive the event.
+    private static let dragThresholdPoints: CGFloat = 4
 
     /// W3: minimal style has its own autosave so resizes survive launches.
     /// Pill is a fixed-size capsule and must NOT inherit a stale resized frame.
@@ -30,9 +39,6 @@ final class FloatingLyricsController {
     private var preFullscreenFrame: NSRect?
     /// True while the window is currently sized to fullscreen.
     private var isFullscreenActive = false
-    /// Pill grab affordance: when user Option-clicks an opaque pixel we drop
-    /// click-through briefly so they can drag the window.
-    private var pillGrabActive = false
 
     /// Minimal content size constraints (W3) — keep lyric text readable.
     private static let minimalMinSize = NSSize(width: 320, height: 60)
@@ -54,7 +60,6 @@ final class FloatingLyricsController {
         applyWindowChrome()
         applyVisibility(animated: false)
         installClickMonitor()
-        installMousePassthroughMonitors()
         installScreenChangeObserver()
         observePreferences()
         observePlayback()
@@ -66,6 +71,8 @@ final class FloatingLyricsController {
     /// doesn't halo the silhouette. Minimal keeps the chrome shadow.
     private func applyWindowChrome() {
         guard let window else { return }
+        window.isOpaque = false
+        window.backgroundColor = .clear
         switch prefs.windowStyle {
         case .pill, .fullscreen:
             window.hasShadow = false
@@ -148,9 +155,12 @@ final class FloatingLyricsController {
             window.isMovable = true
 
         case .fullscreen:
-            // Save the prior style's frame so we can restore on exit. Don't
-            // save another fullscreen-sized frame on top.
-            if !isFullscreenActive { preFullscreenFrame = window.frame }
+            // Save the prior style's frame + style so we can restore on exit.
+            // Don't save another fullscreen-sized frame on top.
+            if !isFullscreenActive {
+                preFullscreenFrame = window.frame
+                preFullscreenStyle = previous
+            }
             // Detach autosave: we don't want the screen-sized frame to clobber
             // the user's saved pill/minimal position.
             window.setFrameAutosaveName("")
@@ -220,8 +230,9 @@ final class FloatingLyricsController {
     /// Exposed for unit tests as a free function on the type.
     static func effectiveClickThrough(for style: WindowStyle) -> Bool {
         switch style {
-        case .pill, .fullscreen: return true
-        case .minimal:           return false
+        case .pill:       return true
+        case .minimal:    return false
+        case .fullscreen: return false
         }
     }
 
@@ -240,8 +251,37 @@ final class FloatingLyricsController {
             // W1: minimal is always interactive regardless of any other state.
             window.ignoresMouseEvents = false
         case .fullscreen:
-            window.ignoresMouseEvents = true
+            // Fullscreen accepts clicks so the user can interact with the
+            // overlay (and so Esc / future close affordance lives inside it).
+            window.ignoresMouseEvents = false
         }
+        installFullscreenEscMonitorIfNeeded()
+    }
+
+    /// Esc key exits fullscreen — without this the user has no way out
+    /// (window is click-through + has no chrome).
+    private func installFullscreenEscMonitorIfNeeded() {
+        let inFullscreen = prefs.windowStyle == .fullscreen
+        if inFullscreen {
+            // Make the window key so SwiftUI's responder chain (and our local
+            // monitor) actually receive keyDown. addGlobalMonitorForEvents
+            // would need Accessibility permission to observe Esc cross-app.
+            window?.makeKeyAndOrderFront(nil)
+            if fullscreenEscMonitor != nil { return }
+            fullscreenEscMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+                guard event.keyCode == 53 else { return event } // 53 = Escape
+                Task { @MainActor in self?.exitFullscreen() }
+                return nil
+            }
+        } else if let m = fullscreenEscMonitor {
+            NSEvent.removeMonitor(m)
+            fullscreenEscMonitor = nil
+        }
+    }
+
+    func exitFullscreen() {
+        let restore = preFullscreenStyle ?? .pill
+        prefs.windowStyle = restore
     }
 
     private func installClickMonitor() {
@@ -249,56 +289,50 @@ final class FloatingLyricsController {
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] event in
             guard let self else { return event }
             guard event.window === self.window else { return event }
-            // Pill drag: NSHostingView consumes mouseDown before
-            // `isMovableByWindowBackground` can fire, so any click on the
-            // pill stays put. Trigger the drag programmatically — Cocoa
-            // hands off to the standard window drag pipeline.
-            if self.prefs.windowStyle == .pill {
-                self.window?.performDrag(with: event)
-                return nil
+            guard self.prefs.windowStyle == .pill else { return event }
+
+            // Option-click escape hatch: do not drag, do not consume —
+            // pass through so power users can interact with whatever is
+            // beneath the pill.
+            if event.modifierFlags.contains(.option) { return event }
+
+            // Click-vs-drag: peek the upcoming event stream. If the user
+            // releases without moving past the threshold, this is a click —
+            // let it propagate so embedded tap targets fire. Otherwise
+            // hand off to Cocoa's window drag.
+            let threshold = Self.dragThresholdPoints
+            let mask: NSEvent.EventTypeMask = [.leftMouseDragged, .leftMouseUp]
+            while let next = NSApp.nextEvent(matching: mask,
+                                             until: .distantFuture,
+                                             inMode: .eventTracking,
+                                             dequeue: true) {
+                if next.type == .leftMouseUp {
+                    // True click — re-dispatch the original mouseDown +
+                    // mouseUp so embedded tap targets receive the full
+                    // sequence. sendEvent bypasses the local event monitor
+                    // pipeline, so this does not re-enter the loop.
+                    self.window?.sendEvent(event)
+                    self.window?.sendEvent(next)
+                    return nil
+                }
+                if Self.shouldStartDrag(beginEvent: event, currentEvent: next,
+                                        thresholdPoints: threshold) {
+                    self.window?.performDrag(with: event)
+                    return nil
+                }
             }
-            return event
+            return nil
         }
     }
 
-    // MARK: - Pill click-through (transparent areas pass through)
-
-    private func installMousePassthroughMonitors() {
-        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
-            Task { @MainActor in self?.updatePillPassthrough() }
-        }
-        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
-            Task { @MainActor in self?.updatePillPassthrough() }
-            return event
-        }
-    }
-
-    private func updatePillPassthrough() {
-        guard let window, prefs.windowStyle == .pill else { return }
-        // Option-click grab pinned: keep window fully interactive so the user
-        // can drag from any pixel.
-        if pillGrabActive {
-            window.ignoresMouseEvents = false
-            return
-        }
-        let screenPoint = NSEvent.mouseLocation
-        guard window.frame.contains(screenPoint) else {
-            window.ignoresMouseEvents = true
-            return
-        }
-        window.ignoresMouseEvents = !isOpaqueAt(screenPoint: screenPoint)
-    }
-
-    private func isOpaqueAt(screenPoint: NSPoint) -> Bool {
-        guard let window, let contentView = window.contentView else { return false }
-        let windowPoint = window.convertPoint(fromScreen: screenPoint)
-        let viewPoint = contentView.convert(windowPoint, from: nil)
-        guard contentView.bounds.contains(viewPoint) else { return false }
-        let rect = NSRect(x: viewPoint.x, y: viewPoint.y, width: 1, height: 1)
-        guard let rep = contentView.bitmapImageRepForCachingDisplay(in: rect) else { return false }
-        contentView.cacheDisplay(in: rect, to: rep)
-        guard let color = rep.colorAt(x: 0, y: 0) else { return false }
-        return color.alphaComponent > 0.05
+    /// Pure helper: classify a mouseDown follow-up event as drag-worthy.
+    /// Exposed for unit tests — no `NSWindow` required.
+    static func shouldStartDrag(beginEvent: NSEvent,
+                                currentEvent: NSEvent,
+                                thresholdPoints: CGFloat) -> Bool {
+        let dx = currentEvent.locationInWindow.x - beginEvent.locationInWindow.x
+        let dy = currentEvent.locationInWindow.y - beginEvent.locationInWindow.y
+        return (dx * dx + dy * dy) >= (thresholdPoints * thresholdPoints)
     }
 
     // MARK: - Screen reflow (W2)

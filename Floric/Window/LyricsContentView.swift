@@ -100,8 +100,9 @@ struct LyricsContentView: View {
 
     @ViewBuilder
     private var fullscreenBody: some View {
-        ZStack {
-            KaraokeBackdrop(hues: trackHues)
+        ZStack(alignment: .topTrailing) {
+            KaraokeBackdrop(hues: trackHues, tone: effectiveTone,
+                            palette: palette, reduceMotion: reduceMotion)
             VStack(spacing: 0) {
                 // Header — album art + title.
                 if let np = monitor.nowPlaying {
@@ -129,7 +130,7 @@ struct LyricsContentView: View {
                 // font slider when they plug in a display.
                 GeometryReader { geo in
                     let active = min(96, max(28, geo.size.height / 8))
-                    lyricsContent(forPill: false, linesAround: 1,
+                    lyricsContent(forPill: false, linesAround: linesAroundFromPref,
                                   fullscreenActiveSize: active)
                         .frame(width: geo.size.width, height: geo.size.height)
                 }
@@ -141,6 +142,22 @@ struct LyricsContentView: View {
                         .padding(.bottom, 56)
                 }
             }
+            // Visible exit affordance — Esc also works (controller's local
+            // key monitor) but a discoverable button matches HIG.
+            Button {
+                prefs.windowStyle = .pill
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.85))
+                    .shadow(color: .black.opacity(0.4), radius: 6, y: 1)
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(.escape, modifiers: [])
+            .help("Exit fullscreen")
+            .accessibilityLabel("Exit fullscreen")
+            .padding(.top, 24)
+            .padding(.trailing, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -239,7 +256,9 @@ struct LyricsContentView: View {
                 let lp = LyricPosition.compute(lines: lines, position: pos)
                 syncedRender(lp: lp, forPill: forPill, linesAround: linesAround,
                              fullscreenActiveSize: fullscreenActiveSize)
-                    .animation(.easeInOut(duration: 0.3), value: lp.current?.timestamp)
+                    // Reduce Motion: hard-cut between lines (no crossfade).
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.3),
+                               value: lp.current?.timestamp)
             }
         }
     }
@@ -278,7 +297,8 @@ struct LyricsContentView: View {
                 PillCapsule(words: curWords, palette: palette, tone: effectiveTone,
                             bgStyle: bgStyle, fontSize: pillActive,
                             glassOpacity: prefs.glassOpacity,
-                            glassStyle: pillGlassStyle, increaseContrast: increaseContrast)
+                            glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
+                            reduceTransparency: reduceTransparency)
                 if linesAround >= 1 {
                     pillSibling(words: lp.next?.words, exists: lp.next != nil,
                                 size: pillNear, opacity: 1)
@@ -317,10 +337,18 @@ struct LyricsContentView: View {
     @ViewBuilder
     private func pillSibling(words: [String]?, exists: Bool,
                              size: CGFloat, opacity: Double) -> some View {
-        LyricLineView(words: words ?? ["♪"],
-                      highlighted: true,
-                      active: false, dim: true, color: palette.textFaint,
-                      accent: palette.accent, size: size)
+        // Single-line truncation with one trailing ellipsis — `LyricLineView`
+        // wraps each word independently and produces per-word "..." when
+        // the line overflows the pill window, which reads as garbled.
+        // Sibling lines are blurred so attention stays on the active line.
+        Text(words?.joined(separator: " ") ?? "♪")
+            .font(.system(size: size, weight: .semibold))
+            .tracking(max(0.3, size * 0.04))
+            .foregroundStyle(palette.textFaint)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .padding(.horizontal, 16)
+            .blur(radius: 1.5)
             .opacity(exists ? opacity : 0)
             // Sibling fades go through the pill's shadow if they share the
             // parent's easeInOut(0.3); strip transactions and use a short
@@ -332,11 +360,13 @@ struct LyricsContentView: View {
     private func windowSibling(words: [String]?, exists: Bool,
                                size: CGFloat, fade: Double,
                                highlighted: Bool = false) -> some View {
+        // Sibling lines are blurred so attention stays on the active line.
         LyricLineView(words: words ?? ["♪"],
                       highlighted: highlighted,
                       active: false, dim: true, color: palette.textFaint,
                       accent: palette.accent, size: size)
             .opacity(exists ? fade : 0)
+            .blur(radius: 2)
     }
 
     // MARK: - Footer
@@ -428,7 +458,8 @@ struct LyricsContentView: View {
                     palette: palette, tone: effectiveTone,
                     bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
                     glassOpacity: prefs.glassOpacity,
-                    glassStyle: pillGlassStyle, increaseContrast: increaseContrast)
+                    glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
+                    reduceTransparency: reduceTransparency)
     }
 
     private func placeholder(_ text: String) -> some View {
@@ -444,7 +475,8 @@ struct LyricsContentView: View {
                            palette: palette, tone: effectiveTone,
                            bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
                            glassOpacity: prefs.glassOpacity,
-                           glassStyle: pillGlassStyle, increaseContrast: increaseContrast)
+                           glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
+                           reduceTransparency: reduceTransparency)
     }
 
     @ViewBuilder
@@ -524,6 +556,7 @@ struct LyricLineView: View {
             ForEach(Array(words.enumerated()), id: \.offset) { _, w in
                 Text(w)
                     .font(.system(size: size, weight: active ? .bold : .semibold))
+                    .tracking(max(0.3, size * 0.04))
                     .foregroundStyle(highlighted ? accent : color.opacity(0.55))
                     .fixedSize()
             }
@@ -549,6 +582,10 @@ struct PillCapsule: View {
     /// states (Reduce Transparency / Increase Contrast) into this value.
     var glassStyle: GlassStyle = .off
     var increaseContrast: Bool = false
+    /// Reduce Transparency forces the legacy fill to fully opaque palette
+    /// elev so the pill silhouette doesn't bleed wallpaper through. Caller
+    /// passes the env value directly — keeps PillCapsule a pure View.
+    var reduceTransparency: Bool = false
 
     var body: some View {
         // L2: When Liquid Glass is active and available, wrap the capsule in
@@ -570,15 +607,20 @@ struct PillCapsule: View {
     }
 
     private var pillContent: some View {
-        HStack(spacing: 6) {
-            ForEach(Array(words.enumerated()), id: \.offset) { _, w in
-                Text(w)
-                    .font(.system(size: fontSize, weight: .semibold))
-                    .foregroundStyle(palette.accent)
-            }
-        }
-        .padding(.horizontal, max(12, fontSize * 0.9))
-        .padding(.vertical, max(7, fontSize * 0.5))
+        // Capsule hugs the rendered text so short lines stay tight and
+        // long lines extend up to the parent's available width before
+        // MarqueeText takes over the overflow. `.fixedSize(horizontal:)`
+        // lets the inner Text report its natural width to the parent
+        // layout instead of being stretched to maxWidth.
+        Text(words.joined(separator: " "))
+            .font(.system(size: fontSize, weight: .semibold))
+            .tracking(max(0.4, fontSize * 0.04))
+            .foregroundStyle(palette.accent)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, max(12, fontSize * 0.9))
+            .padding(.vertical, max(7, fontSize * 0.5))
     }
 
     private var legacyBackground: some View {
@@ -597,9 +639,11 @@ struct PillCapsule: View {
     }
 
     private var pillFillColor: Color {
-        // Increase Contrast forces fully opaque palette so the silhouette is
-        // legible against any wallpaper.
-        if increaseContrast { return palette.bg }
+        // Reduce Transparency / Increase Contrast force fully opaque palette
+        // so the silhouette is legible against any wallpaper. Without this
+        // the legacy glass fill stays translucent (0.58–0.92 alpha) even
+        // after pillGlassStyle collapses to .off.
+        if increaseContrast || reduceTransparency { return palette.bgElev }
         switch bgStyle {
         case .solid:
             return tone == .dark
@@ -751,38 +795,82 @@ struct NowBars: View {
 
 struct KaraokeBackdrop: View {
     let hues: [Double]
+    let tone: FL.Tone
+    let palette: FL.Palette
+    let reduceMotion: Bool
+
+    /// Base luminance flips with tone — dark = deep ambient depth, light =
+    /// airy palette-derived backdrop. Both keep the chromatic blooms tinted
+    /// by the track hues so identity reads at a glance.
+    private var baseLuminance: Double { tone == .dark ? 0.16 : 0.94 }
+    private var bloomALuminance: Double { tone == .dark ? 0.55 : 0.78 }
+    private var bloomBLuminance: Double { tone == .dark ? 0.50 : 0.72 }
+    private var vignetteOpacity: Double { tone == .dark ? 0.45 : 0.18 }
+    private var vignetteTopOpacity: Double { tone == .dark ? 0.25 : 0.10 }
 
     var body: some View {
-        TimelineView(.animation) { ctx in
-            let t = ctx.date.timeIntervalSinceReferenceDate
-            ZStack {
-                FL.oklch(0.16, 0.02, hues[2])
-                let dx1 = sin(t * 0.35) * 60
-                let dy1 = cos(t * 0.30) * 40
-                Circle()
-                    .fill(RadialGradient(colors: [FL.oklch(0.55, 0.18, hues[0]), .clear],
-                          center: .center, startRadius: 0, endRadius: 500))
-                    .frame(width: 900, height: 900)
-                    .offset(x: -200 + dx1, y: -200 + dy1)
-                    .blur(radius: 40)
-                let dx2 = cos(t * 0.40) * 70
-                let dy2 = sin(t * 0.25) * 50
-                Circle()
-                    .fill(RadialGradient(colors: [FL.oklch(0.50, 0.17, hues[1]), .clear],
-                          center: .center, startRadius: 0, endRadius: 500))
-                    .frame(width: 900, height: 900)
-                    .offset(x: 200 + dx2, y: 200 + dy2)
-                    .blur(radius: 60)
-                LinearGradient(stops: [
-                    .init(color: .black.opacity(0.25), location: 0),
-                    .init(color: .clear, location: 0.3),
-                    .init(color: .clear, location: 0.7),
-                    .init(color: .black.opacity(0.45), location: 1)
-                ], startPoint: .top, endPoint: .bottom)
+        if reduceMotion {
+            staticBackdrop
+        } else {
+            TimelineView(.animation) { ctx in
+                animatedBackdrop(t: ctx.date.timeIntervalSinceReferenceDate)
             }
-            .compositingGroup()
-            .clipped()
         }
+    }
+
+    private var staticBackdrop: some View {
+        ZStack {
+            FL.oklch(baseLuminance, 0.02, hues[2])
+            Circle()
+                .fill(RadialGradient(colors: [FL.oklch(bloomALuminance, 0.18, hues[0]), .clear],
+                      center: .center, startRadius: 0, endRadius: 500))
+                .frame(width: 900, height: 900)
+                .offset(x: -200, y: -200)
+            Circle()
+                .fill(RadialGradient(colors: [FL.oklch(bloomBLuminance, 0.17, hues[1]), .clear],
+                      center: .center, startRadius: 0, endRadius: 500))
+                .frame(width: 900, height: 900)
+                .offset(x: 200, y: 200)
+            vignette
+        }
+        .compositingGroup()
+        .clipped()
+    }
+
+    private func animatedBackdrop(t: TimeInterval) -> some View {
+        ZStack {
+            FL.oklch(baseLuminance, 0.02, hues[2])
+            let dx1 = sin(t * 0.35) * 60
+            let dy1 = cos(t * 0.30) * 40
+            Circle()
+                .fill(RadialGradient(colors: [FL.oklch(bloomALuminance, 0.18, hues[0]), .clear],
+                      center: .center, startRadius: 0, endRadius: 500))
+                .frame(width: 900, height: 900)
+                .offset(x: -200 + dx1, y: -200 + dy1)
+                .blur(radius: 40)
+            let dx2 = cos(t * 0.40) * 70
+            let dy2 = sin(t * 0.25) * 50
+            Circle()
+                .fill(RadialGradient(colors: [FL.oklch(bloomBLuminance, 0.17, hues[1]), .clear],
+                      center: .center, startRadius: 0, endRadius: 500))
+                .frame(width: 900, height: 900)
+                .offset(x: 200 + dx2, y: 200 + dy2)
+                .blur(radius: 60)
+            vignette
+        }
+        .compositingGroup()
+        .clipped()
+    }
+
+    private var vignette: some View {
+        // Light tone uses subtle dark edges; dark tone keeps stronger
+        // bottom-heavy depth for foreground contrast.
+        LinearGradient(stops: [
+            .init(color: .black.opacity(vignetteTopOpacity), location: 0),
+            .init(color: .clear, location: 0.3),
+            .init(color: .clear, location: 0.7),
+            .init(color: .black.opacity(vignetteOpacity), location: 1)
+        ], startPoint: .top, endPoint: .bottom)
     }
 }
 
