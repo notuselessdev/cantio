@@ -21,3 +21,7 @@ Package.resolved
 
 # Chief working files
 .chief/
+
+# Personal Claude overrides
+CLAUDE.local.md
+.claude/settings.local.json

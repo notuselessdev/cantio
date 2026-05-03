@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "statusLine": {
+    "type": "command",
+    "command": "${CLAUDE_PROJECT_DIR}/.claude/statusline"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(xcodebuild:*)",
+      "Bash(killall Floric)",
+      "Bash(killall Floric 2>/dev/null)",
+      "Bash(open /Users/mayron/Library/Developer/Xcode/DerivedData/Floric-*/Build/Products/Debug/Floric.app)",
+      "Bash(swiftformat:*)",
+      "Bash(swift-format:*)",
+      "Bash(xcrun:*)",
+      "Bash(plutil:*)",
+      "Bash(defaults read co.sultans.floric*)",
+      "Bash(defaults write co.sultans.floric:*)",
+      "Bash(defaults delete co.sultans.floric:*)",
+      "Bash(log show --predicate process == \"Floric\" *)",
+      "Bash(pgrep -lf Floric)",
+      "Bash(screencapture:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add Floric*)",
+      "Bash(git add FloricTests*)",
+      "Bash(git add docs*)",
+      "Bash(git add .claude*)",
+      "Bash(git add CLAUDE.md)",
+      "Bash(git rev-parse:*)",
+      "Bash(git branch:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/PostToolUse.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/SessionStart.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/Stop.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

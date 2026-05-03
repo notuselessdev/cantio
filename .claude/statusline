@@ -1,0 +1,19 @@
+#!/bin/bash
+# Floric statusline. Branch · last build status · last test age.
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "no-git")
+
+dirty=""
+if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+  dirty="*"
+fi
+
+# Last test result + age.
+latest_test=$(ls -t /Users/mayron/Library/Developer/Xcode/DerivedData/Floric-*/Logs/Test/*.xcresult 2>/dev/null | head -1)
+test_status=""
+if [ -n "$latest_test" ]; then
+  age_min=$(( ( $(date +%s) - $(stat -f %m "$latest_test" 2>/dev/null || echo 0) ) / 60 ))
+  test_status=" · tests ${age_min}m"
+fi
+
+echo "🌸 Floric · ${branch}${dirty}${test_status}"
