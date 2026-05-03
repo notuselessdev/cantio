@@ -46,6 +46,7 @@
 		BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */; };
 		BBBB0000000000000000BD12 /* MenuBarPanelSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */; };
 		BBBB0000000000000000BD13 /* LyricsContentViewSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */; };
+		BBBB0000000000000000BD14 /* PillCapsuleShadowLeakTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BD04 /* PillCapsuleShadowLeakTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +90,7 @@
 		BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleSnapshotTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelSnapshotTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsContentViewSnapshotTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000BD04 /* PillCapsuleShadowLeakTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleShadowLeakTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 				BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */,
 				BBBB0000000000000000BD02 /* MenuBarPanelSnapshotTests.swift */,
 				BBBB0000000000000000BD03 /* LyricsContentViewSnapshotTests.swift */,
+				BBBB0000000000000000BD04 /* PillCapsuleShadowLeakTests.swift */,
 			);
 			path = Snapshots;
 			sourceTree = "<group>";
@@ -423,6 +426,7 @@
 				BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */,
 				BBBB0000000000000000BD12 /* MenuBarPanelSnapshotTests.swift in Sources */,
 				BBBB0000000000000000BD13 /* LyricsContentViewSnapshotTests.swift in Sources */,
+				BBBB0000000000000000BD14 /* PillCapsuleShadowLeakTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

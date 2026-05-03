@@ -220,13 +220,20 @@ struct LyricsContentView: View {
         let curWords = cur?.words ?? (forPill ? ["♪"] : ["♪  ♪  ♪"])
 
         if forPill {
-            VStack(spacing: 8) {
+            // Spacing bumped from 8 → 16 so dim sibling lines sit outside
+            // the pill's shadow falloff (~6pt). Within that band, sibling
+            // crossfades read as a "pulsing dark edge" along the pill rim.
+            VStack(spacing: 16) {
                 if stack {
                     LyricLineView(words: lp.prev?.words ?? ["♪"],
                                   highlighted: true,
                                   active: false, dim: true, color: palette.textFaint,
                                   accent: palette.accent, size: 13)
                         .opacity(lp.prev != nil ? 1 : 0)
+                        // Sibling fades go through the pill's shadow if they
+                        // share the parent's easeInOut(0.3); strip transactions
+                        // and use a short explicit fade instead.
+                        .transaction { $0.animation = .easeOut(duration: 0.18) }
                 }
                 PillCapsule(words: curWords, palette: palette, tone: effectiveTone,
                             bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
@@ -236,6 +243,7 @@ struct LyricsContentView: View {
                                   active: false, dim: true, color: palette.textFaint,
                                   accent: palette.accent, size: 13)
                         .opacity(lp.next != nil ? 1 : 0)
+                        .transaction { $0.animation = .easeOut(duration: 0.18) }
                 }
             }
         } else {
@@ -466,26 +474,42 @@ struct PillCapsule: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 9)
-        .background(pillBackground)
-        .overlay(Capsule().strokeBorder(stroke, lineWidth: 0.5))
-        .shadow(color: .black.opacity(0.22), radius: 5, y: 4)
+        .background {
+            Capsule()
+                .fill(pillFillColor)
+                .overlay(Capsule().strokeBorder(stroke, lineWidth: 0.5))
+                // drawingGroup rasterizes the capsule + shadow into a single
+                // bitmap, preventing CALayer's implicit shadowPath animation
+                // when the HStack's intrinsic width changes between word
+                // counts (which produced the residual bottom band even with
+                // compositingGroup + animation suppression).
+                .shadow(color: .black.opacity(0.10), radius: 1, y: 1)
+                .shadow(color: .black.opacity(0.08), radius: 4, y: 0)
+                .drawingGroup()
+        }
+        // Strip the parent's easeInOut(0.3) animation from the entire pill
+        // subtree. The parent (syncedRender) keys it on the current line's
+        // timestamp; if it propagates here, the HStack width tweens between
+        // word counts and the shadow path tweens with it — producing a
+        // transient dark band along the top edge that "snaps to bottom"
+        // when the tween settles. Snapping the pill width fixes both edges;
+        // prev/next dim lines outside the pill still crossfade via the
+        // parent VStack's opacity transitions.
+        .transaction { $0.animation = nil }
     }
 
-    @ViewBuilder
-    private var pillBackground: some View {
-        let solid = tone == .dark
-            ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: 0.92)
-            : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: 0.94)
-        let tint = max(0, min(1, glassOpacity))
-        let glassOp = 0.58 + 0.34 * tint
-        let glass = tone == .dark
-            ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: glassOp)
-            : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: glassOp)
+    private var pillFillColor: Color {
         switch bgStyle {
         case .solid:
-            Capsule().fill(solid)
+            return tone == .dark
+                ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: 0.92)
+                : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: 0.94)
         case .glass:
-            Capsule().fill(glass)
+            let tint = max(0, min(1, glassOpacity))
+            let glassOp = 0.58 + 0.34 * tint
+            return tone == .dark
+                ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: glassOp)
+                : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: glassOp)
         }
     }
 }
