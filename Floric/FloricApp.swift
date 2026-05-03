@@ -2,34 +2,21 @@ import SwiftUI
 
 @main
 struct FloricApp: App {
-    @StateObject private var monitor = SpotifyMonitor()
-    @StateObject private var lyrics = LyricsStore()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var prefs = Preferences.shared
-    @State private var floatingController: FloatingLyricsController?
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarContent(
-                monitor: monitor,
+            MenuBarPanel(
+                monitor: appDelegate.monitor,
+                lyrics: appDelegate.lyrics,
                 prefs: prefs,
-                onAppear: {
-                    monitor.start()
-                    lyrics.bind(to: monitor)
-                    if floatingController == nil {
-                        let controller = FloatingLyricsController(
-                            monitor: monitor,
-                            lyrics: lyrics,
-                            prefs: prefs
-                        )
-                        controller.start()
-                        floatingController = controller
-                    }
-                }
+                onAppear: { appDelegate.bootstrapIfNeeded() }
             )
         } label: {
-            StatusItemLabel(monitor: monitor)
+            StatusItemLabel(monitor: appDelegate.monitor)
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView(prefs: prefs)
@@ -37,16 +24,44 @@ struct FloricApp: App {
     }
 }
 
-/// Status-bar label: music glyph + truncated track title when available.
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    let monitor = SpotifyMonitor()
+    let lyrics = LyricsStore()
+    let prefs = Preferences.shared
+    private var floatingController: FloatingLyricsController?
+    private var didBootstrap = false
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        bootstrapIfNeeded()
+    }
+
+    func bootstrapIfNeeded() {
+        guard !didBootstrap else { return }
+        didBootstrap = true
+        monitor.start()
+        lyrics.bind(to: monitor)
+        let controller = FloatingLyricsController(
+            monitor: monitor,
+            lyrics: lyrics,
+            prefs: prefs
+        )
+        controller.start()
+        floatingController = controller
+    }
+}
+
+/// Status-bar label: waveform glyph + truncated track title when available.
 private struct StatusItemLabel: View {
     @ObservedObject var monitor: SpotifyMonitor
     private static let maxTitleLength = 28
 
     var body: some View {
-        if let title = displayTitle {
-            Label(title, systemImage: "music.note")
-        } else {
+        HStack(spacing: 4) {
             Image(systemName: "music.note")
+            if let title = displayTitle {
+                Text(title)
+            }
         }
     }
 
@@ -56,39 +71,5 @@ private struct StatusItemLabel: View {
             return String(np.title.prefix(Self.maxTitleLength)) + "…"
         }
         return np.title
-    }
-}
-
-private struct MenuBarContent: View {
-    @ObservedObject var monitor: SpotifyMonitor
-    @ObservedObject var prefs: Preferences
-    let onAppear: () -> Void
-
-    var body: some View {
-        if monitor.availability == .permissionDenied {
-            Text("Spotify access denied")
-            Button("Open System Settings…") {
-                SpotifyPermission.openSystemSettings()
-            }
-            Divider()
-        }
-        Toggle(prefs.windowVisible ? "Hide Lyrics" : "Show Lyrics", isOn: $prefs.windowVisible)
-            .keyboardShortcut("l", modifiers: [.command, .option])
-        Divider()
-        PreferencesMenu(prefs: prefs)
-        Divider()
-        SettingsLink {
-            Text("Preferences…")
-        }
-        .keyboardShortcut(",")
-        Button("Check for Updates…") {
-            UpdateController.shared.checkForUpdates()
-        }
-        Divider()
-        Button("Quit Floric") {
-            NSApplication.shared.terminate(nil)
-        }
-        .keyboardShortcut("q")
-        .onAppear(perform: onAppear)
     }
 }
