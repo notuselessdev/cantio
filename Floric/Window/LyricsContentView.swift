@@ -28,10 +28,19 @@ struct LyricsContentView: View {
     private var effectiveTone: FL.Tone { resolvedTone }
     private var degradeToSolid: Bool { reduceTransparency }
 
+    /// Maps `prefs.linesVisible` (1 / 3 / 5) to the symmetric neighbor count
+    /// shown around the current line: 0 / 1 / 2.
+    private var linesAroundFromPref: Int {
+        let v = prefs.linesVisible
+        if v <= 1 { return 0 }
+        if v <= 3 { return 1 }
+        return 2
+    }
+
     var body: some View {
         Group {
             switch style {
-            case .pill: pillBody(stack: prefs.linesVisible > 1)
+            case .pill: pillBody(linesAround: linesAroundFromPref)
             case .fullscreen: fullscreenBody
             case .minimal: windowBody
             }
@@ -42,7 +51,7 @@ struct LyricsContentView: View {
     // MARK: - Pill / Pill Stack
 
     @ViewBuilder
-    private func pillBody(stack: Bool) -> some View {
+    private func pillBody(linesAround: Int) -> some View {
         ZStack {
             // No window chrome — capsule(s) hover over wallpaper.
             switch monitor.availability {
@@ -51,7 +60,7 @@ struct LyricsContentView: View {
             case .notInstalled:
                 placeholderCapsule("Install Spotify to see lyrics")
             case .notRunning, .available:
-                lyricsContent(forPill: true, stack: stack)
+                lyricsContent(forPill: true, linesAround: linesAround)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -104,7 +113,7 @@ struct LyricsContentView: View {
                     .padding(.horizontal, 40)
                 }
                 Spacer(minLength: 0)
-                lyricsContent(forPill: false, stack: true, large: true)
+                lyricsContent(forPill: false, linesAround: 1, large: true)
                     .padding(.horizontal, 80)
                 Spacer(minLength: 0)
                 if monitor.nowPlaying != nil {
@@ -177,7 +186,7 @@ struct LyricsContentView: View {
                 emptyStateView
             } else {
                 VStack(spacing: 0) {
-                    lyricsContent(forPill: false, stack: prefs.linesVisible > 1)
+                    lyricsContent(forPill: false, linesAround: linesAroundFromPref)
                         .frame(maxHeight: .infinity)
                 }
                 .overlay(alignment: .bottom) { minimalFooter }
@@ -188,7 +197,7 @@ struct LyricsContentView: View {
     // MARK: - Lyrics renderer
 
     @ViewBuilder
-    private func lyricsContent(forPill: Bool, stack: Bool, large: Bool = false) -> some View {
+    private func lyricsContent(forPill: Bool, linesAround: Int, large: Bool = false) -> some View {
         switch lyrics.state {
         case .idle: placeholderCapsuleOrText("—", forPill: forPill)
         case .loading: placeholderCapsuleOrText("Loading lyrics…", forPill: forPill)
@@ -206,14 +215,15 @@ struct LyricsContentView: View {
                 let pos = monitor.interpolatedPosition(now: ctx.date)
                     ?? monitor.nowPlaying?.positionSeconds ?? 0
                 let lp = LyricPosition.compute(lines: lines, position: pos)
-                syncedRender(lp: lp, forPill: forPill, stack: stack, large: large)
+                syncedRender(lp: lp, forPill: forPill, linesAround: linesAround, large: large)
                     .animation(.easeInOut(duration: 0.3), value: lp.current?.timestamp)
             }
         }
     }
 
     @ViewBuilder
-    private func syncedRender(lp: LyricPosition, forPill: Bool, stack: Bool, large: Bool) -> some View {
+    private func syncedRender(lp: LyricPosition, forPill: Bool,
+                              linesAround: Int, large: Bool) -> some View {
         let cur = lp.current
         let activeSize: CGFloat = large ? 48 : prefs.fontSize.activeSize
         let dimSize: CGFloat = large ? 32 : max(12, prefs.fontSize.activeSize * 0.78)
@@ -223,51 +233,75 @@ struct LyricsContentView: View {
             // Spacing bumped from 8 → 16 so dim sibling lines sit outside
             // the pill's shadow falloff (~6pt). Within that band, sibling
             // crossfades read as a "pulsing dark edge" along the pill rim.
-            VStack(spacing: 16) {
-                if stack {
-                    LyricLineView(words: lp.prev?.words ?? ["♪"],
-                                  highlighted: true,
-                                  active: false, dim: true, color: palette.textFaint,
-                                  accent: palette.accent, size: 13)
-                        .opacity(lp.prev != nil ? 1 : 0)
-                        // Sibling fades go through the pill's shadow if they
-                        // share the parent's easeInOut(0.3); strip transactions
-                        // and use a short explicit fade instead.
-                        .transaction { $0.animation = .easeOut(duration: 0.18) }
+            VStack(spacing: 14) {
+                if linesAround >= 2 {
+                    pillSibling(words: lp.prev2?.words, exists: lp.prev2 != nil,
+                                size: 11, opacity: 0.6)
+                }
+                if linesAround >= 1 {
+                    pillSibling(words: lp.prev?.words, exists: lp.prev != nil,
+                                size: 13, opacity: 1)
                 }
                 PillCapsule(words: curWords, palette: palette, tone: effectiveTone,
                             bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
-                if stack {
-                    LyricLineView(words: lp.next?.words ?? ["♪"],
-                                  highlighted: true,
-                                  active: false, dim: true, color: palette.textFaint,
-                                  accent: palette.accent, size: 13)
-                        .opacity(lp.next != nil ? 1 : 0)
-                        .transaction { $0.animation = .easeOut(duration: 0.18) }
+                if linesAround >= 1 {
+                    pillSibling(words: lp.next?.words, exists: lp.next != nil,
+                                size: 13, opacity: 1)
+                }
+                if linesAround >= 2 {
+                    pillSibling(words: lp.next2?.words, exists: lp.next2 != nil,
+                                size: 11, opacity: 0.6)
                 }
             }
         } else {
             VStack(spacing: large ? 26 : 10) {
-                if stack {
-                    LyricLineView(words: lp.prev?.words ?? ["♪"],
-                                  highlighted: true,
-                                  active: false, dim: true, color: palette.textFaint,
-                                  accent: palette.accent, size: dimSize)
-                        .opacity(lp.prev != nil ? 1 : 0)
+                if linesAround >= 2 {
+                    windowSibling(words: lp.prev2?.words, exists: lp.prev2 != nil,
+                                  size: dimSize * 0.85, fade: 0.5)
+                }
+                if linesAround >= 1 {
+                    windowSibling(words: lp.prev?.words, exists: lp.prev != nil,
+                                  size: dimSize, fade: 1, highlighted: true)
                 }
                 LyricLineView(words: curWords, highlighted: true,
                               active: true, dim: false, color: palette.text,
                               accent: palette.accent, size: activeSize)
-                if stack {
-                    LyricLineView(words: lp.next?.words ?? ["♪"],
-                                  highlighted: false,
-                                  active: false, dim: true, color: palette.textFaint,
-                                  accent: palette.accent, size: dimSize)
-                        .opacity(lp.next != nil ? 1 : 0)
+                if linesAround >= 1 {
+                    windowSibling(words: lp.next?.words, exists: lp.next != nil,
+                                  size: dimSize, fade: 1)
+                }
+                if linesAround >= 2 {
+                    windowSibling(words: lp.next2?.words, exists: lp.next2 != nil,
+                                  size: dimSize * 0.85, fade: 0.5)
                 }
             }
             .frame(maxWidth: .infinity)
         }
+    }
+
+    @ViewBuilder
+    private func pillSibling(words: [String]?, exists: Bool,
+                             size: CGFloat, opacity: Double) -> some View {
+        LyricLineView(words: words ?? ["♪"],
+                      highlighted: true,
+                      active: false, dim: true, color: palette.textFaint,
+                      accent: palette.accent, size: size)
+            .opacity(exists ? opacity : 0)
+            // Sibling fades go through the pill's shadow if they share the
+            // parent's easeInOut(0.3); strip transactions and use a short
+            // explicit fade instead.
+            .transaction { $0.animation = .easeOut(duration: 0.18) }
+    }
+
+    @ViewBuilder
+    private func windowSibling(words: [String]?, exists: Bool,
+                               size: CGFloat, fade: Double,
+                               highlighted: Bool = false) -> some View {
+        LyricLineView(words: words ?? ["♪"],
+                      highlighted: highlighted,
+                      active: false, dim: true, color: palette.textFaint,
+                      accent: palette.accent, size: size)
+            .opacity(exists ? fade : 0)
     }
 
     // MARK: - Footer
@@ -401,23 +435,28 @@ struct LyricsContentView: View {
 
 struct LyricPosition {
     struct Line { let timestamp: Double; let text: String; let words: [String] }
+    let prev2: Line?
     let prev: Line?
     let current: Line?
     let next: Line?
+    let next2: Line?
 
     static func compute(lines: [LyricLine], position: Double) -> LyricPosition {
         guard !lines.isEmpty else {
-            return LyricPosition(prev: nil, current: nil, next: nil)
+            return LyricPosition(prev2: nil, prev: nil, current: nil, next: nil, next2: nil)
         }
         let idx = LyricLine.activeIndex(in: lines, at: position)
         guard let i = idx else {
-            return LyricPosition(prev: nil, current: nil,
-                next: line(at: 0, in: lines))
+            return LyricPosition(prev2: nil, prev: nil, current: nil,
+                next: line(at: 0, in: lines),
+                next2: lines.count > 1 ? line(at: 1, in: lines) : nil)
         }
         let cur = line(at: i, in: lines)
         let prev = i > 0 ? line(at: i - 1, in: lines) : nil
+        let prev2 = i > 1 ? line(at: i - 2, in: lines) : nil
         let nxt = i + 1 < lines.count ? line(at: i + 1, in: lines) : nil
-        return LyricPosition(prev: prev, current: cur, next: nxt)
+        let nxt2 = i + 2 < lines.count ? line(at: i + 2, in: lines) : nil
+        return LyricPosition(prev2: prev2, prev: prev, current: cur, next: nxt, next2: nxt2)
     }
 
     private static func line(at i: Int, in lines: [LyricLine]) -> Line {

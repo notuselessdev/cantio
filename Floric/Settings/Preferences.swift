@@ -127,7 +127,6 @@ final class Preferences: ObservableObject {
         static let windowVisible = "windowVisible"
         static let launchAtLogin = "launchAtLogin"
         static let linesVisible = "linesVisible"
-        static let showRomanization = "showRomanization"
         static let hotKeyKeyCode = "hotKey.keyCode"
         static let hotKeyModifiers = "hotKey.modifiers"
     }
@@ -195,10 +194,6 @@ final class Preferences: ObservableObject {
         }
     }
 
-    @Published var showRomanization: Bool {
-        didSet { defaults.set(showRomanization, forKey: Key.showRomanization) }
-    }
-
     @Published var toggleHotKey: HotKey {
         didSet {
             defaults.set(Int(toggleHotKey.keyCode), forKey: Key.hotKeyKeyCode)
@@ -262,7 +257,6 @@ final class Preferences: ObservableObject {
         let storedLaunch = defaults.object(forKey: Key.launchAtLogin) as? Bool ?? false
         self.launchAtLogin = Self.currentLoginItemEnabled(fallback: storedLaunch)
         self.linesVisible = defaults.object(forKey: Key.linesVisible) as? Int ?? 3
-        self.showRomanization = defaults.bool(forKey: Key.showRomanization)
         if defaults.object(forKey: Key.hotKeyKeyCode) == nil {
             self.toggleHotKey = .defaultToggle
         } else {

@@ -2,8 +2,9 @@ import SwiftUI
 import AppKit
 
 /// Custom menu-bar dropdown card. Replaces the system `.menu` style with a
-/// `MenuBarExtra(.window)` panel that mirrors `menu-bar.jsx`: now-playing
-/// row + three actions + Settings/Quit footer.
+/// `MenuBarExtra(.window)` panel — now-playing card with real transport
+/// controls (play/pause, prev, next, scrubber), then a small action list,
+/// then Settings/Quit.
 struct MenuBarPanel: View {
     @ObservedObject var monitor: SpotifyMonitor
     @ObservedObject var lyrics: LyricsStore
@@ -12,6 +13,7 @@ struct MenuBarPanel: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var tone: FL.Tone {
         switch prefs.tone {
@@ -25,57 +27,63 @@ struct MenuBarPanel: View {
     var body: some View {
         VStack(spacing: 0) {
             nowPlayingCard
+            ScrubberRow(monitor: monitor, palette: palette)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
             Divider().background(palette.border)
             VStack(spacing: 2) {
                 MenuRow(icon: .window,
                         label: prefs.windowVisible ? "Hide lyrics window" : "Show lyrics window",
-                        shortcut: "⌥⌘L", active: prefs.windowVisible, palette: palette) {
+                        shortcut: "⌥⌘L", palette: palette) {
                     prefs.windowVisible.toggle()
                 }
-                MenuRow(icon: .theme,
-                        label: "Theme",
-                        trailing: Text(prefs.tone.label).font(.system(size: 11.5))
-                            .foregroundStyle(palette.textMuted),
-                        palette: palette) {
-                    let order: [Tone] = [.auto, .light, .dark]
-                    let i = order.firstIndex(of: prefs.tone) ?? 0
-                    prefs.tone = order[(i + 1) % order.count]
-                }
-                MenuRow(icon: prefs.hideWhenPaused ? .play : .pause,
-                        label: prefs.hideWhenPaused ? "Resume sync" : "Pause sync",
+                MenuRow(icon: .eye,
+                        label: "Auto-hide",
+                        trailing: Toggle("", isOn: .constant(prefs.hideWhenPaused))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .controlSize(.mini)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true),
                         palette: palette) {
                     prefs.hideWhenPaused.toggle()
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Auto-hide")
+                .accessibilityValue(prefs.hideWhenPaused ? "On" : "Off")
+                .accessibilityAddTraits(.isToggle)
             }
-            .padding(4)
-
-            Divider().background(palette.border)
+            .padding(.horizontal, 4)
+            .padding(.top, 4)
 
             VStack(spacing: 2) {
                 HoverableSettingsRow(palette: palette)
                     .keyboardShortcut(",")
 
                 MenuRow(icon: .quit, label: "Quit Floric",
-                        shortcut: "⌘Q", palette: palette) {
+                        shortcut: "⌘Q", destructive: true, palette: palette) {
                     NSApplication.shared.terminate(nil)
                 }
                 .keyboardShortcut("q")
             }
-            .padding(4)
+            .padding(.horizontal, 4)
+            .padding(.top, 6)
+            .padding(.bottom, 4)
         }
-        .frame(width: 268)
+        .frame(width: 290)
         .background(
-            ZStack {
-                VisualEffectBackground(material: .popover, blending: .behindWindow)
-                (tone == .dark
-                    ? Color(.sRGB, red: 28/255, green: 30/255, blue: 36/255, opacity: 0.30)
-                    : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: 0.40))
+            Group {
+                if reduceTransparency {
+                    palette.bgElev
+                } else {
+                    VisualEffectBackground(material: .popover, blending: .behindWindow)
+                }
             }
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 11, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(palette.borderStrong, lineWidth: 0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .background(WindowTransparencyApplier())
         .preferredColorScheme(tone == .dark ? .dark : .light)
         .onAppear(perform: onAppear)
@@ -84,33 +92,71 @@ struct MenuBarPanel: View {
     @ViewBuilder
     private var nowPlayingCard: some View {
         HStack(spacing: 11) {
-            AlbumArtView(hues: trackHues, size: 42,
-                         artworkURL: monitor.nowPlaying?.artworkURL)
+            Button(action: focusSpotify) {
+                AlbumArtView(hues: trackHues, size: 42,
+                             artworkURL: monitor.nowPlaying?.artworkURL)
+            }
+            .buttonStyle(.plain)
+            .help("Show Spotify")
+            .accessibilityLabel("Show Spotify")
+
             VStack(alignment: .leading, spacing: 1) {
-                Text(monitor.nowPlaying?.title ?? "Not playing")
-                    .font(.system(size: 12.5, weight: .semibold))
-                    .foregroundStyle(palette.text)
-                    .lineLimit(1)
-                Text(monitor.nowPlaying?.artist ?? "—")
-                    .font(.system(size: 11))
-                    .foregroundStyle(palette.textMuted)
-                    .lineLimit(1)
-                if let np = monitor.nowPlaying, np.durationSeconds > 0 {
-                    GeometryReader { geo in
-                        let pct = max(0, min(1, np.positionSeconds / np.durationSeconds))
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.white.opacity(0.10))
-                            Capsule().fill(palette.accent)
-                                .frame(width: geo.size.width * pct)
-                        }
-                    }
-                    .frame(height: 2)
-                    .padding(.top, 5)
+                LinkButton(action: openTrack,
+                           enabled: monitor.nowPlaying != nil,
+                           help: "Open track in Spotify",
+                           a11yLabel: monitor.nowPlaying.map { "Open track \($0.title) in Spotify" } ?? "Not playing") { underlined in
+                    MarqueeText(text: monitor.nowPlaying?.title ?? "Not playing",
+                                font: .system(size: 12.5, weight: .semibold),
+                                color: palette.text,
+                                underline: underlined)
+                }
+
+                LinkButton(action: openArtist,
+                           enabled: !(monitor.nowPlaying?.artist.isEmpty ?? true),
+                           help: "Open artist in Spotify",
+                           a11yLabel: monitor.nowPlaying.map { "Open artist \($0.artist) in Spotify" } ?? "") { underlined in
+                    MarqueeText(text: monitor.nowPlaying?.artist ?? "—",
+                                font: .system(size: 11),
+                                color: palette.textMuted,
+                                underline: underlined)
                 }
             }
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
+            TransportControls(monitor: monitor, palette: palette)
+                .accessibilityHidden(false)
         }
-        .padding(12)
+        .padding(.horizontal, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 10)
+    }
+
+    private func openTrack() {
+        guard let id = monitor.nowPlaying?.trackId, !id.isEmpty,
+              let url = URL(string: id) else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    private func openArtist() {
+        guard let artist = monitor.nowPlaying?.artist,
+              !artist.isEmpty,
+              let encoded = artist.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "spotify:search:\(encoded)") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    private func focusSpotify() {
+        // `NSRunningApplication.activate` doesn't deminiaturize a Dock-minimized
+        // window. Route through Launch Services instead so Spotify restores
+        // its main window when activating.
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.spotify.client") else { return }
+        let cfg = NSWorkspace.OpenConfiguration()
+        cfg.activates = true
+        NSWorkspace.shared.openApplication(at: url, configuration: cfg, completionHandler: nil)
+    }
+
+    private var nowPlayingA11yLabel: String {
+        guard let np = monitor.nowPlaying else { return "Not playing" }
+        return "Now playing: \(np.title) by \(np.artist)"
     }
 
     private var trackHues: [Double] {
@@ -123,9 +169,210 @@ struct MenuBarPanel: View {
     }
 }
 
+// MARK: - Transport controls
+
+/// Three-button transport row (prev / play-pause / next). Uses SF Symbols,
+/// 28pt hit targets, full VoiceOver labels, keyboard shortcuts, and disables
+/// itself when Spotify isn't available.
+struct TransportControls: View {
+    @ObservedObject var monitor: SpotifyMonitor
+    let palette: FL.Palette
+
+    private var disabled: Bool { monitor.availability != .available }
+    private var isPlaying: Bool { monitor.nowPlaying?.state == .playing }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            TransportButton(symbol: "backward.fill",
+                            label: "Previous track",
+                            palette: palette,
+                            disabled: disabled,
+                            primary: false) {
+                monitor.previousTrack()
+            }
+            .keyboardShortcut(.leftArrow, modifiers: .command)
+
+            TransportButton(symbol: isPlaying ? "pause.fill" : "play.fill",
+                            label: isPlaying ? "Pause" : "Play",
+                            palette: palette,
+                            disabled: disabled,
+                            primary: true) {
+                monitor.playPause()
+            }
+            .keyboardShortcut(.space, modifiers: [])
+
+            TransportButton(symbol: "forward.fill",
+                            label: "Next track",
+                            palette: palette,
+                            disabled: disabled,
+                            primary: false) {
+                monitor.nextTrack()
+            }
+            .keyboardShortcut(.rightArrow, modifiers: .command)
+        }
+    }
+}
+
+private struct TransportButton: View {
+    let symbol: String
+    let label: String
+    let palette: FL.Palette
+    let disabled: Bool
+    let primary: Bool
+    let action: () -> Void
+
+    @State private var hover = false
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(background)
+                Image(systemName: symbol)
+                    .font(.system(size: primary ? 12 : 10, weight: .semibold))
+                    .foregroundStyle(foreground)
+            }
+            .frame(width: primary ? 30 : 26, height: primary ? 30 : 26)
+            .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .opacity(disabled ? 0.4 : 1)
+        .onHover { hover = $0 && !disabled }
+        .accessibilityLabel(label)
+        .help(label)
+        .frame(minWidth: 30, minHeight: 30)
+    }
+
+    private var background: Color {
+        if primary { return palette.accent }
+        return hover ? palette.accentSoft : .clear
+    }
+    private var foreground: Color {
+        if primary { return .white }
+        return hover ? palette.accent : palette.text
+    }
+}
+
+// MARK: - Scrubber
+
+/// Interactive progress bar bound to `monitor.interpolatedPosition(now:)`.
+/// Drag to scrub — emits a single seek on drag end + tap. Reduce-Motion
+/// skips the smooth tick so the displayed position snaps to truth.
+struct ScrubberRow: View {
+    @ObservedObject var monitor: SpotifyMonitor
+    let palette: FL.Palette
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var dragPosition: Double?
+    @State private var tickedNow: Date = Date()
+    @State private var tickerTask: Task<Void, Never>?
+
+    private var disabled: Bool {
+        monitor.availability != .available
+            || (monitor.nowPlaying?.durationSeconds ?? 0) <= 0
+    }
+
+    private var duration: Double { monitor.nowPlaying?.durationSeconds ?? 0 }
+
+    private var displayedPosition: Double {
+        if let dragPosition { return dragPosition }
+        return monitor.interpolatedPosition(now: tickedNow)
+            ?? monitor.nowPlaying?.positionSeconds ?? 0
+    }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            GeometryReader { geo in
+                let pct = duration > 0
+                    ? max(0, min(1, displayedPosition / duration))
+                    : 0
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(palette.borderStrong)
+                        .frame(height: 3)
+                    Capsule()
+                        .fill(disabled ? palette.textFaint : palette.accent)
+                        .frame(width: geo.size.width * pct, height: 3)
+                    Circle()
+                        .fill(palette.accent)
+                        .frame(width: 10, height: 10)
+                        .opacity(disabled ? 0 : (dragPosition != nil ? 1 : 0))
+                        .offset(x: geo.size.width * pct - 5)
+                }
+                .frame(height: 18)
+                .contentShape(Rectangle())
+                .gesture(scrubGesture(width: geo.size.width))
+            }
+            .frame(height: 18)
+
+            HStack {
+                Text(format(displayedPosition))
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(palette.textMuted)
+                Spacer(minLength: 0)
+                Text(format(duration))
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(palette.textMuted)
+            }
+        }
+        .opacity(disabled ? 0.35 : 1)
+        .allowsHitTesting(!disabled)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Playback position")
+        .accessibilityValue("\(format(displayedPosition)) of \(format(duration))")
+        .accessibilityAdjustableAction { dir in
+            guard !disabled else { return }
+            let delta: Double = (dir == .increment) ? 5 : -5
+            let target = max(0, min(duration, displayedPosition + delta))
+            monitor.seek(to: target)
+        }
+        .onAppear { startTicker() }
+        .onDisappear { tickerTask?.cancel(); tickerTask = nil }
+    }
+
+    private func scrubGesture(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { g in
+                guard !disabled, duration > 0, width > 0 else { return }
+                let p = max(0, min(1, g.location.x / width))
+                dragPosition = p * duration
+            }
+            .onEnded { _ in
+                guard !disabled, let target = dragPosition else { return }
+                monitor.seek(to: target)
+                // Hold drag value briefly so the next poll has time to land
+                // (~500 ms) — otherwise UI snaps back to stale position.
+                let hold = dragPosition
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    if dragPosition == hold { dragPosition = nil }
+                }
+            }
+    }
+
+    private func startTicker() {
+        guard tickerTask == nil, !reduceMotion else {
+            tickedNow = Date()
+            return
+        }
+        tickerTask = Task { @MainActor in
+            while !Task.isCancelled {
+                tickedNow = Date()
+                try? await Task.sleep(nanoseconds: 250_000_000)
+            }
+        }
+    }
+
+    private func format(_ s: Double) -> String {
+        let total = max(0, Int(s.rounded()))
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+}
+
 // MARK: - Menu rows
 
-enum MenuIconKind { case window, theme, pause, play, gear, quit }
+enum MenuIconKind { case window, theme, pause, play, gear, quit, eye }
 
 struct MenuRow<Trailing: View>: View {
     let icon: MenuIconKind
@@ -134,6 +381,7 @@ struct MenuRow<Trailing: View>: View {
     let trailing: Trailing
     let active: Bool
     let muted: Bool
+    let destructive: Bool
     let palette: FL.Palette
     let action: () -> Void
 
@@ -142,10 +390,11 @@ struct MenuRow<Trailing: View>: View {
     init(icon: MenuIconKind, label: String,
          shortcut: String? = nil,
          trailing: Trailing,
-         active: Bool = false, muted: Bool = false,
+         active: Bool = false, muted: Bool = false, destructive: Bool = false,
          palette: FL.Palette, action: @escaping () -> Void) {
         self.icon = icon; self.label = label; self.shortcut = shortcut
         self.trailing = trailing; self.active = active; self.muted = muted
+        self.destructive = destructive
         self.palette = palette; self.action = action
     }
 
@@ -153,7 +402,7 @@ struct MenuRow<Trailing: View>: View {
         Button(action: action) {
             MenuRowLabel(icon: icon, label: label, shortcut: shortcut,
                          trailing: trailing, active: active || hover,
-                         muted: muted, palette: palette)
+                         muted: muted, destructive: destructive, palette: palette)
         }
         .buttonStyle(.plain)
         .onHover { hover = $0 }
@@ -163,10 +412,11 @@ struct MenuRow<Trailing: View>: View {
 extension MenuRow where Trailing == EmptyView {
     init(icon: MenuIconKind, label: String,
          shortcut: String? = nil,
-         active: Bool = false, muted: Bool = false,
+         active: Bool = false, muted: Bool = false, destructive: Bool = false,
          palette: FL.Palette, action: @escaping () -> Void) {
         self.init(icon: icon, label: label, shortcut: shortcut,
                   trailing: EmptyView(), active: active, muted: muted,
+                  destructive: destructive,
                   palette: palette, action: action)
     }
 }
@@ -178,25 +428,39 @@ struct MenuRowLabel<Trailing: View>: View {
     let trailing: Trailing
     let active: Bool
     let muted: Bool
+    let destructive: Bool
     let palette: FL.Palette
 
     init(icon: MenuIconKind, label: String,
          shortcut: String? = nil,
          trailing: Trailing,
-         active: Bool = false, muted: Bool = false,
+         active: Bool = false, muted: Bool = false, destructive: Bool = false,
          palette: FL.Palette) {
         self.icon = icon; self.label = label; self.shortcut = shortcut
         self.trailing = trailing; self.active = active; self.muted = muted
+        self.destructive = destructive
         self.palette = palette
+    }
+
+    private var iconColor: Color {
+        if destructive && active { return Color(nsColor: .systemRed) }
+        return active ? palette.accent : palette.textMuted
+    }
+    private var labelColor: Color {
+        if destructive && active { return Color(nsColor: .systemRed) }
+        return muted ? palette.textMuted : palette.text
+    }
+    private var bgColor: Color {
+        if destructive && active { return Color(nsColor: .systemRed).opacity(0.14) }
+        return active ? palette.accentSoft : .clear
     }
 
     var body: some View {
         HStack(spacing: 10) {
-            MenuIcon(kind: icon, color: active ? palette.accent : palette.textMuted)
-                .frame(width: 14, height: 14)
+            MenuIcon(kind: icon, color: iconColor)
             Text(label)
                 .font(.system(size: 12.5, weight: active ? .medium : .regular))
-                .foregroundStyle(muted ? palette.textMuted : palette.text)
+                .foregroundStyle(labelColor)
             Spacer(minLength: 6)
             trailing
             if let s = shortcut {
@@ -206,10 +470,11 @@ struct MenuRowLabel<Trailing: View>: View {
                     .foregroundStyle(palette.textFaint)
             }
         }
-        .padding(.horizontal, 10).padding(.vertical, 6)
+        .padding(.horizontal, 10).padding(.vertical, 7)
+        .frame(minHeight: 28)
         .background(
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(active ? palette.accentSoft : .clear))
+                .fill(bgColor))
         .contentShape(Rectangle())
     }
 }
@@ -217,24 +482,64 @@ struct MenuRowLabel<Trailing: View>: View {
 extension MenuRowLabel where Trailing == EmptyView {
     init(icon: MenuIconKind, label: String,
          shortcut: String? = nil,
-         active: Bool = false, muted: Bool = false,
+         active: Bool = false, muted: Bool = false, destructive: Bool = false,
          palette: FL.Palette) {
         self.init(icon: icon, label: label, shortcut: shortcut,
-                  trailing: EmptyView(), active: active, muted: muted, palette: palette)
+                  trailing: EmptyView(), active: active, muted: muted,
+                  destructive: destructive, palette: palette)
     }
 }
 
+/// Settings row that focuses an existing window when one is already on
+/// screen, instead of letting `SettingsLink` spawn / re-open. Falls back to
+/// `SettingsLink` when no Settings window exists.
 private struct HoverableSettingsRow: View {
     let palette: FL.Palette
     @State private var hover = false
 
     var body: some View {
-        SettingsLink {
-            MenuRowLabel(icon: .gear, label: "Settings…",
-                         shortcut: "⌘,", active: hover, palette: palette)
+        if let _ = Self.findSettingsWindow() {
+            // Existing window — render a Button that focuses it directly.
+            Button {
+                Self.focusExistingSettingsWindow()
+            } label: {
+                MenuRowLabel(icon: .gear, label: "Settings…",
+                             shortcut: "⌘,", active: hover, palette: palette)
+            }
+            .buttonStyle(.plain)
+            .onHover { hover = $0 }
+        } else {
+            SettingsLink {
+                MenuRowLabel(icon: .gear, label: "Settings…",
+                             shortcut: "⌘,", active: hover, palette: palette)
+            }
+            .buttonStyle(.plain)
+            .onHover { hover = $0 }
         }
-        .buttonStyle(.plain)
-        .onHover { hover = $0 }
+    }
+
+    /// Locates the SwiftUI Settings scene window. SwiftUI gives it a stable
+    /// identifier (`com_apple_SwiftUI_Settings_window`); also tolerate a
+    /// frame-autosave-name fallback in case Apple changes that contract.
+    static func findSettingsWindow() -> NSWindow? {
+        for w in NSApp.windows {
+            let id = w.identifier?.rawValue ?? ""
+            if id.contains("Settings") || id.contains("settings") {
+                return w
+            }
+            if w.frameAutosaveName.contains("Settings") {
+                return w
+            }
+        }
+        return nil
+    }
+
+    static func focusExistingSettingsWindow() {
+        guard let w = findSettingsWindow() else { return }
+        if w.isMiniaturized { w.deminiaturize(nil) }
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        w.makeKeyAndOrderFront(nil)
     }
 }
 
@@ -291,63 +596,135 @@ struct MenuIcon: View {
     let kind: MenuIconKind
     let color: Color
 
-    var body: some View {
-        Canvas { ctx, sz in
-            let s = StrokeStyle(lineWidth: 1.4, lineCap: .round, lineJoin: .round)
-            let c = GraphicsContext.Shading.color(color)
-            let w = sz.width
-            switch kind {
-            case .window:
-                var p = Path(roundedRect: CGRect(x: 1.5, y: 2.5, width: w - 3, height: w - 5),
-                             cornerSize: CGSize(width: 1.5, height: 1.5))
-                ctx.stroke(p, with: c, style: s)
-                p = Path()
-                p.move(to: CGPoint(x: 1.5, y: 5))
-                p.addLine(to: CGPoint(x: w - 1.5, y: 5))
-                ctx.stroke(p, with: c, style: s)
-            case .theme:
-                var p = Path()
-                p.addEllipse(in: CGRect(x: 2.5, y: 2.5, width: 9, height: 9))
-                ctx.stroke(p, with: c, style: s)
-            case .pause:
-                var p = Path()
-                p.move(to: CGPoint(x: 5, y: 3.5)); p.addLine(to: CGPoint(x: 5, y: 10.5))
-                p.move(to: CGPoint(x: 9, y: 3.5)); p.addLine(to: CGPoint(x: 9, y: 10.5))
-                ctx.stroke(p, with: c, style: s)
-            case .play:
-                var p = Path()
-                p.move(to: CGPoint(x: 4, y: 3))
-                p.addLine(to: CGPoint(x: 11, y: 7))
-                p.addLine(to: CGPoint(x: 4, y: 11))
-                p.closeSubpath()
-                ctx.fill(p, with: c)
-            case .gear:
-                var p = Path()
-                p.addEllipse(in: CGRect(x: 5, y: 5, width: 4, height: 4))
-                ctx.stroke(p, with: c, style: s)
-                p = Path()
-                let pts: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
-                    (7, 1, 7, 3), (7, 11, 7, 13), (1, 7, 3, 7), (11, 7, 13, 7)
-                ]
-                for (x1, y1, x2, y2) in pts {
-                    p.move(to: CGPoint(x: x1, y: y1)); p.addLine(to: CGPoint(x: x2, y: y2))
-                }
-                ctx.stroke(p, with: c, style: s)
-            case .quit:
-                var p = Path()
-                p.move(to: CGPoint(x: 5.5, y: 11))
-                p.addLine(to: CGPoint(x: 2.5, y: 11))
-                p.addLine(to: CGPoint(x: 2.5, y: 3))
-                p.addLine(to: CGPoint(x: 5.5, y: 3))
-                ctx.stroke(p, with: c, style: s)
-                p = Path()
-                p.move(to: CGPoint(x: 9.5, y: 9.5))
-                p.addLine(to: CGPoint(x: 12, y: 7))
-                p.addLine(to: CGPoint(x: 9.5, y: 4.5))
-                p.move(to: CGPoint(x: 5, y: 7))
-                p.addLine(to: CGPoint(x: 12, y: 7))
-                ctx.stroke(p, with: c, style: s)
-            }
+    private var symbolName: String {
+        switch kind {
+        case .window: return "macwindow"
+        case .theme: return "circle.righthalf.filled"
+        case .pause: return "pause.fill"
+        case .play: return "play.fill"
+        case .gear: return "gearshape"
+        case .quit: return "power"
+        case .eye: return "eye"
         }
+    }
+
+    var body: some View {
+        Image(systemName: symbolName)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(color)
+            .frame(width: 16, height: 16)
+            .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Marquee text
+
+/// Single-line text that scrolls horizontally when the rendered width
+/// exceeds the available container. Static + truncated when the text fits,
+/// or when Reduce Motion is on (HIG: never animate purely decorative
+/// motion if the user has opted out).
+struct MarqueeText: View {
+    let text: String
+    let font: Font
+    let color: Color
+    var underline: Bool = false
+    var gap: CGFloat = 32
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var contentWidth: CGFloat = 0
+    @State private var containerWidth: CGFloat = 0
+    @State private var phase: Double = 0
+
+    private var overflows: Bool { contentWidth > containerWidth + 0.5 }
+    private var animate: Bool { overflows && !reduceMotion }
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                if animate {
+                    HStack(spacing: gap) {
+                        Text(text).font(font).underline(underline, color: color).fixedSize()
+                        Text(text).font(font).underline(underline, color: color).fixedSize()
+                    }
+                    .offset(x: -CGFloat(phase) * (contentWidth + gap))
+                } else {
+                    Text(text)
+                        .font(font)
+                        .underline(underline, color: color)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+            }
+            .foregroundStyle(color)
+            .frame(width: geo.size.width, alignment: .leading)
+            .background(
+                Text(text).font(font).fixedSize()
+                    .hidden()
+                    .background(GeometryReader { g in
+                        Color.clear.preference(key: MarqueeWidthKey.self, value: g.size.width)
+                    })
+            )
+            .onPreferenceChange(MarqueeWidthKey.self) { contentWidth = $0 }
+            .onAppear { containerWidth = geo.size.width }
+            .onChange(of: geo.size.width) { _, w in containerWidth = w }
+            .onChange(of: animate) { _, on in
+                phase = 0
+                if on { startScroll() }
+            }
+            .onChange(of: text) { _, _ in
+                phase = 0
+                if animate { startScroll() }
+            }
+            .clipped()
+        }
+        .frame(height: lineHeight)
+    }
+
+    private var lineHeight: CGFloat { 16 }
+
+    private func startScroll() {
+        guard animate, contentWidth > 0 else { return }
+        let speed: Double = 14
+        let duration = max(8, Double(contentWidth + gap) / speed)
+        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false).delay(1.2)) {
+            phase = 1
+        }
+    }
+}
+
+/// Button that styles its label like a hyperlink: pointing-hand cursor +
+/// underline while hovered. Label closure receives the current hover state
+/// so it can apply underline (or any other hover-driven style) to the inner
+/// `MarqueeText` / `Text`.
+private struct LinkButton<Label: View>: View {
+    let action: () -> Void
+    let enabled: Bool
+    let help: String
+    let a11yLabel: String
+    @ViewBuilder let label: (Bool) -> Label
+
+    @State private var hover = false
+
+    var body: some View {
+        Button(action: action) {
+            label(hover && enabled)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .help(help)
+        .accessibilityLabel(a11yLabel)
+        .onHover { hovering in
+            hover = hovering
+            guard enabled else { return }
+            if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
+    }
+}
+
+private struct MarqueeWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }

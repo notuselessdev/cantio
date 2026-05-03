@@ -19,6 +19,31 @@ final class MockPlaybackSource: PlaybackSource {
     func finish() {
         continuation.finish()
     }
+
+    // PlaybackSource transport stubs — unused in LyricsStore tests but
+    // required by the protocol.
+    private(set) var playPauseCalls = 0
+    private(set) var previousCalls = 0
+    private(set) var nextCalls = 0
+    private(set) var seekTargets: [Double] = []
+    var nextErrorToInject: Error?
+
+    func playPause(onError: @escaping @MainActor (Error) -> Void) {
+        playPauseCalls += 1
+        if let err = nextErrorToInject { nextErrorToInject = nil; onError(err) }
+    }
+    func previousTrack(onError: @escaping @MainActor (Error) -> Void) {
+        previousCalls += 1
+        if let err = nextErrorToInject { nextErrorToInject = nil; onError(err) }
+    }
+    func nextTrack(onError: @escaping @MainActor (Error) -> Void) {
+        nextCalls += 1
+        if let err = nextErrorToInject { nextErrorToInject = nil; onError(err) }
+    }
+    func seek(to seconds: Double, onError: @escaping @MainActor (Error) -> Void) {
+        seekTargets.append(seconds)
+        if let err = nextErrorToInject { nextErrorToInject = nil; onError(err) }
+    }
 }
 
 actor StubLyricsProvider: LyricsProvider {

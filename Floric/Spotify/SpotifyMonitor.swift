@@ -81,12 +81,30 @@ tell application id "com.spotify.client"
 end tell
 """
 
-/// Anything that emits `NowPlaying?` change events. Real impl:
-/// `SpotifyMonitor`. Test impl: a stream-backed stub injected into
-/// `LyricsStore.bind(to:)`.
+/// Anything that emits `NowPlaying?` change events and accepts transport
+/// commands. Real impl: `SpotifyMonitor`. Test impl: a stream-backed stub
+/// injected into `LyricsStore.bind(to:)` and the menu-bar controls.
 @MainActor
 protocol PlaybackSource: AnyObject {
     var events: AsyncStream<NowPlaying?> { get }
+
+    /// Toggles play/pause. Implementations should be optimistic — flip the
+    /// observable state immediately, then rely on the next poll to reconcile.
+    /// `onError` runs on the MainActor when AppleScript dispatch fails so the
+    /// caller can roll back its optimistic UI flip.
+    func playPause(onError: @escaping @MainActor (Error) -> Void)
+    /// Skips to the previous track. Optimistic; reconciles on next poll.
+    func previousTrack(onError: @escaping @MainActor (Error) -> Void)
+    /// Skips to the next track. Optimistic; reconciles on next poll.
+    func nextTrack(onError: @escaping @MainActor (Error) -> Void)
+    /// Sets player position in seconds. Caller is responsible for throttling.
+    func seek(to seconds: Double, onError: @escaping @MainActor (Error) -> Void)
+}
+
+/// Errors emitted by `SpotifyMonitor` transport commands.
+enum PlaybackCommandError: Error, Equatable {
+    case notAvailable
+    case scriptFailed(code: Int, message: String?)
 }
 
 /// Observes the local Spotify desktop app via AppleScript.
@@ -216,13 +234,14 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         if NSRunningApplication.runningApplications(withBundleIdentifier: spotifyBundleId).isEmpty {
             return .notRunning
         }
-        // Spotify is running. Surface the consent prompt the first time we
-        // see it; on subsequent polls just check the cached state.
+        // Spotify is running. Surface the consent prompt until TCC reaches a
+        // terminal decision (granted/denied). Dismissed prompts and post-login
+        // TCC resets both leave the state at `.notDetermined` — a one-shot
+        // gate would silently strand the app there.
         // The `request()` path blocks until the user responds to the TCC
         // prompt, so dispatch off the main actor to keep the menu bar UI
         // responsive while the system dialog is on screen.
         let askUser = !didRequestPermission
-        if askUser { didRequestPermission = true }
         let permState: AutomationPermission = await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let result = askUser
@@ -233,17 +252,111 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         }
         switch permState {
         case .denied:
+            didRequestPermission = true
             return .permissionDenied
         case .notDetermined, .targetNotRunning, .unknown:
-            // User hasn't decided yet (or query hiccuped) — don't try to
-            // run the script; we'd only get a silent errAEEventNotPermitted.
+            // No terminal decision yet — keep `didRequestPermission` false so
+            // the next poll re-surfaces the prompt instead of going silent.
             return .notRunning
         case .granted:
-            break
+            didRequestPermission = true
         }
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 continuation.resume(returning: Self.runScript(self.script))
+            }
+        }
+    }
+
+    #if DEBUG
+    /// Seeds availability + now-playing state for tests that exercise the
+    /// transport layer without running the real polling loop. Internal so
+    /// `@testable import Floric` can reach it; not part of the shipped API.
+    func _setStateForTesting(availability: SpotifyAvailability, nowPlaying: NowPlaying?) {
+        self.availability = availability
+        self.nowPlaying = nowPlaying
+        if let np = nowPlaying { updateAnchor(for: np) }
+    }
+    #endif
+
+    // MARK: - Transport commands
+
+    func playPause(onError: @escaping @MainActor (Error) -> Void = { _ in }) {
+        guard availability == .available else {
+            onError(PlaybackCommandError.notAvailable)
+            return
+        }
+        // Optimistic flip — anchor must follow so interpolation matches.
+        if var np = nowPlaying {
+            let newState: PlayerState = (np.state == .playing) ? .paused : .playing
+            np.state = newState
+            nowPlaying = np
+            updateAnchor(for: np)
+        }
+        runCommandScript("""
+        tell application id "com.spotify.client"
+            if it is running then playpause
+        end tell
+        """, onError: onError)
+    }
+
+    func previousTrack(onError: @escaping @MainActor (Error) -> Void = { _ in }) {
+        guard availability == .available else {
+            onError(PlaybackCommandError.notAvailable)
+            return
+        }
+        runCommandScript("""
+        tell application id "com.spotify.client"
+            if it is running then previous track
+        end tell
+        """, onError: onError)
+    }
+
+    func nextTrack(onError: @escaping @MainActor (Error) -> Void = { _ in }) {
+        guard availability == .available else {
+            onError(PlaybackCommandError.notAvailable)
+            return
+        }
+        runCommandScript("""
+        tell application id "com.spotify.client"
+            if it is running then next track
+        end tell
+        """, onError: onError)
+    }
+
+    func seek(to seconds: Double, onError: @escaping @MainActor (Error) -> Void = { _ in }) {
+        guard availability == .available else {
+            onError(PlaybackCommandError.notAvailable)
+            return
+        }
+        let clamped = max(0, seconds)
+        // Optimistic anchor update so the scrubber doesn't snap back during
+        // the AppleScript round trip.
+        if var np = nowPlaying {
+            np.positionSeconds = clamped
+            nowPlaying = np
+            updateAnchor(for: np)
+        }
+        let pos = String(format: "%.2f", clamped)
+        runCommandScript("""
+        tell application id "com.spotify.client"
+            if it is running then set player position to \(pos)
+        end tell
+        """, onError: onError)
+    }
+
+    private func runCommandScript(_ source: String,
+                                  onError: @escaping @MainActor (Error) -> Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let script = NSAppleScript(source: source)
+            var error: NSDictionary?
+            _ = script?.executeAndReturnError(&error)
+            if let error {
+                let code = (error[NSAppleScript.errorNumber] as? Int) ?? 0
+                let msg = error[NSAppleScript.errorMessage] as? String
+                Task { @MainActor in
+                    onError(PlaybackCommandError.scriptFailed(code: code, message: msg))
+                }
             }
         }
     }

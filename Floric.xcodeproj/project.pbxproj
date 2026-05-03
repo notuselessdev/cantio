@@ -40,6 +40,7 @@
 		BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B007 /* FlowLayoutTests.swift */; };
 		BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B025 /* SpotifyParserTests.swift */; };
 		BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */; };
+		BBBB0000000000000000B052 /* PlaybackControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B051 /* PlaybackControlTests.swift */; };
 		BBBB0000000000000000B040 /* LyricsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B041 /* LyricsStoreTests.swift */; };
 		BBBB0000000000000000B045 /* LyricsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B046 /* LyricsServiceTests.swift */; };
 		BBBB0000000000000000BC02 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = BBBB0000000000000000BC01 /* SnapshotTesting */; };
@@ -85,6 +86,7 @@
 		BBBB0000000000000000B007 /* FlowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayoutTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B025 /* SpotifyParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyParserTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtrapolatePositionTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B051 /* PlaybackControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControlTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B041 /* LyricsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStoreTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B046 /* LyricsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsServiceTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000BD01 /* PillCapsuleSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillCapsuleSnapshotTests.swift; sourceTree = "<group>"; };
@@ -211,6 +213,7 @@
 			children = (
 				BBBB0000000000000000B025 /* SpotifyParserTests.swift */,
 				BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */,
+				BBBB0000000000000000B051 /* PlaybackControlTests.swift */,
 			);
 			path = Spotify;
 			sourceTree = "<group>";
@@ -421,6 +424,7 @@
 				BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */,
 				BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */,
 				BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */,
+				BBBB0000000000000000B052 /* PlaybackControlTests.swift in Sources */,
 				BBBB0000000000000000B040 /* LyricsStoreTests.swift in Sources */,
 				BBBB0000000000000000B045 /* LyricsServiceTests.swift in Sources */,
 				BBBB0000000000000000BD11 /* PillCapsuleSnapshotTests.swift in Sources */,

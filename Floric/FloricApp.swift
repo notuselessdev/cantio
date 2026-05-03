@@ -51,25 +51,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Status-bar label: waveform glyph + truncated track title when available.
+/// Status-bar label: waveform glyph + "Artist · Title" truncated when
+/// available. Artist leads so multi-artist credits stay visible even when
+/// the title gets clipped.
 private struct StatusItemLabel: View {
     @ObservedObject var monitor: SpotifyMonitor
-    private static let maxTitleLength = 28
+    private static let maxTotalLength = 36
 
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "music.note")
-            if let title = displayTitle {
-                Text(title)
+            if let label = displayText {
+                Text(label)
             }
         }
     }
 
-    private var displayTitle: String? {
+    private var displayText: String? {
         guard let np = monitor.nowPlaying, !np.title.isEmpty else { return nil }
-        if np.title.count > Self.maxTitleLength {
-            return String(np.title.prefix(Self.maxTitleLength)) + "…"
+        let artist = np.artist.trimmingCharacters(in: .whitespaces)
+        let combined = artist.isEmpty
+            ? np.title
+            : "\(artist) · \(np.title)"
+        if combined.count > Self.maxTotalLength {
+            return String(combined.prefix(Self.maxTotalLength)) + "…"
         }
-        return np.title
+        return combined
     }
 }

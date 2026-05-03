@@ -100,11 +100,17 @@ struct SettingsView: View {
 
                     PrefGroup(title: "Lyrics", palette: palette) {
                         PrefRow(label: "Lines visible", palette: palette) {
-                            FlStepper(value: $prefs.linesVisible, range: 1...5, palette: palette)
-                        }
-                        PrefRow(label: "Show romanization for non-Latin scripts",
-                                palette: palette) {
-                            FlToggle(value: $prefs.showRomanization, palette: palette)
+                            SegmentedPicker(
+                                value: Binding(
+                                    get: {
+                                        let v = prefs.linesVisible
+                                        if v <= 1 { return "1" }
+                                        if v <= 3 { return "3" }
+                                        return "5"
+                                    },
+                                    set: { prefs.linesVisible = Int($0) ?? 3 }),
+                                options: ["1", "3", "5"],
+                                palette: palette)
                         }
                     }
 
