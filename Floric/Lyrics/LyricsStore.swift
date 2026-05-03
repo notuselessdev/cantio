@@ -10,20 +10,20 @@ final class LyricsStore: ObservableObject {
     @Published private(set) var state: LyricsState = .idle
     @Published private(set) var trackId: String?
 
-    private let service: LyricsService
+    private let service: LyricsProvider
     private let cache: LyricsCache
     private var fetchTask: Task<Void, Never>?
     private var listenTask: Task<Void, Never>?
 
-    init(service: LyricsService = LyricsService(), cache: LyricsCache = LyricsCache()) {
+    init(service: LyricsProvider = LyricsService(), cache: LyricsCache = LyricsCache()) {
         self.service = service
         self.cache = cache
     }
 
-    /// Starts listening to the monitor's event stream. Idempotent.
-    func bind(to monitor: SpotifyMonitor) {
+    /// Starts listening to the source's event stream. Idempotent.
+    func bind(to source: PlaybackSource) {
         guard listenTask == nil else { return }
-        let stream = monitor.events
+        let stream = source.events
         listenTask = Task { [weak self] in
             for await np in stream {
                 await self?.handle(np)

@@ -3,6 +3,58 @@ import Foundation
 
 private let spotifyBundleId = "com.spotify.client"
 
+/// Result of a single Spotify poll. Lifted to file scope so the parser is
+/// testable without an `NSAppleScript` instance.
+enum SpotifyPollResult: Equatable {
+    case notInstalled
+    case notRunning
+    case permissionDenied
+    case running(NowPlaying)
+}
+
+/// Parses raw AppleScript output text into a `SpotifyPollResult`. Pure —
+/// no `NSAppleScript`, no AppKit, no Date. Spotify's script returns either
+/// a sentinel (`ERR_NOT_RUNNING` / `ERR_NO_TRACK`) or 7–8 newline-separated
+/// fields: state, id, name, artist, album, position(sec), duration(ms or sec),
+/// artworkURL?
+func parseSpotifyScriptOutput(_ raw: String) -> SpotifyPollResult {
+    if raw == "ERR_NOT_RUNNING" { return .notRunning }
+    if raw == "ERR_NO_TRACK" { return .notRunning }
+    let parts = raw.components(separatedBy: "\n")
+    guard parts.count >= 7 else { return .notRunning }
+    let posSeconds = Double(parts[5].trimmingCharacters(in: .whitespaces)) ?? 0
+    let durRaw = Double(parts[6].trimmingCharacters(in: .whitespaces)) ?? 0
+    // Spotify reports `duration` in milliseconds.
+    let durSeconds = durRaw > 1_000 ? durRaw / 1_000.0 : durRaw
+    let artURL: String? = parts.count >= 8
+        ? {
+            let s = parts[7].trimmingCharacters(in: .whitespacesAndNewlines)
+            return s.isEmpty ? nil : s
+        }()
+        : nil
+    let np = NowPlaying(
+        trackId: parts[1],
+        title: parts[2],
+        artist: parts[3],
+        album: parts[4],
+        durationSeconds: durSeconds,
+        positionSeconds: posSeconds,
+        state: PlayerState(appleScriptValue: parts[0]),
+        artworkURL: artURL
+    )
+    return .running(np)
+}
+
+/// Extrapolates playback position from an anchor at `now`. Pure — no
+/// `SpotifyMonitor` instance needed. Position only advances while the
+/// anchor's `isPlaying` is true.
+func extrapolatePosition(anchor: PositionAnchor?, now: Date) -> Double? {
+    guard let anchor else { return nil }
+    guard anchor.isPlaying else { return anchor.position }
+    let delta = now.timeIntervalSince(anchor.sampledAt)
+    return anchor.position + max(0, delta)
+}
+
 private let nowPlayingScriptSource = """
 tell application id "com.spotify.client"
     if it is running then
@@ -15,7 +67,11 @@ tell application id "com.spotify.client"
             set _artist to artist of t
             set _album to album of t
             set _dur to duration of t
-            return _state & linefeed & _id & linefeed & _name & linefeed & _artist & linefeed & _album & linefeed & (_pos as text) & linefeed & (_dur as text)
+            set _art to ""
+            try
+                set _art to artwork url of t
+            end try
+            return _state & linefeed & _id & linefeed & _name & linefeed & _artist & linefeed & _album & linefeed & (_pos as text) & linefeed & (_dur as text) & linefeed & _art
         on error
             return "ERR_NO_TRACK"
         end try
@@ -25,10 +81,18 @@ tell application id "com.spotify.client"
 end tell
 """
 
+/// Anything that emits `NowPlaying?` change events. Real impl:
+/// `SpotifyMonitor`. Test impl: a stream-backed stub injected into
+/// `LyricsStore.bind(to:)`.
+@MainActor
+protocol PlaybackSource: AnyObject {
+    var events: AsyncStream<NowPlaying?> { get }
+}
+
 /// Observes the local Spotify desktop app via AppleScript.
 /// Polls at ~500 ms while playing, ~2 s while paused, ~5 s when not running.
 @MainActor
-final class SpotifyMonitor: ObservableObject {
+final class SpotifyMonitor: ObservableObject, PlaybackSource {
     @Published private(set) var availability: SpotifyAvailability = .notRunning
     @Published private(set) var nowPlaying: NowPlaying?
     /// Anchor used to extrapolate the current playback position between polls.
@@ -90,7 +154,7 @@ final class SpotifyMonitor: ObservableObject {
         }
     }
 
-    private func apply(_ result: PollResult) {
+    private func apply(_ result: SpotifyPollResult) {
         switch result {
         case .notInstalled:
             if availability != .notInstalled { availability = .notInstalled }
@@ -130,12 +194,10 @@ final class SpotifyMonitor: ObservableObject {
     }
 
     /// Returns the extrapolated playback position at `now`, advancing only
-    /// while the player is in the `playing` state.
+    /// while the player is in the `playing` state. Thin wrapper around the
+    /// pure free function — see `interpolatedPosition(anchor:now:)`.
     func interpolatedPosition(now: Date = Date()) -> Double? {
-        guard let anchor = positionAnchor else { return nil }
-        guard anchor.isPlaying else { return anchor.position }
-        let delta = now.timeIntervalSince(anchor.sampledAt)
-        return anchor.position + max(0, delta)
+        extrapolatePosition(anchor: positionAnchor, now: now)
     }
 
     private func emitIfChanged(_ value: NowPlaying?) {
@@ -147,14 +209,7 @@ final class SpotifyMonitor: ObservableObject {
 
     // MARK: - Polling
 
-    private enum PollResult {
-        case notInstalled
-        case notRunning
-        case permissionDenied
-        case running(NowPlaying)
-    }
-
-    private func poll() async -> PollResult {
+    private func poll() async -> SpotifyPollResult {
         if NSWorkspace.shared.urlForApplication(withBundleIdentifier: spotifyBundleId) == nil {
             return .notInstalled
         }
@@ -193,7 +248,7 @@ final class SpotifyMonitor: ObservableObject {
         }
     }
 
-    private static func runScript(_ script: NSAppleScript?) -> PollResult {
+    private static func runScript(_ script: NSAppleScript?) -> SpotifyPollResult {
         guard let script else { return .notRunning }
         var error: NSDictionary?
         let descriptor = script.executeAndReturnError(&error)
@@ -205,23 +260,6 @@ final class SpotifyMonitor: ObservableObject {
             return .notRunning
         }
         guard let raw = descriptor.stringValue else { return .notRunning }
-        if raw == "ERR_NOT_RUNNING" { return .notRunning }
-        if raw == "ERR_NO_TRACK" { return .notRunning }
-        let parts = raw.components(separatedBy: "\n")
-        guard parts.count >= 7 else { return .notRunning }
-        let posSeconds = Double(parts[5].trimmingCharacters(in: .whitespaces)) ?? 0
-        let durRaw = Double(parts[6].trimmingCharacters(in: .whitespaces)) ?? 0
-        // Spotify reports `duration` in milliseconds.
-        let durSeconds = durRaw > 1_000 ? durRaw / 1_000.0 : durRaw
-        let np = NowPlaying(
-            trackId: parts[1],
-            title: parts[2],
-            artist: parts[3],
-            album: parts[4],
-            durationSeconds: durSeconds,
-            positionSeconds: posSeconds,
-            state: PlayerState(appleScriptValue: parts[0])
-        )
-        return .running(np)
+        return parseSpotifyScriptOutput(raw)
     }
 }

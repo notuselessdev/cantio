@@ -1,5 +1,11 @@
 import Foundation
 
+/// Anything that can produce lyrics for a track. Real impl: `LyricsService`
+/// (LRCLIB). Test impl: in-memory stubs.
+protocol LyricsProvider {
+    func fetch(track: NowPlaying) async -> LyricsState
+}
+
 /// Fetches lyrics from LRCLIB (https://lrclib.net), a free public lyrics API
 /// that returns LRC-formatted synced lyrics plus a plain-text fallback.
 ///
@@ -8,7 +14,7 @@ import Foundation
 /// - It serves real LRC text (not a proprietary positional format).
 /// - Plain lyrics are returned alongside synced ones, so the fallback rule
 ///   in this story is satisfied with a single request.
-struct LyricsService {
+struct LyricsService: LyricsProvider {
     /// Endpoint host. Overridable for tests.
     var endpoint: URL = URL(string: "https://lrclib.net/api/get")!
     var session: URLSession = .shared

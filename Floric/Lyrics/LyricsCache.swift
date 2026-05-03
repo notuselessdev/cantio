@@ -3,6 +3,31 @@ import Foundation
 /// Persists fetched lyrics to disk keyed by Spotify track id, so a re-fetch
 /// is never required for a track we've already looked up (including misses).
 struct LyricsCache {
+    /// Shared instance for UI surfaces that need cache stats/clear.
+    static let shared = LyricsCache()
+
+    /// Human-readable summary "<n> songs · <size>" for the Settings pane.
+    func summary() -> String {
+        let urls = (try? fileManager.contentsOfDirectory(at: directory,
+            includingPropertiesForKeys: [.fileSizeKey])) ?? []
+        let count = urls.count
+        let bytes = urls.reduce(0) { acc, url in
+            let sz = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            return acc + sz
+        }
+        let fmt = ByteCountFormatter()
+        fmt.allowedUnits = [.useKB, .useMB]
+        fmt.countStyle = .file
+        return "\(count) songs · \(fmt.string(fromByteCount: Int64(bytes)))"
+    }
+
+    /// Removes every cached lyric entry.
+    func clear() {
+        let urls = (try? fileManager.contentsOfDirectory(at: directory,
+            includingPropertiesForKeys: nil)) ?? []
+        for u in urls { try? fileManager.removeItem(at: u) }
+    }
+
     /// Codable on-disk shape. Either `synced` is non-empty, `plain` is non-nil,
     /// or both are absent (meaning: lookup was performed and nothing exists).
     struct Entry: Codable, Equatable {
@@ -13,14 +38,18 @@ struct LyricsCache {
     private let directory: URL
     private let fileManager: FileManager
 
-    init(fileManager: FileManager = .default) {
+    init(directory: URL? = nil, fileManager: FileManager = .default) {
         self.fileManager = fileManager
-        let caches = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first
-            ?? URL(fileURLWithPath: NSTemporaryDirectory())
-        self.directory = caches
-            .appendingPathComponent("co.sultans.floric", isDirectory: true)
-            .appendingPathComponent("lyrics", isDirectory: true)
-        try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        if let directory {
+            self.directory = directory
+        } else {
+            let caches = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first
+                ?? URL(fileURLWithPath: NSTemporaryDirectory())
+            self.directory = caches
+                .appendingPathComponent("co.sultans.floric", isDirectory: true)
+                .appendingPathComponent("lyrics", isDirectory: true)
+        }
+        try? fileManager.createDirectory(at: self.directory, withIntermediateDirectories: true)
     }
 
     func load(trackId: String) -> Entry? {
