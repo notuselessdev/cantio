@@ -11,6 +11,7 @@ struct LyricsContentView: View {
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
 
     private var style: WindowStyle { prefs.windowStyle }
     private var bgStyle: BackgroundStyle { prefs.backgroundStyle }
@@ -27,6 +28,15 @@ struct LyricsContentView: View {
     /// When Reduce Transparency is on, glass / pill modes degrade to solid.
     private var effectiveTone: FL.Tone { resolvedTone }
     private var degradeToSolid: Bool { reduceTransparency }
+    private var increaseContrast: Bool { colorSchemeContrast == .increased }
+
+    /// Effective glass style for the pill. Honors accessibility:
+    /// Reduce Transparency + Increase Contrast both force `.off` so the
+    /// silhouette is solid and high-contrast against the wallpaper.
+    private var pillGlassStyle: GlassStyle {
+        if reduceTransparency || increaseContrast { return .off }
+        return prefs.effectiveGlassStyle
+    }
 
     /// Maps `prefs.linesVisible` (1 / 3 / 5) to the symmetric neighbor count
     /// shown around the current line: 0 / 1 / 2.
@@ -113,8 +123,17 @@ struct LyricsContentView: View {
                     .padding(.horizontal, 40)
                 }
                 Spacer(minLength: 0)
-                lyricsContent(forPill: false, linesAround: 1, large: true)
-                    .padding(.horizontal, 80)
+                // Fullscreen ignores prefs.fontSize and auto-scales to fill
+                // — a 27" external and a 13" laptop both want different
+                // absolute sizes, and the user shouldn't have to retune the
+                // font slider when they plug in a display.
+                GeometryReader { geo in
+                    let active = min(96, max(28, geo.size.height / 8))
+                    lyricsContent(forPill: false, linesAround: 1,
+                                  fullscreenActiveSize: active)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                }
+                .padding(.horizontal, 80)
                 Spacer(minLength: 0)
                 if monitor.nowPlaying != nil {
                     progressBar(fullscreen: true)
@@ -197,11 +216,14 @@ struct LyricsContentView: View {
     // MARK: - Lyrics renderer
 
     @ViewBuilder
-    private func lyricsContent(forPill: Bool, linesAround: Int, large: Bool = false) -> some View {
+    private func lyricsContent(forPill: Bool, linesAround: Int,
+                               fullscreenActiveSize: CGFloat? = nil) -> some View {
         switch lyrics.state {
-        case .idle: placeholderCapsuleOrText("—", forPill: forPill)
+        // Floating window stays quiet when there are no lyrics — the
+        // menubar panel surfaces the "No lyrics found" nudge instead.
+        case .idle: EmptyView()
         case .loading: placeholderCapsuleOrText("Loading lyrics…", forPill: forPill)
-        case .notFound: placeholderCapsuleOrText("No lyrics found", forPill: forPill)
+        case .notFound: EmptyView()
         case .error(let msg): placeholderCapsuleOrText(msg, forPill: forPill)
         case .plain(let text):
             ScrollView {
@@ -215,7 +237,8 @@ struct LyricsContentView: View {
                 let pos = monitor.interpolatedPosition(now: ctx.date)
                     ?? monitor.nowPlaying?.positionSeconds ?? 0
                 let lp = LyricPosition.compute(lines: lines, position: pos)
-                syncedRender(lp: lp, forPill: forPill, linesAround: linesAround, large: large)
+                syncedRender(lp: lp, forPill: forPill, linesAround: linesAround,
+                             fullscreenActiveSize: fullscreenActiveSize)
                     .animation(.easeInOut(duration: 0.3), value: lp.current?.timestamp)
             }
         }
@@ -223,34 +246,46 @@ struct LyricsContentView: View {
 
     @ViewBuilder
     private func syncedRender(lp: LyricPosition, forPill: Bool,
-                              linesAround: Int, large: Bool) -> some View {
+                              linesAround: Int,
+                              fullscreenActiveSize: CGFloat? = nil) -> some View {
         let cur = lp.current
-        let activeSize: CGFloat = large ? 48 : prefs.fontSize.activeSize
-        let dimSize: CGFloat = large ? 32 : max(12, prefs.fontSize.activeSize * 0.78)
+        let large = fullscreenActiveSize != nil
+        let activeSize: CGFloat = fullscreenActiveSize ?? prefs.fontSize.activeSize
+        let dimSize: CGFloat = large
+            ? max(18, activeSize * 0.6)
+            : max(12, prefs.fontSize.activeSize * 0.78)
         let curWords = cur?.words ?? (forPill ? ["♪"] : ["♪  ♪  ♪"])
 
         if forPill {
+            // Pill sibling sizes scale with the active line so the user's
+            // FontSize choice carries through to the whole pill, not just
+            // the capsule.
+            let pillActive = prefs.fontSize.activeSize
+            let pillFar: CGFloat = max(10, pillActive * 0.55)
+            let pillNear: CGFloat = max(11, pillActive * 0.7)
             // Spacing bumped from 8 → 16 so dim sibling lines sit outside
             // the pill's shadow falloff (~6pt). Within that band, sibling
             // crossfades read as a "pulsing dark edge" along the pill rim.
             VStack(spacing: 14) {
                 if linesAround >= 2 {
                     pillSibling(words: lp.prev2?.words, exists: lp.prev2 != nil,
-                                size: 11, opacity: 0.6)
+                                size: pillFar, opacity: 0.6)
                 }
                 if linesAround >= 1 {
                     pillSibling(words: lp.prev?.words, exists: lp.prev != nil,
-                                size: 13, opacity: 1)
+                                size: pillNear, opacity: 1)
                 }
                 PillCapsule(words: curWords, palette: palette, tone: effectiveTone,
-                            bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
+                            bgStyle: bgStyle, fontSize: pillActive,
+                            glassOpacity: prefs.glassOpacity,
+                            glassStyle: pillGlassStyle, increaseContrast: increaseContrast)
                 if linesAround >= 1 {
                     pillSibling(words: lp.next?.words, exists: lp.next != nil,
-                                size: 13, opacity: 1)
+                                size: pillNear, opacity: 1)
                 }
                 if linesAround >= 2 {
                     pillSibling(words: lp.next2?.words, exists: lp.next2 != nil,
-                                size: 11, opacity: 0.6)
+                                size: pillFar, opacity: 0.6)
                 }
             }
         } else {
@@ -391,7 +426,9 @@ struct LyricsContentView: View {
     private var permissionCapsule: some View {
         PillCapsule(words: ["Grant", "Spotify", "access"],
                     palette: palette, tone: effectiveTone,
-                    bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
+                    bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
+                    glassOpacity: prefs.glassOpacity,
+                    glassStyle: pillGlassStyle, increaseContrast: increaseContrast)
     }
 
     private func placeholder(_ text: String) -> some View {
@@ -405,7 +442,9 @@ struct LyricsContentView: View {
         let words = text.split(separator: " ").map(String.init)
         return PillCapsule(words: words,
                            palette: palette, tone: effectiveTone,
-                           bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
+                           bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
+                           glassOpacity: prefs.glassOpacity,
+                           glassStyle: pillGlassStyle, increaseContrast: increaseContrast)
     }
 
     @ViewBuilder
@@ -500,44 +539,67 @@ struct PillCapsule: View {
     let palette: FL.Palette
     let tone: FL.Tone
     let bgStyle: BackgroundStyle
+    /// Active-line font size driven by `Preferences.FontSize`. Defaults to
+    /// the legacy hard-coded 16 so existing tests / call sites that don't
+    /// pass a size still render at the previous default.
+    var fontSize: CGFloat = 16
     var glassOpacity: Double = 0.4
+    /// Liquid Glass style. `.off` keeps the existing solid/visual-effect
+    /// rendering. Caller is expected to have already collapsed accessibility
+    /// states (Reduce Transparency / Increase Contrast) into this value.
+    var glassStyle: GlassStyle = .off
+    var increaseContrast: Bool = false
 
     var body: some View {
-        let stroke = tone == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.06)
+        // L2: When Liquid Glass is active and available, wrap the capsule in
+        // a GlassEffectContainer so any sibling glass surfaces (e.g. future
+        // controls inside the pill) merge into one silhouette. Falls back to
+        // the legacy capsule fill on macOS < 26 or when glassStyle == .off.
+        if #available(macOS 26, *), glassStyle != .off {
+            GlassEffectContainer(spacing: 0) {
+                pillContent
+                    .glassEffectModifier(style: glassStyle,
+                                         tint: palette.accent.opacity(glassOpacity))
+            }
+            .transaction { $0.animation = nil }
+        } else {
+            pillContent
+                .background { legacyBackground }
+                .transaction { $0.animation = nil }
+        }
+    }
+
+    private var pillContent: some View {
         HStack(spacing: 6) {
             ForEach(Array(words.enumerated()), id: \.offset) { _, w in
                 Text(w)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: fontSize, weight: .semibold))
                     .foregroundStyle(palette.accent)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 9)
-        .background {
-            Capsule()
-                .fill(pillFillColor)
-                .overlay(Capsule().strokeBorder(stroke, lineWidth: 0.5))
-                // drawingGroup rasterizes the capsule + shadow into a single
-                // bitmap, preventing CALayer's implicit shadowPath animation
-                // when the HStack's intrinsic width changes between word
-                // counts (which produced the residual bottom band even with
-                // compositingGroup + animation suppression).
-                .shadow(color: .black.opacity(0.10), radius: 1, y: 1)
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 0)
-                .drawingGroup()
-        }
-        // Strip the parent's easeInOut(0.3) animation from the entire pill
-        // subtree. The parent (syncedRender) keys it on the current line's
-        // timestamp; if it propagates here, the HStack width tweens between
-        // word counts and the shadow path tweens with it — producing a
-        // transient dark band along the top edge that "snaps to bottom"
-        // when the tween settles. Snapping the pill width fixes both edges;
-        // prev/next dim lines outside the pill still crossfade via the
-        // parent VStack's opacity transitions.
-        .transaction { $0.animation = nil }
+        .padding(.horizontal, max(12, fontSize * 0.9))
+        .padding(.vertical, max(7, fontSize * 0.5))
+    }
+
+    private var legacyBackground: some View {
+        let stroke = tone == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.06)
+        return Capsule()
+            .fill(pillFillColor)
+            .overlay(Capsule().strokeBorder(stroke, lineWidth: 0.5))
+            // drawingGroup rasterizes the capsule + shadow into a single
+            // bitmap, preventing CALayer's implicit shadowPath animation
+            // when the HStack's intrinsic width changes between word
+            // counts (which produced the residual bottom band even with
+            // compositingGroup + animation suppression).
+            .shadow(color: .black.opacity(0.10), radius: 1, y: 1)
+            .shadow(color: .black.opacity(0.08), radius: 4, y: 0)
+            .drawingGroup()
     }
 
     private var pillFillColor: Color {
+        // Increase Contrast forces fully opaque palette so the silhouette is
+        // legible against any wallpaper.
+        if increaseContrast { return palette.bg }
         switch bgStyle {
         case .solid:
             return tone == .dark
@@ -550,6 +612,35 @@ struct PillCapsule: View {
                 ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: glassOp)
                 : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: glassOp)
         }
+    }
+}
+
+/// Helper to apply `.glassEffect()` with optional tint inside a single
+/// branch. Extracted because the modifier chain differs by glass style and
+/// inline conditionals on `.glassEffect(...)` confuse the type checker.
+@available(macOS 26, *)
+extension View {
+    /// Applies `.glassEffect()` keyed off the user-selected `GlassStyle`.
+    /// `.off` is a no-op so callers can branch on availability without an
+    /// extra conditional.
+    @ViewBuilder
+    func glassEffectModifier<S: Shape>(style: GlassStyle,
+                                       tint: Color,
+                                       in shape: S) -> some View {
+        switch style {
+        case .off:
+            self
+        case .clear:
+            self.glassEffect(in: shape)
+        case .tinted:
+            self.glassEffect(.regular.tint(tint), in: shape)
+        }
+    }
+
+    /// Capsule-shape convenience — matches the pill silhouette.
+    @ViewBuilder
+    func glassEffectModifier(style: GlassStyle, tint: Color) -> some View {
+        glassEffectModifier(style: style, tint: tint, in: Capsule())
     }
 }
 

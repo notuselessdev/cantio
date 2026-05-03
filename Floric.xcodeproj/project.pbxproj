@@ -36,8 +36,11 @@
 		BBBB0000000000000000B013 /* LyricPositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B003 /* LyricPositionTests.swift */; };
 		BBBB0000000000000000B014 /* LyricsCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B004 /* LyricsCacheTests.swift */; };
 		BBBB0000000000000000B015 /* PreferencesMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */; };
+		BBBB0000000000000000B061 /* FontSizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B060 /* FontSizeTests.swift */; };
+		BBBB0000000000000000BE02 /* GlassStyleMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000BE01 /* GlassStyleMigrationTests.swift */; };
 		BBBB0000000000000000B016 /* HotKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B006 /* HotKeyTests.swift */; };
 		BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B007 /* FlowLayoutTests.swift */; };
+		BBBB0000000000000000B071 /* EffectiveClickThroughTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B070 /* EffectiveClickThroughTests.swift */; };
 		BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B025 /* SpotifyParserTests.swift */; };
 		BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */; };
 		BBBB0000000000000000B052 /* PlaybackControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBB0000000000000000B051 /* PlaybackControlTests.swift */; };
@@ -82,8 +85,11 @@
 		BBBB0000000000000000B003 /* LyricPositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricPositionTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B004 /* LyricsCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCacheTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesMigrationTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B060 /* FontSizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000BE01 /* GlassStyleMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyleMigrationTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B006 /* HotKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B007 /* FlowLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayoutTests.swift; sourceTree = "<group>"; };
+		BBBB0000000000000000B070 /* EffectiveClickThroughTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectiveClickThroughTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B025 /* SpotifyParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyParserTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B026 /* ExtrapolatePositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtrapolatePositionTests.swift; sourceTree = "<group>"; };
 		BBBB0000000000000000B051 /* PlaybackControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackControlTests.swift; sourceTree = "<group>"; };
@@ -195,6 +201,8 @@
 			isa = PBXGroup;
 			children = (
 				BBBB0000000000000000B005 /* PreferencesMigrationTests.swift */,
+				BBBB0000000000000000B060 /* FontSizeTests.swift */,
+				BBBB0000000000000000BE01 /* GlassStyleMigrationTests.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -204,6 +212,7 @@
 			children = (
 				BBBB0000000000000000B006 /* HotKeyTests.swift */,
 				BBBB0000000000000000B007 /* FlowLayoutTests.swift */,
+				BBBB0000000000000000B070 /* EffectiveClickThroughTests.swift */,
 			);
 			path = Window;
 			sourceTree = "<group>";
@@ -420,8 +429,11 @@
 				BBBB0000000000000000B013 /* LyricPositionTests.swift in Sources */,
 				BBBB0000000000000000B014 /* LyricsCacheTests.swift in Sources */,
 				BBBB0000000000000000B015 /* PreferencesMigrationTests.swift in Sources */,
+				BBBB0000000000000000B061 /* FontSizeTests.swift in Sources */,
+				BBBB0000000000000000BE02 /* GlassStyleMigrationTests.swift in Sources */,
 				BBBB0000000000000000B016 /* HotKeyTests.swift in Sources */,
 				BBBB0000000000000000B017 /* FlowLayoutTests.swift in Sources */,
+				BBBB0000000000000000B071 /* EffectiveClickThroughTests.swift in Sources */,
 				BBBB0000000000000000B031 /* SpotifyParserTests.swift in Sources */,
 				BBBB0000000000000000B032 /* ExtrapolatePositionTests.swift in Sources */,
 				BBBB0000000000000000B052 /* PlaybackControlTests.swift in Sources */,

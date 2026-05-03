@@ -1,11 +1,13 @@
 # TODO — Font size scale
 
+Status: **All milestones complete (T1–T3).** See per-milestone notes below.
+
 Scope: lyric line + sub-line typography across pill / minimal / fullscreen.
 Owner files: `Floric/Settings/Preferences.swift` (FontSize enum), `Floric/Floating/LyricsContentView.swift` (or equivalent renderer), `Floric/Settings/PreferencesView.swift`.
 
 ---
 
-## T1 — Expand FontSize to 5 steps
+## T1 — Expand FontSize to 5 steps — ✅ DONE
 
 Today: `FontSize` = `.small (0)`, `.medium (1)`, `.large (2)`, `.xlarge (3)`. Already 4 — add `.xsmall`.
 
@@ -33,7 +35,7 @@ Acceptance: 5 cases, all `CaseIterable`-iterated in Settings picker. Existing st
 
 ---
 
-## T2 — Settings UI
+## T2 — Settings UI — ✅ DONE
 
 - Replace existing font-size control with 5-option segmented picker OR `Picker` menu.
 - VoiceOver label "Lyric font size" + per-option labels.
@@ -44,7 +46,9 @@ Acceptance: 5 options visible, selected option persists, floating window updates
 
 ---
 
-## T3 — Fullscreen size scaling
+## T3 — Fullscreen size scaling — ✅ DONE
+
+Picked: dynamic — `min(96, max(28, geo.size.height / 8))` for active line, sub `max(18, active * 0.6)`. Documented in `docs/apple-hig-checklist.md` §2.
 
 Fullscreen mode (see `windows.md` W2) needs larger absolute sizes since window is huge.
 

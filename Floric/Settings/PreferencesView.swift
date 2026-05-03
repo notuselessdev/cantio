@@ -12,10 +12,6 @@ struct PreferencesMenu: View {
                 ForEach(WindowStyle.allCases) { p in Text(p.label).tag(p) }
             }
             .pickerStyle(.inline)
-            Picker("Background", selection: $prefs.backgroundStyle) {
-                ForEach(BackgroundStyle.allCases) { b in Text(b.label).tag(b) }
-            }
-            .pickerStyle(.inline)
             Picker("Theme", selection: $prefs.tone) {
                 ForEach(Tone.allCases) { t in Text(t.label).tag(t) }
             }
@@ -61,27 +57,6 @@ struct SettingsView: View {
                                 options: WindowStyle.allCases.map(\.label),
                                 palette: palette)
                         }
-                        PrefRow(label: "Background", palette: palette) {
-                            SegmentedPicker(
-                                value: Binding(get: { prefs.backgroundStyle.label },
-                                               set: { newLabel in
-                                                   if let b = BackgroundStyle.allCases.first(where: { $0.label == newLabel }) {
-                                                       prefs.backgroundStyle = b
-                                                   }
-                                               }),
-                                options: BackgroundStyle.allCases.map(\.label),
-                                palette: palette)
-                        }
-                        if prefs.backgroundStyle == .glass {
-                            PrefRow(label: "Glass tint",
-                                    sub: "Lower = more transparent",
-                                    palette: palette) {
-                                FlSlider(value: Binding(
-                                    get: { prefs.glassOpacity * 100 },
-                                    set: { prefs.glassOpacity = $0 / 100 }),
-                                    range: 0...100, suffix: "%", palette: palette)
-                            }
-                        }
                         PrefRow(label: "Color theme", palette: palette) {
                             SegmentedPicker(
                                 value: Binding(get: { prefs.tone.label },
@@ -95,6 +70,42 @@ struct SettingsView: View {
                         }
                         PrefRow(label: "Accent", palette: palette) {
                             AccentRow(hue: $prefs.accentHue, palette: palette)
+                        }
+                    }
+
+                    PrefGroup(title: "Liquid Glass", palette: palette) {
+                        let glassAvailable: Bool = {
+                            if #available(macOS 26, *) { return true }
+                            return false
+                        }()
+                        PrefRow(label: "Style",
+                                sub: glassAvailable ? nil : "Requires macOS 26 (Tahoe)",
+                                palette: palette) {
+                            SegmentedPicker(
+                                value: Binding(
+                                    get: { prefs.glassStyle.displayName },
+                                    set: { newLabel in
+                                        if let g = GlassStyle.allCases.first(where: { $0.displayName == newLabel }) {
+                                            prefs.glassStyle = g
+                                        }
+                                    }),
+                                options: GlassStyle.allCases.map(\.displayName),
+                                palette: palette)
+                                .disabled(!glassAvailable)
+                                .opacity(glassAvailable ? 1 : 0.5)
+                                .accessibilityLabel("Liquid Glass style")
+                        }
+                        if prefs.glassStyle == .tinted && glassAvailable {
+                            PrefRow(label: "Tint strength",
+                                    sub: "Higher = more accent color over the glass",
+                                    palette: palette) {
+                                FlSlider(value: Binding(
+                                    get: { prefs.glassOpacity * 100 },
+                                    set: { prefs.glassOpacity = $0 / 100 }),
+                                    range: 0...100, suffix: "%", palette: palette)
+                                    .accessibilityLabel("Tint strength")
+                                    .accessibilityValue("\(Int(prefs.glassOpacity * 100)) percent")
+                            }
                         }
                     }
 
@@ -112,16 +123,26 @@ struct SettingsView: View {
                                 options: ["1", "3", "5"],
                                 palette: palette)
                         }
+                        PrefRow(label: "Font size",
+                                sub: "Ignored in fullscreen — auto-scales to screen",
+                                palette: palette) {
+                            SegmentedPicker(
+                                value: Binding(
+                                    get: { prefs.fontSize.shortLabel },
+                                    set: { newLabel in
+                                        if let s = FontSize.allCases.first(where: { $0.shortLabel == newLabel }) {
+                                            prefs.fontSize = s
+                                        }
+                                    }),
+                                options: FontSize.allCases.map(\.shortLabel),
+                                palette: palette)
+                                .accessibilityLabel("Lyric font size")
+                        }
                     }
 
                     PrefGroup(title: "Window", palette: palette) {
                         PrefRow(label: "Always on top", palette: palette) {
                             FlToggle(value: $prefs.alwaysOnTop, palette: palette)
-                        }
-                        PrefRow(label: "Click-through when inactive",
-                                sub: "Pass mouse events to apps underneath",
-                                palette: palette) {
-                            FlToggle(value: $prefs.clickThrough, palette: palette)
                         }
                         PrefRow(label: "Hide window when no music", palette: palette) {
                             FlToggle(value: $prefs.hideWhenPaused, palette: palette)

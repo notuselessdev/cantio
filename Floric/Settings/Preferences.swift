@@ -51,6 +51,24 @@ enum BackgroundStyle: String, CaseIterable, Identifiable {
     }
 }
 
+/// Liquid Glass material style for pill + menubar panel. macOS 26+ only;
+/// runtime-forced to `.off` on older systems via `effectiveGlassStyle`.
+enum GlassStyle: String, CaseIterable, Identifiable {
+    case off
+    case clear
+    case tinted
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .off: return "Off"
+        case .clear: return "Clear"
+        case .tinted: return "Tinted"
+        }
+    }
+}
+
 /// Color theme override.
 enum Tone: String, CaseIterable, Identifiable {
     case auto
@@ -69,6 +87,7 @@ enum Tone: String, CaseIterable, Identifiable {
 }
 
 enum FontSize: Int, CaseIterable, Identifiable, Comparable {
+    case xsmall = -1
     case small = 0
     case medium = 1
     case large = 2
@@ -78,6 +97,7 @@ enum FontSize: Int, CaseIterable, Identifiable, Comparable {
 
     var label: String {
         switch self {
+        case .xsmall: return "Extra Small"
         case .small: return "Small"
         case .medium: return "Medium"
         case .large: return "Large"
@@ -85,17 +105,31 @@ enum FontSize: Int, CaseIterable, Identifiable, Comparable {
         }
     }
 
+    /// Abbreviation for compact controls (segmented pickers); full `label`
+    /// stays the VoiceOver-spoken name.
+    var shortLabel: String {
+        switch self {
+        case .xsmall: return "XS"
+        case .small: return "S"
+        case .medium: return "M"
+        case .large: return "L"
+        case .xlarge: return "XL"
+        }
+    }
+
     var activeSize: CGFloat {
         switch self {
+        case .xsmall: return 14
         case .small: return 18
         case .medium: return 22
         case .large: return 26
-        case .xlarge: return 30
+        case .xlarge: return 32
         }
     }
 
     var bodySize: CGFloat {
         switch self {
+        case .xsmall: return 10
         case .small: return 12
         case .medium: return 14
         case .large: return 16
@@ -116,12 +150,13 @@ final class Preferences: ObservableObject {
         static let displayMode = "displayMode"
         static let windowStyle = "windowStyle"
         static let backgroundStyle = "backgroundStyle"
+        static let glassStyle = "glassStyle"
         static let glassOpacity = "glassOpacity"
         static let legacyWindowPreset = "windowPreset"
         static let tone = "tone"
         static let accentHue = "accentHue"
         static let fontSize = "fontSize"
-        static let clickThrough = "clickThrough"
+        static let legacyClickThrough = "clickThrough"
         static let hideWhenPaused = "hideWhenPaused"
         static let alwaysOnTop = "alwaysOnTop"
         static let windowVisible = "windowVisible"
@@ -146,6 +181,31 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(backgroundStyle.rawValue, forKey: Key.backgroundStyle) }
     }
 
+    @Published var glassStyle: GlassStyle {
+        didSet {
+            defaults.set(glassStyle.rawValue, forKey: Key.glassStyle)
+            // Mirror to legacy `backgroundStyle` so the minimal-window legacy
+            // background path (still expressed in terms of glass/solid in
+            // `LyricsContentView.background`) tracks the user's only visible
+            // toggle. Avoid an infinite loop by only writing when the mapped
+            // value differs from current.
+            let mapped: BackgroundStyle = (glassStyle == .off) ? .solid : .glass
+            if backgroundStyle != mapped { backgroundStyle = mapped }
+        }
+    }
+
+    /// Liquid Glass APIs ship on macOS 26+. On older systems the material is
+    /// unavailable at runtime, so force `.off` regardless of the stored pref.
+    var effectiveGlassStyle: GlassStyle {
+        if #available(macOS 26, *) { return glassStyle }
+        return .off
+    }
+
+    static var defaultGlassStyle: GlassStyle {
+        if #available(macOS 26, *) { return .clear }
+        return .off
+    }
+
     /// Tint opacity over the visual-effect blur when `backgroundStyle == .glass`.
     /// 0 = pure blur (most transparent), 1 = fully tinted (least transparent).
     @Published var glassOpacity: Double {
@@ -162,10 +222,6 @@ final class Preferences: ObservableObject {
 
     @Published var fontSize: FontSize {
         didSet { defaults.set(fontSize.rawValue, forKey: Key.fontSize) }
-    }
-
-    @Published var clickThrough: Bool {
-        didSet { defaults.set(clickThrough, forKey: Key.clickThrough) }
     }
 
     @Published var hideWhenPaused: Bool {
@@ -226,6 +282,21 @@ final class Preferences: ObservableObject {
         } else {
             self.backgroundStyle = (legacyPresetRaw == "solid") ? .solid : .glass
         }
+        // L1: glassStyle migration. Stored value wins; otherwise derive from
+        // legacy `backgroundStyle` raw (one-shot) and drop the legacy key.
+        let storedGlass = defaults.string(forKey: Key.glassStyle)
+        if let storedGlass, let g = GlassStyle(rawValue: storedGlass) {
+            self.glassStyle = g
+        } else if let bgRaw {
+            switch bgRaw {
+            case "glass": self.glassStyle = Self.defaultGlassStyle
+            case "solid": self.glassStyle = .off
+            default: self.glassStyle = Self.defaultGlassStyle
+            }
+            defaults.removeObject(forKey: Key.backgroundStyle)
+        } else {
+            self.glassStyle = Self.defaultGlassStyle
+        }
         self.tone = toneRaw.flatMap(Tone.init(rawValue:)) ?? .auto
         self.glassOpacity = defaults.object(forKey: Key.glassOpacity) as? Double ?? 0.4
 
@@ -238,7 +309,8 @@ final class Preferences: ObservableObject {
         } else {
             self.fontSize = FontSize(rawValue: defaults.integer(forKey: Key.fontSize)) ?? .medium
         }
-        self.clickThrough = defaults.bool(forKey: Key.clickThrough)
+        // W4: clickThrough is now derived from windowStyle. Discard legacy stored value.
+        defaults.removeObject(forKey: Key.legacyClickThrough)
         if defaults.object(forKey: Key.hideWhenPaused) == nil {
             self.hideWhenPaused = true
         } else {

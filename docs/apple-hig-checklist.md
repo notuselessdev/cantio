@@ -28,6 +28,7 @@ matrix.
 - [ ] Sizes follow text styles when possible: `.body` 13pt, `.caption` 11pt, `.headline` 13 semibold.
 - [ ] Tracking adjusted only for ALL-CAPS labels (~0.4–0.6 letter-spacing).
 - [ ] Honor Dynamic Type when feasible (font sizes scale via prefs `fontSize`).
+- [ ] Fullscreen lyrics IGNORE `prefs.fontSize` and auto-scale from container height (`height/8`, clamped 28...96pt; sub-line ~60% of active) — a 13" laptop and a 27" external both want different absolute sizes and the user shouldn't retune the slider on display change.
 - [ ] Numerals in tabular contexts → `.monospacedDigit()`.
 - [ ] Truncation: `.lineLimit(1) + .truncationMode(.middle)` for titles.
 

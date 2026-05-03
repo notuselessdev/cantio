@@ -72,6 +72,8 @@ Acceptance: menubar panel has no tone picker. Settings → Appearance → tone p
 - [x] "Hide lyrics window" row no longer renders permanently in active state — hover-only highlight.
 - [x] Title + artist behave like links: hover underline + `NSCursor.pointingHand` (`LinkButton` wrapper).
 - [x] `SpotifyMonitor` re-prompts TCC when state stays `.notDetermined` (post-logout/login + dismissed-prompt recovery).
+- [x] **Removed transport `.keyboardShortcut(...)`** (Space, ⌘←, ⌘→) — they leaked into global responder chain via `MenuBarExtra(.window)`, causing Spotify to skip randomly while user typed in other apps. Future: opt-in Carbon `RegisterEventHotKey` global shortcut.
+- [x] "No lyrics found" nudge moved out of floating window (now `EmptyView`) and into menubar panel as `LyricsNudgeRow` shown only when `lyrics.state == .notFound && nowPlaying != nil`.
 
 ---
 

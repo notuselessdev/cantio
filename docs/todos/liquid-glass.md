@@ -1,5 +1,7 @@
 # TODO — Liquid Glass
 
+Status: **All milestones complete (L1–L5).** Runtime-gated `#available(macOS 26, *)` everywhere; macOS 14/15 uses existing `NSVisualEffectView` paths. Reduce Transparency + Increase Contrast both force `.off` regardless of pref.
+
 Scope: native Liquid Glass material for pill mode + menubar panel. Settings-only configuration.
 Owner files: `Floric/MenuBarPanel.swift`, `Floric/Floating/PillContent*.swift`, `Floric/Settings/Preferences.swift`, `Floric/Settings/PreferencesView.swift`, `Floric/Theme/FL.Palette.swift` (or wherever materials live).
 
@@ -8,7 +10,9 @@ API note: skill targets iOS 26 — same `.glassEffect()` API ships on **macOS 26
 
 ---
 
-## L1 — Replace `BackgroundStyle` w/ `GlassStyle`
+## L1 — Replace `BackgroundStyle` w/ `GlassStyle` — ✅ DONE
+
+Note: `BackgroundStyle` enum kept alive (still consumed by `LyricsContentView`/`FloatingLyricsController` for minimal/glass legacy branches). L1 added `GlassStyle` + `glassStyle` pref + one-shot migration that drops legacy `backgroundStyle` UserDefaults key. Future cleanup: full removal of `BackgroundStyle` once `LyricsContentView` glass branches all go through `effectiveGlassStyle`.
 
 Today: `BackgroundStyle = { glass, solid }` applied to minimal only. Comment says pill + fullscreen ignore it.
 
@@ -33,7 +37,7 @@ Acceptance: enum exists, default sane, migration drops legacy keys, minimal/full
 
 ---
 
-## L2 — Pill: apply `.glassEffect()`
+## L2 — Pill: apply `.glassEffect()` — ✅ DONE
 
 Today: pill uses `NSVisualEffectView .hudWindow` + custom palette tint.
 
@@ -54,7 +58,9 @@ Gotchas:
 
 ---
 
-## L3 — Menubar panel: apply `.glassEffect()`
+## L3 — Menubar panel: apply `.glassEffect()` — ✅ DONE
+
+`.buttonStyle(.glass)` NOT applied — outer `GlassEffectContainer` already provides single unified silhouette; per-button glass would shatter that + double-stack on accent fills. Documented in agent report.
 
 Today: `MenuBarPanel` uses `WindowTransparencyApplier` + `NSVisualEffectView .popover`.
 
@@ -69,7 +75,9 @@ Sequencing: M2 (real player controls) lands first OR in same patch — `.buttonS
 
 ---
 
-## L4 — Settings UI
+## L4 — Settings UI — ✅ DONE
+
+Picker rendered enabled-looking but `.disabled(true) + .opacity(0.5)` on macOS<26, with `PrefRow.sub = "Requires macOS 26 (Tahoe)"` matching existing PreferencesView idiom.
 
 - Add Glass picker in `PreferencesView`: segmented or `Picker` w/ Off / Clear / Tinted.
 - Show glass-opacity slider only when `.tinted` selected.
@@ -82,7 +90,7 @@ Acceptance: 3 options visible, tint slider conditional, runtime gating works, ac
 
 ---
 
-## L5 — Remove glass controls from menubar panel
+## L5 — Remove glass controls from menubar panel — ✅ DONE (verified clean by grep)
 
 Per item M3 in `menubar.md`: theme picker leaves menubar. Same applies — `glassStyle` lives in Settings only. Verify menubar panel exposes none of these.
 

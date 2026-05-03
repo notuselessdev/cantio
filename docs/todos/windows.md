@@ -1,11 +1,13 @@
 # TODO — Window styles
 
+Status: **All milestones complete (W1–W4).** Bundled as one Wave 1B "windows pass."
+
 Scope: floating lyrics window behavior across `pill` / `minimal` / `fullscreen` styles.
 Owner files: `Floric/Floating/FloatingLyricsController.swift`, `Floric/Floating/FloatingLyricsWindow.swift`, `Floric/Settings/Preferences.swift`.
 
 ---
 
-## W1 — Minimal: no click-through
+## W1 — Minimal: no click-through — ✅ DONE (subsumed by W4)
 
 Minimal is real chrome window, not floating overlay. Click-through inappropriate.
 
@@ -18,7 +20,9 @@ Acceptance: minimal window receive clicks, drag, hover. Toggling `clickThrough` 
 
 ---
 
-## W2 — Fullscreen actually fullscreen
+## W2 — Fullscreen actually fullscreen — ✅ DONE
+
+Window level: `.statusBar` (over native fullscreen Spaces). Screen pick: `window.screen ?? .main ?? screens.first`. Frame: `screen.frame` (covers menubar+Dock).
 
 Today: bigger window. Want: real fullscreen overlay covering whole active screen, all spaces.
 
@@ -35,7 +39,9 @@ Gotchas: `level = .floating` may sit below native fullscreen Spaces. May need `.
 
 ---
 
-## W3 — Minimal: persist last size
+## W3 — Minimal: persist last size — ✅ DONE
+
+Autosave name: `FloricFloatingLyricsWindow.minimal` (separate from pill). Set before first `setFrame`.
 
 Today: minimal does not restore size across launches.
 
@@ -48,7 +54,9 @@ Acceptance: resize minimal, quit, relaunch → same size. Switch styles round-tr
 
 ---
 
-## W4 — Drop "click-through when inactive"
+## W4 — Drop "click-through when inactive" — ✅ DONE
+
+`Preferences.clickThrough` removed; legacy key purged at `init`. Pill uses internal `pillGrabActive` (Option-click toggle) replacing pref-driven escape hatch. Click-through is now a derived rule from `windowStyle`.
 
 Today: pref toggles passthrough only when app inactive. User: not valid config.
 

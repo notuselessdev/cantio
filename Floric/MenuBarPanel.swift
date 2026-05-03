@@ -14,6 +14,15 @@ struct MenuBarPanel: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openSettings) private var openSettings
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+
+    /// Liquid Glass for the panel is suppressed when the user has Reduce
+    /// Transparency or Increase Contrast on, OR when running on macOS < 26
+    /// (`effectiveGlassStyle` already enforces the runtime cap).
+    private var panelGlassStyle: GlassStyle {
+        if reduceTransparency || colorSchemeContrast == .increased { return .off }
+        return prefs.effectiveGlassStyle
+    }
 
     private var tone: FL.Tone {
         switch prefs.tone {
@@ -25,11 +34,36 @@ struct MenuBarPanel: View {
     private var palette: FL.Palette { FL.palette(tone: tone, hue: prefs.accentHue) }
 
     var body: some View {
+        Group {
+            if #available(macOS 26, *), panelGlassStyle != .off {
+                GlassEffectContainer(spacing: 0) { panelContent }
+            } else {
+                panelContent
+            }
+        }
+        .frame(width: 290)
+        .background(panelBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(palette.borderStrong, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(WindowTransparencyApplier())
+        .preferredColorScheme(tone == .dark ? .dark : .light)
+        .onAppear(perform: onAppear)
+    }
+
+    @ViewBuilder
+    private var panelContent: some View {
         VStack(spacing: 0) {
             nowPlayingCard
             ScrubberRow(monitor: monitor, palette: palette)
                 .padding(.horizontal, 12)
                 .padding(.bottom, 10)
+            if lyrics.state == .notFound, monitor.nowPlaying != nil {
+                LyricsNudgeRow(palette: palette)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 10)
+            }
             Divider().background(palette.border)
             VStack(spacing: 2) {
                 MenuRow(icon: .window,
@@ -70,23 +104,27 @@ struct MenuBarPanel: View {
             .padding(.top, 6)
             .padding(.bottom, 4)
         }
-        .frame(width: 290)
-        .background(
-            Group {
-                if reduceTransparency {
-                    palette.bgElev
-                } else {
-                    VisualEffectBackground(material: .popover, blending: .behindWindow)
-                }
-            }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(palette.borderStrong, lineWidth: 0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .background(WindowTransparencyApplier())
-        .preferredColorScheme(tone == .dark ? .dark : .light)
-        .onAppear(perform: onAppear)
+    }
+
+    /// Panel chrome background. Three branches:
+    /// 1. Reduce Transparency / Increase Contrast → solid `palette.bgElev`.
+    /// 2. macOS 26+ with Liquid Glass enabled → `.glassEffect()` (clear or
+    ///    accent-tinted). Sits in front of the popover material so the glass
+    ///    silhouette is what reads.
+    /// 3. Fallback (macOS 14/15 or `glassStyle == .off`) → existing
+    ///    `NSVisualEffectView .popover`.
+    @ViewBuilder
+    private var panelBackground: some View {
+        if reduceTransparency || colorSchemeContrast == .increased {
+            palette.bgElev
+        } else if #available(macOS 26, *), panelGlassStyle != .off {
+            Color.clear
+                .glassEffectModifier(style: panelGlassStyle,
+                                     tint: palette.accent.opacity(prefs.glassOpacity),
+                                     in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } else {
+            VisualEffectBackground(material: .popover, blending: .behindWindow)
+        }
     }
 
     @ViewBuilder
@@ -183,6 +221,12 @@ struct TransportControls: View {
 
     var body: some View {
         HStack(spacing: 2) {
+            // No `.keyboardShortcut(...)` on these buttons. SwiftUI registers
+            // shortcuts in the responder chain; for `MenuBarExtra(.window)`
+            // the panel window can stay key after closing, which leaks Space
+            // / ⌘← / ⌘→ into other apps and randomly skips Spotify tracks.
+            // Mouse + VoiceOver-only for now; system-wide hotkey is a
+            // separate Carbon `RegisterEventHotKey` opt-in.
             TransportButton(symbol: "backward.fill",
                             label: "Previous track",
                             palette: palette,
@@ -190,7 +234,6 @@ struct TransportControls: View {
                             primary: false) {
                 monitor.previousTrack()
             }
-            .keyboardShortcut(.leftArrow, modifiers: .command)
 
             TransportButton(symbol: isPlaying ? "pause.fill" : "play.fill",
                             label: isPlaying ? "Pause" : "Play",
@@ -199,7 +242,6 @@ struct TransportControls: View {
                             primary: true) {
                 monitor.playPause()
             }
-            .keyboardShortcut(.space, modifiers: [])
 
             TransportButton(symbol: "forward.fill",
                             label: "Next track",
@@ -208,7 +250,6 @@ struct TransportControls: View {
                             primary: false) {
                 monitor.nextTrack()
             }
-            .keyboardShortcut(.rightArrow, modifiers: .command)
         }
     }
 }
@@ -367,6 +408,26 @@ struct ScrubberRow: View {
     private func format(_ s: Double) -> String {
         let total = max(0, Int(s.rounded()))
         return String(format: "%d:%02d", total / 60, total % 60)
+    }
+}
+
+/// Compact row shown beneath the scrubber when LRCLIB returned no lyrics
+/// for the current track. Floating window stays empty in that state — this
+/// is the only place the user is told.
+private struct LyricsNudgeRow: View {
+    let palette: FL.Palette
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "text.magnifyingglass")
+                .font(.system(size: 11))
+                .foregroundStyle(palette.textMuted)
+            Text("No lyrics found for this track")
+                .font(.system(size: 11))
+                .foregroundStyle(palette.textMuted)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
