@@ -12,9 +12,13 @@ xcuserdata/
 
 # Swift Package Manager
 .build/
+.build-status-debug/
 Packages/
 Package.resolved
 .swiftpm/
+
+# Coverage / profiling
+*.profraw
 
 # macOS
 .DS_Store

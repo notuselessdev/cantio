@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/mayron/projects/mayron/floric/.codex/hooks/PostToolUse.sh'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/mayron/projects/mayron/floric/.codex/hooks/SessionStart.sh'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/mayron/projects/mayron/floric/.codex/hooks/Stop.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}
