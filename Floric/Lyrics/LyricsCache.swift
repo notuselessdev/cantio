@@ -46,7 +46,7 @@ struct LyricsCache {
             let caches = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first
                 ?? URL(fileURLWithPath: NSTemporaryDirectory())
             self.directory = caches
-                .appendingPathComponent("co.sultans.floric", isDirectory: true)
+                .appendingPathComponent("com.mayronalves.cantio", isDirectory: true)
                 .appendingPathComponent("lyrics", isDirectory: true)
         }
         try? fileManager.createDirectory(at: self.directory, withIntermediateDirectories: true)

@@ -20,7 +20,7 @@ struct LyricsService: LyricsProvider {
     var session: URLSession = .shared
 
     /// LRCLIB recommends a descriptive User-Agent so they can contact maintainers.
-    private let userAgent = "Floric/0.1 (+https://github.com/sultans-co/floric)"
+    private let userAgent = "Cantio/0.1 (+https://github.com/sultans-co/cantio)"
 
     private struct LRCLibResponse: Decodable {
         let syncedLyrics: String?

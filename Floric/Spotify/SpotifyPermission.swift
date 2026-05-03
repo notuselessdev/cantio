@@ -74,8 +74,8 @@ enum SpotifyPermission {
 
         let status = AEDeterminePermissionToAutomateTarget(
             &addressDesc,
-            typeWildCard,
-            typeWildCard,
+            AEEventClass(kCoreEventClass),
+            AEEventID(kAEGetData),
             askUser
         )
 

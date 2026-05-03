@@ -38,6 +38,7 @@ final class LyricsContentViewSnapshotTests: XCTestCase {
         // Render the deterministic empty-state path: monitor.nowPlaying is nil
         // and lyrics.state is .idle (defaults). Avoids needing time-based mocks.
         return LyricsContentView(monitor: monitor, lyrics: lyrics, prefs: prefs)
+            .environmentObject(PillHitTarget())
     }
 
     func test_lyricsContent_minimal_solid_light() {

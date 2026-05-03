@@ -606,10 +606,10 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mayronalves.CantioTests;
 				PRODUCT_NAME = FloricTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cantio.app/Contents/MacOS/Cantio";
 			};
 			name = Debug;
 		};
@@ -698,8 +698,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.floric;
-				PRODUCT_NAME = Floric;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mayronalves.cantio;
+				PRODUCT_MODULE_NAME = Floric;
+				PRODUCT_NAME = Cantio;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -716,10 +717,10 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.FloricTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mayronalves.CantioTests;
 				PRODUCT_NAME = FloricTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Floric.app/Contents/MacOS/Floric";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cantio.app/Contents/MacOS/Cantio";
 			};
 			name = Release;
 		};
@@ -737,8 +738,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = co.sultans.floric;
-				PRODUCT_NAME = Floric;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mayronalves.cantio;
+				PRODUCT_MODULE_NAME = Floric;
+				PRODUCT_NAME = Cantio;
 				SDKROOT = macosx;
 			};
 			name = Release;

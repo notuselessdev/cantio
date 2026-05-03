@@ -163,7 +163,7 @@ struct SettingsView: View {
                             InfoPill(text: "LRCLIB", palette: palette)
                         }
                         PrefRow(label: "Cached songs",
-                                sub: "Stored in ~/Library/Caches/Floric",
+                                sub: "Stored in ~/Library/Caches/Cantio",
                                 palette: palette) {
                             HStack(spacing: 10) {
                                 Text(LyricsCache.shared.summary())
@@ -208,7 +208,7 @@ struct SettingsView: View {
         HStack(spacing: 16) {
             FloricIcon(size: 64)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Floric")
+                Text("Cantio")
                     .font(.system(size: 18, weight: .semibold))
                     .tracking(-0.3)
                     .foregroundStyle(palette.text)

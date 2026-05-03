@@ -6,12 +6,6 @@ struct FloricApp: App {
     @StateObject private var prefs = Preferences.shared
 
     var body: some Scene {
-        // Menu-bar UI is owned by `AppDelegate.statusBar` (NSStatusItem +
-        // borderless NSPanel). SwiftUI's `MenuBarExtra(.window)` installs an
-        // opaque MenuBarExtraWindow whose hosting chain defeats `.glassEffect()`
-        // on macOS 26 — Liquid Glass needs a real transparent NSWindow to blur
-        // the desktop behind it. Settings stays a SwiftUI Scene so SettingsLink
-        // keeps working.
         Settings {
             SettingsView(prefs: prefs)
         }
@@ -29,14 +23,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var didBootstrap = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        bootstrapIfNeeded()
+        NSApp.setActivationPolicy(.accessory)
         installStatusBar()
+        bootstrapIfNeeded()
     }
 
     private func installStatusBar() {
-        let bar = StatusBarPopover {
-            StatusItemLabel(monitor: self.monitor)
-        }
+        let bar = StatusBarPopover(monitor: monitor)
         bar.setContent { [unowned self] in
             MenuBarPanel(
                 monitor: self.monitor,
@@ -61,34 +54,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         controller.start()
         floatingController = controller
-    }
-}
-
-/// Status-bar label: waveform glyph + "Artist · Title" truncated when
-/// available. Artist leads so multi-artist credits stay visible even when
-/// the title gets clipped.
-struct StatusItemLabel: View {
-    @ObservedObject var monitor: SpotifyMonitor
-    private static let maxTotalLength = 36
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "music.note")
-            if let label = displayText {
-                Text(label)
-            }
-        }
-    }
-
-    private var displayText: String? {
-        guard let np = monitor.nowPlaying, !np.title.isEmpty else { return nil }
-        let artist = np.artist.trimmingCharacters(in: .whitespaces)
-        let combined = artist.isEmpty
-            ? np.title
-            : "\(artist) · \(np.title)"
-        if combined.count > Self.maxTotalLength {
-            return String(combined.prefix(Self.maxTotalLength)) + "…"
-        }
-        return combined
     }
 }

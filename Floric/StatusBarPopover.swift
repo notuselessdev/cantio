@@ -12,22 +12,30 @@ import Combine
 /// own Battery / Wi-Fi dropdowns do.
 @MainActor
 final class StatusBarPopover: NSObject, NSWindowDelegate {
+    private static let maxTitleWidth: CGFloat = 240
+    private static let marqueeStepInterval: TimeInterval = 1.0 / 30.0
+    private static let marqueePointsPerSecond: CGFloat = 18
+    private static let statusTitlePadding: CGFloat = 14
+
     private let statusItem: NSStatusItem
+    private let monitor: SpotifyMonitor
     private var panel: NSPanel?
     private var localMonitor: Any?
     private var globalMonitor: Any?
-    private let labelHost: NSHostingView<AnyView>
     private var contentBuilder: (() -> AnyView)?
+    private var cancellables = Set<AnyCancellable>()
+    private var marqueeTimer: Timer?
+    private var fullStatusTitle = ""
+    private var marqueeOffset: CGFloat = 0
+    private var marqueeDirection: CGFloat = 1
 
-    init<Label: View>(@ViewBuilder label: @escaping () -> Label) {
+    init(monitor: SpotifyMonitor) {
+        self.monitor = monitor
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        labelHost = NSHostingView(rootView: AnyView(label()))
+        statusItem.autosaveName = "com.mayronalves.cantio.statusItem"
         super.init()
         configureStatusItem()
-    }
-
-    func setLabel<Label: View>(@ViewBuilder _ label: () -> Label) {
-        labelHost.rootView = AnyView(label())
+        observeMonitor()
     }
 
     func setContent<Content: View>(@ViewBuilder _ content: @escaping () -> Content) {
@@ -39,48 +47,162 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
 
     private func configureStatusItem() {
         guard let button = statusItem.button else { return }
-        // NSStatusItem.variableLength sizes itself to the button's title/image,
-        // not to subviews. With a SwiftUI hosting view we have to drive the
-        // status item's `length` explicitly each time the hosted view's
-        // intrinsic content size changes (track title swap, etc.).
-        labelHost.sizingOptions = [.intrinsicContentSize]
-        labelHost.translatesAutoresizingMaskIntoConstraints = false
-        button.addSubview(labelHost)
-        NSLayoutConstraint.activate([
-            labelHost.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-            labelHost.centerYAnchor.constraint(equalTo: button.centerYAnchor),
-        ])
-        // `NSHostingView` posts NSView.frameDidChangeNotification when its
-        // intrinsic SwiftUI content resizes (because `sizingOptions` triggers
-        // a frame update). KVO on `fittingSize`/`intrinsicContentSize` is not
-        // supported on NSHostingView.
-        labelHost.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(
-            self, selector: #selector(labelFrameDidChange(_:)),
-            name: NSView.frameDidChangeNotification, object: labelHost)
-        // Initial sync after this method returns and the hosting view has had
-        // a layout pass.
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.syncStatusItemLength(from: self.labelHost)
-        }
+        button.image = nil
+        button.imagePosition = .noImage
+        button.toolTip = "Cantio"
+        button.identifier = NSUserInterfaceItemIdentifier("com.mayronalves.cantio.statusButton")
+        button.setAccessibilityLabel("Cantio")
+        button.cell?.wraps = false
+        button.cell?.lineBreakMode = .byClipping
         button.target = self
         button.action = #selector(togglePanel)
         button.sendAction(on: [.leftMouseDown, .rightMouseDown])
+        updateStatusItemLabel()
     }
 
-    @objc private func labelFrameDidChange(_ note: Notification) {
-        syncStatusItemLength(from: labelHost)
+    private func observeMonitor() {
+        monitor.$nowPlaying
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.updateStatusItemLabel() }
+            .store(in: &cancellables)
     }
 
-    private func syncStatusItemLength(from host: NSHostingView<AnyView>) {
-        host.layoutSubtreeIfNeeded()
-        let intrinsic = host.intrinsicContentSize
-        let fitting = host.fittingSize
-        let w = max(intrinsic.width, fitting.width, NSStatusItem.squareLength)
-        if abs(statusItem.length - w) > 0.5 {
-            statusItem.length = w
+    private func updateStatusItemLabel() {
+        guard let button = statusItem.button else { return }
+        if let displayText {
+            button.toolTip = "Cantio: \(displayText)"
+            button.setAccessibilityLabel("Cantio: \(displayText)")
+        } else {
+            button.toolTip = "Cantio"
+            button.setAccessibilityLabel("Cantio")
         }
+        let nextTitle = displayText.map { "♪ \($0)" } ?? "♪"
+        if nextTitle != fullStatusTitle {
+            fullStatusTitle = nextTitle
+            marqueeOffset = 0
+            marqueeDirection = 1
+            updateStatusButtonFrame()
+            updateMarqueeTimer()
+        }
+        statusItem.isVisible = true
+    }
+
+    private func updateStatusButtonFrame() {
+        guard let button = statusItem.button else { return }
+        if fullStatusTitle == "♪" {
+            button.image = nil
+            button.attributedTitle = statusAttributedTitle(fullStatusTitle)
+            statusItem.length = NSStatusItem.squareLength
+        } else {
+            button.attributedTitle = NSAttributedString()
+            button.image = renderStatusTitle(offset: marqueeOffset)
+            button.imagePosition = .imageOnly
+            statusItem.length = min(fullStatusTitleWidth, Self.maxTitleWidth)
+        }
+    }
+
+    private func updateMarqueeTimer() {
+        marqueeTimer?.invalidate()
+        marqueeTimer = nil
+
+        guard fullStatusTitleWidth > Self.maxTitleWidth,
+              !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        else { return }
+
+        let timer = Timer(timeInterval: Self.marqueeStepInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.advanceMarquee() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        marqueeTimer = timer
+    }
+
+    private var fullStatusTitleWidth: CGFloat {
+        ceil(statusAttributedTitle(fullStatusTitle).size().width) + Self.statusTitlePadding
+    }
+
+    private func advanceMarquee() {
+        guard fullStatusTitle.count > 1 else { return }
+        let maxOffset = max(0, fullStatusTitleWidth - Self.maxTitleWidth)
+        marqueeOffset += marqueeDirection * Self.marqueePointsPerSecond * Self.marqueeStepInterval
+        if marqueeOffset >= maxOffset {
+            marqueeOffset = maxOffset
+            marqueeDirection = -1
+        } else if marqueeOffset <= 0 {
+            marqueeOffset = 0
+            marqueeDirection = 1
+        }
+        updateStatusButtonFrame()
+    }
+
+    private func statusAttributedTitle(_ title: String) -> NSAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineBreakMode = .byClipping
+        paragraph.alignment = .left
+        let menuBarFont = NSFont.menuBarFont(ofSize: 0)
+        let font = NSFont.systemFont(ofSize: menuBarFont.pointSize, weight: .semibold)
+        return NSAttributedString(
+            string: title,
+            attributes: [
+                .font: font,
+                .foregroundColor: NSColor.labelColor,
+                .paragraphStyle: paragraph,
+            ]
+        )
+    }
+
+    private func renderStatusTitle(offset: CGFloat) -> NSImage {
+        let imageWidth = min(fullStatusTitleWidth, Self.maxTitleWidth)
+        let imageHeight = NSStatusBar.system.thickness
+        let imageSize = NSSize(width: imageWidth, height: imageHeight)
+        let scale = statusItem.button?.window?.backingScaleFactor
+            ?? NSScreen.main?.backingScaleFactor
+            ?? 2
+        let pixelsWide = max(1, Int(ceil(imageWidth * scale)))
+        let pixelsHigh = max(1, Int(ceil(imageHeight * scale)))
+        let image = NSImage(size: imageSize)
+        let maskTitle = NSMutableAttributedString(attributedString: statusAttributedTitle(fullStatusTitle))
+        maskTitle.addAttribute(.foregroundColor, value: NSColor.black,
+                               range: NSRange(location: 0, length: maskTitle.length))
+        let attributedTitle = maskTitle
+        let textSize = attributedTitle.size()
+        let y = (imageHeight - textSize.height) / 2
+
+        guard let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: pixelsWide,
+            pixelsHigh: pixelsHigh,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bitmapFormat: [.alphaFirst],
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ), let context = NSGraphicsContext(bitmapImageRep: rep) else {
+            image.isTemplate = true
+            return image
+        }
+
+        rep.size = imageSize
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = context
+        context.cgContext.scaleBy(x: scale, y: scale)
+        NSColor.clear.setFill()
+        NSRect(origin: .zero, size: imageSize).fill()
+        NSGraphicsContext.current?.shouldAntialias = true
+        attributedTitle.draw(at: CGPoint(x: Self.statusTitlePadding / 2 - offset, y: y))
+        NSGraphicsContext.restoreGraphicsState()
+
+        image.addRepresentation(rep)
+        image.isTemplate = true
+        return image
+    }
+
+    private var displayText: String? {
+        guard let np = monitor.nowPlaying, np.state == .playing, !np.title.isEmpty else { return nil }
+        let artist = np.artist.trimmingCharacters(in: .whitespaces)
+        return artist.isEmpty ? np.title : "\(np.title) · \(artist)"
     }
 
     @objc private func togglePanel() {

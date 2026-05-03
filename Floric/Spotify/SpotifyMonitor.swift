@@ -1,13 +1,21 @@
 import AppKit
 import Foundation
+import ScriptingBridge
 
 private let spotifyBundleId = "com.spotify.client"
+
+@objc private enum SpotifyScriptingPlayerState: Int {
+    case stopped = 0x6b505353 // 'kPSS'
+    case playing = 0x6b505350 // 'kPSP'
+    case paused = 0x6b505370  // 'kPSp'
+}
 
 /// Result of a single Spotify poll. Lifted to file scope so the parser is
 /// testable without an `NSAppleScript` instance.
 enum SpotifyPollResult: Equatable {
     case notInstalled
     case notRunning
+    case permissionNotDetermined
     case permissionDenied
     case running(NowPlaying)
 }
@@ -55,32 +63,6 @@ func extrapolatePosition(anchor: PositionAnchor?, now: Date) -> Double? {
     return anchor.position + max(0, delta)
 }
 
-private let nowPlayingScriptSource = """
-tell application id "com.spotify.client"
-    if it is running then
-        try
-            set _state to player state as text
-            set _pos to player position
-            set t to current track
-            set _id to id of t
-            set _name to name of t
-            set _artist to artist of t
-            set _album to album of t
-            set _dur to duration of t
-            set _art to ""
-            try
-                set _art to artwork url of t
-            end try
-            return _state & linefeed & _id & linefeed & _name & linefeed & _artist & linefeed & _album & linefeed & (_pos as text) & linefeed & (_dur as text) & linefeed & _art
-        on error
-            return "ERR_NO_TRACK"
-        end try
-    else
-        return "ERR_NOT_RUNNING"
-    end if
-end tell
-"""
-
 /// Anything that emits `NowPlaying?` change events and accepts transport
 /// commands. Real impl: `SpotifyMonitor`. Test impl: a stream-backed stub
 /// injected into `LyricsStore.bind(to:)` and the menu-bar controls.
@@ -122,7 +104,6 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
     @Published private(set) var permission: AutomationPermission = .targetNotRunning
 
     private var task: Task<Void, Never>?
-    private var script: NSAppleScript?
     private var lastEmitted: NowPlaying?
     private var didRequestPermission = false
 
@@ -138,7 +119,6 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         var cont: AsyncStream<NowPlaying?>.Continuation!
         self.events = AsyncStream { c in cont = c }
         self.eventsContinuation = cont
-        self.script = NSAppleScript(source: nowPlayingScriptSource)
     }
 
     deinit {
@@ -185,6 +165,12 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
             if nowPlaying != nil { nowPlaying = nil }
             if positionAnchor != nil { positionAnchor = nil }
             if permission != .targetNotRunning { permission = .targetNotRunning }
+            emitIfChanged(nil)
+        case .permissionNotDetermined:
+            if availability != .notRunning { availability = .notRunning }
+            if nowPlaying != nil { nowPlaying = nil }
+            if positionAnchor != nil { positionAnchor = nil }
+            if permission != .notDetermined { permission = .notDetermined }
             emitIfChanged(nil)
         case .permissionDenied:
             if availability != .permissionDenied { availability = .permissionDenied }
@@ -234,14 +220,23 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         if NSRunningApplication.runningApplications(withBundleIdentifier: spotifyBundleId).isEmpty {
             return .notRunning
         }
+        let directRead = await runSpotifyScript()
+        if case .running = directRead {
+            didRequestPermission = true
+            return directRead
+        }
         // Spotify is running. Surface the consent prompt until TCC reaches a
         // terminal decision (granted/denied). Dismissed prompts and post-login
         // TCC resets both leave the state at `.notDetermined` — a one-shot
         // gate would silently strand the app there.
-        // The `request()` path blocks until the user responds to the TCC
-        // prompt, so dispatch off the main actor to keep the menu bar UI
-        // responsive while the system dialog is on screen.
         let askUser = !didRequestPermission
+        if askUser, permission != .notDetermined {
+            permission = .notDetermined
+            if availability != .notRunning { availability = .notRunning }
+            if nowPlaying != nil { nowPlaying = nil }
+            if positionAnchor != nil { positionAnchor = nil }
+            emitIfChanged(nil)
+        }
         let permState: AutomationPermission = await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let result = askUser
@@ -255,15 +250,17 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
             didRequestPermission = true
             return .permissionDenied
         case .notDetermined, .targetNotRunning, .unknown:
-            // No terminal decision yet — keep `didRequestPermission` false so
-            // the next poll re-surfaces the prompt instead of going silent.
-            return .notRunning
+            return .permissionNotDetermined
         case .granted:
             didRequestPermission = true
         }
-        return await withCheckedContinuation { continuation in
+        return await runSpotifyScript()
+    }
+
+    private func runSpotifyScript() async -> SpotifyPollResult {
+        await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
-                continuation.resume(returning: Self.runScript(self.script))
+                continuation.resume(returning: Self.readSpotifyNowPlaying())
             }
         }
     }
@@ -361,18 +358,31 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         }
     }
 
-    private static func runScript(_ script: NSAppleScript?) -> SpotifyPollResult {
-        guard let script else { return .notRunning }
-        var error: NSDictionary?
-        let descriptor = script.executeAndReturnError(&error)
-        if let error {
-            // -1743 = errAEEventNotPermitted (TCC denied or revoked)
-            if let code = error[NSAppleScript.errorNumber] as? Int, code == -1743 {
-                return .permissionDenied
-            }
-            return .notRunning
+    nonisolated private static func readSpotifyNowPlaying() -> SpotifyPollResult {
+        guard let app = SBApplication(bundleIdentifier: spotifyBundleId) else {
+            return .notInstalled
         }
-        guard let raw = descriptor.stringValue else { return .notRunning }
-        return parseSpotifyScriptOutput(raw)
+        guard app.isRunning else { return .notRunning }
+        guard let track = app.value(forKey: "currentTrack") as? NSObject else { return .notRunning }
+        let id = (track.value(forKey: "id") as? String) ?? ""
+        guard !id.isEmpty else { return .notRunning }
+        let rawState = (app.value(forKey: "playerState") as? NSNumber)?.intValue
+        let state: PlayerState
+        switch rawState {
+        case SpotifyScriptingPlayerState.playing.rawValue: state = .playing
+        case SpotifyScriptingPlayerState.paused.rawValue: state = .paused
+        default: state = .stopped
+        }
+        let artworkURL = (track.value(forKey: "artworkUrl") as? String) ?? ""
+        return .running(NowPlaying(
+            trackId: id,
+            title: (track.value(forKey: "name") as? String) ?? "",
+            artist: (track.value(forKey: "artist") as? String) ?? "",
+            album: (track.value(forKey: "album") as? String) ?? "",
+            durationSeconds: Double((track.value(forKey: "duration") as? NSNumber)?.doubleValue ?? 0) / 1_000.0,
+            positionSeconds: (app.value(forKey: "playerPosition") as? NSNumber)?.doubleValue ?? 0,
+            state: state,
+            artworkURL: artworkURL.isEmpty ? nil : artworkURL
+        ))
     }
 }

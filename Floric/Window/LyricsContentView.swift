@@ -86,8 +86,20 @@ struct LyricsContentView: View {
             case .notInstalled:
                 placeholderCapsule("Install Spotify to see lyrics")
                     .modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
-            case .notRunning, .available:
-                lyricsContent(forPill: true, linesAround: linesAround)
+            case .notRunning:
+                if monitor.permission == .notDetermined || monitor.permission == .unknown {
+                    permissionCapsule.modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
+                } else {
+                    placeholderCapsule("Open Spotify to see lyrics")
+                        .modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
+                }
+            case .available:
+                if monitor.nowPlaying == nil || monitor.nowPlaying?.state == .stopped {
+                    placeholderCapsule("Play a song in Spotify")
+                        .modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
+                } else {
+                    lyricsContent(forPill: true, linesAround: linesAround)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -444,7 +456,7 @@ struct LyricsContentView: View {
             Text("Open Spotify and play a song")
                 .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
                 .foregroundStyle(palette.text)
-            Text("Floric will follow along with synced lyrics.")
+            Text("Cantio will follow along with synced lyrics.")
                 .font(.system(size: max(11, prefs.fontSize.bodySize - 2)))
                 .foregroundStyle(palette.textMuted)
         }
@@ -457,7 +469,7 @@ struct LyricsContentView: View {
             Text("Spotify access needed")
                 .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
                 .foregroundStyle(palette.text)
-            Text("Allow Floric to control Spotify in Privacy & Security → Automation.")
+            Text("Allow Cantio to control Spotify in Privacy & Security → Automation.")
                 .font(.system(size: max(11, prefs.fontSize.bodySize - 2)))
                 .foregroundStyle(palette.textMuted)
                 .multilineTextAlignment(.center)
@@ -473,12 +485,19 @@ struct LyricsContentView: View {
     }
 
     private var permissionCapsule: some View {
-        PillCapsule(words: ["Grant", "Spotify", "access"],
-                    palette: palette, tone: effectiveTone,
-                    bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
-                    glassOpacity: prefs.glassOpacity,
-                    glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
-                    reduceTransparency: reduceTransparency)
+        Button {
+            SpotifyPermission.openSystemSettings()
+        } label: {
+            PillCapsule(words: ["Grant", "Spotify", "access"],
+                        palette: palette, tone: effectiveTone,
+                        bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
+                        glassOpacity: prefs.glassOpacity,
+                        glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
+                        reduceTransparency: reduceTransparency)
+        }
+        .buttonStyle(.plain)
+        .help("Open Automation settings")
+        .accessibilityLabel("Open Spotify access settings")
     }
 
     private func placeholder(_ text: String) -> some View {

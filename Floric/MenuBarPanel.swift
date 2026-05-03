@@ -99,7 +99,7 @@ struct MenuBarPanel: View {
                 HoverableSettingsRow(palette: palette)
                     .keyboardShortcut(",")
 
-                MenuRow(icon: .quit, label: "Quit Floric",
+                MenuRow(icon: .quit, label: "Quit Cantio",
                         shortcut: "⌘Q", destructive: true, palette: palette) {
                     NSApplication.shared.terminate(nil)
                 }
@@ -688,7 +688,7 @@ struct MarqueeText: View {
     let font: Font
     let color: Color
     var underline: Bool = false
-    var gap: CGFloat = 32
+    var pointsPerSecond: CGFloat = 18
     /// Explicit line-height override. Defaults to 16pt (panel rows). Pill
     /// callers pass the active font size so larger lyric text isn't clipped.
     var lineHeight: CGFloat = 16
@@ -697,7 +697,7 @@ struct MarqueeText: View {
 
     @State private var contentWidth: CGFloat = 0
     @State private var containerWidth: CGFloat = 0
-    @State private var phase: Double = 0
+    @State private var startDate = Date()
 
     private var overflows: Bool { contentWidth > containerWidth + 0.5 }
     private var animate: Bool { overflows && !reduceMotion }
@@ -706,11 +706,14 @@ struct MarqueeText: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 if animate {
-                    HStack(spacing: gap) {
-                        Text(text).font(font).underline(underline, color: color).fixedSize()
-                        Text(text).font(font).underline(underline, color: color).fixedSize()
+                    TimelineView(.animation) { ctx in
+                        Text(text)
+                            .font(font)
+                            .underline(underline, color: color)
+                            .lineLimit(1)
+                            .fixedSize()
+                            .offset(x: -bounceOffset(at: ctx.date))
                     }
-                    .offset(x: -CGFloat(phase) * (contentWidth + gap))
                 } else {
                     Text(text)
                         .font(font)
@@ -730,27 +733,32 @@ struct MarqueeText: View {
             )
             .onPreferenceChange(MarqueeWidthKey.self) { contentWidth = $0 }
             .onAppear { containerWidth = geo.size.width }
-            .onChange(of: geo.size.width) { _, w in containerWidth = w }
+            .onChange(of: geo.size.width) { _, w in
+                containerWidth = w
+                resetBounce()
+            }
             .onChange(of: animate) { _, on in
-                phase = 0
-                if on { startScroll() }
+                if on { resetBounce() }
             }
             .onChange(of: text) { _, _ in
-                phase = 0
-                if animate { startScroll() }
+                resetBounce()
             }
             .clipped()
         }
         .frame(height: lineHeight)
     }
 
-    private func startScroll() {
-        guard animate, contentWidth > 0 else { return }
-        let speed: Double = 14
-        let duration = max(8, Double(contentWidth + gap) / speed)
-        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false).delay(1.2)) {
-            phase = 1
-        }
+    private func bounceOffset(at date: Date) -> CGFloat {
+        let maxOffset = max(0, contentWidth - containerWidth)
+        guard maxOffset > 0 else { return 0 }
+        let cycleDistance = maxOffset * 2
+        let traveled = CGFloat(date.timeIntervalSince(startDate)) * pointsPerSecond
+        let phase = traveled.truncatingRemainder(dividingBy: cycleDistance)
+        return phase <= maxOffset ? phase : cycleDistance - phase
+    }
+
+    private func resetBounce() {
+        startDate = Date()
     }
 }
 
