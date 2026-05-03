@@ -24,6 +24,10 @@ struct NowPlaying: Equatable {
     var durationSeconds: Double
     var positionSeconds: Double
     var state: PlayerState
+    /// URL to the album artwork, exposed by Spotify's AppleScript dictionary
+    /// as `artwork url`. Nil if the track has no artwork or the property
+    /// fails (older Spotify builds).
+    var artworkURL: String?
 }
 
 enum SpotifyAvailability: Equatable {

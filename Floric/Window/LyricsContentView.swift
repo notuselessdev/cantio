@@ -1,17 +1,9 @@
 import SwiftUI
 import AppKit
 
-/// Content rendered inside the floating lyrics window.
-///
-/// Visual design follows Apple-style polish:
-/// - SF Pro typography with proper optical sizing (`.system(size:)` ≥ 20pt
-///   automatically promotes to SF Pro Display) and explicit tracking per
-///   Apple's typography table (tighter for display, looser for body).
-/// - Three appearance modes: Glass (`.ultraThinMaterial` vibrancy), Solid
-///   Dark, Solid Light. Glass auto-degrades to solid when the system has
-///   Reduce Transparency on.
-/// - Hairline (0.5pt @1x) border, continuous corner radius, soft drop shadow.
-/// - Spring animations are flattened to fades when Reduce Motion is on.
+/// Floating lyrics window content. Implements the six visual presets from
+/// the design handoff: pill / pillStack / glass / solid / minimal /
+/// fullscreen.
 struct LyricsContentView: View {
     @ObservedObject var monitor: SpotifyMonitor
     @ObservedObject var lyrics: LyricsStore
@@ -20,131 +12,328 @@ struct LyricsContentView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let cornerRadius: CGFloat = 16
+    private var style: WindowStyle { prefs.windowStyle }
+    private var bgStyle: BackgroundStyle { prefs.backgroundStyle }
+    private var resolvedTone: FL.Tone {
+        switch prefs.tone {
+        case .auto: return FL.resolveTone(nil)
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+    private var palette: FL.Palette {
+        FL.palette(tone: effectiveTone, hue: prefs.accentHue)
+    }
+    /// When Reduce Transparency is on, glass / pill modes degrade to solid.
+    private var effectiveTone: FL.Tone { resolvedTone }
+    private var degradeToSolid: Bool { reduceTransparency }
 
     var body: some View {
+        Group {
+            switch style {
+            case .pill: pillBody(stack: prefs.linesVisible > 1)
+            case .fullscreen: fullscreenBody
+            case .minimal: windowBody
+            }
+        }
+        .preferredColorScheme(effectiveTone == .dark ? .dark : .light)
+    }
+
+    // MARK: - Pill / Pill Stack
+
+    @ViewBuilder
+    private func pillBody(stack: Bool) -> some View {
+        ZStack {
+            // No window chrome — capsule(s) hover over wallpaper.
+            switch monitor.availability {
+            case .permissionDenied:
+                permissionCapsule
+            case .notInstalled:
+                placeholderCapsule("Install Spotify to see lyrics")
+            case .notRunning, .available:
+                lyricsContent(forPill: true, stack: stack)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Window (glass / solid / minimal)
+
+    @ViewBuilder
+    private var windowBody: some View {
         ZStack {
             background
             content
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.horizontal, 22)
+                .padding(.top, 20)
+                .padding(.bottom, 18)
         }
-        .frame(minWidth: 280, minHeight: 64)
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .frame(minWidth: 280, minHeight: 80)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .strokeBorder(borderColor, lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(palette.borderStrong, lineWidth: 0.5)
         )
-        // Drop shadow is provided by the host `NSWindow` (`hasShadow = true`),
-        // which traces the actual rounded silhouette since the window
-        // background is clear. Adding a SwiftUI `.shadow` here would double
-        // up with the AppKit shadow and produce a smeared halo.
-        .preferredColorScheme(preferredScheme)
+        .overlay(alignment: .topLeading) { trafficLights }
     }
 
-    // MARK: - Appearance
+    // MARK: - Fullscreen karaoke
 
-    /// Force a color scheme for the solid modes so SF Symbol / system colors
-    /// inside the window resolve correctly even if the host app is in the
-    /// other mode. Glass follows the system.
-    private var preferredScheme: ColorScheme? {
-        switch effectiveAppearance {
-        case .glass: return nil
-        case .solidDark: return .dark
-        case .solidLight: return .light
+    @ViewBuilder
+    private var fullscreenBody: some View {
+        ZStack {
+            KaraokeBackdrop(hues: trackHues)
+            VStack(spacing: 0) {
+                // Header — album art + title.
+                if let np = monitor.nowPlaying {
+                    HStack(spacing: 14) {
+                        AlbumArtView(hues: trackHues, size: 56, artworkURL: np.artworkURL)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(np.title)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 8, y: 1)
+                            Text("\(np.artist) · \(np.album)")
+                                .font(.system(size: 12.5))
+                                .foregroundStyle(Color.white.opacity(0.72))
+                                .shadow(color: .black.opacity(0.4), radius: 6, y: 1)
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, 36)
+                    .padding(.horizontal, 40)
+                }
+                Spacer(minLength: 0)
+                lyricsContent(forPill: false, stack: true, large: true)
+                    .padding(.horizontal, 80)
+                Spacer(minLength: 0)
+                if monitor.nowPlaying != nil {
+                    progressBar(fullscreen: true)
+                        .padding(.horizontal, 80)
+                        .padding(.bottom, 56)
+                }
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// When Reduce Transparency is on, glass falls back to a solid mode that
-    /// matches the system appearance.
-    private var effectiveAppearance: AppearanceMode {
-        if prefs.appearanceMode == .glass && reduceTransparency {
-            return NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                ? .solidDark
-                : .solidLight
+    // MARK: - Window chrome
+
+    private var trafficLights: some View {
+        HStack(spacing: 7) {
+            ForEach([Color(red: 1, green: 0.37, blue: 0.34),
+                     Color(red: 1, green: 0.74, blue: 0.18),
+                     Color(red: 0.16, green: 0.78, blue: 0.25)], id: \.self) { c in
+                Circle()
+                    .fill(c)
+                    .overlay(Circle().strokeBorder(.black.opacity(0.22), lineWidth: 0.5))
+                    .frame(width: 11, height: 11)
+            }
         }
-        return prefs.appearanceMode
+        .padding(.top, 10)
+        .padding(.leading, 12)
+    }
+
+    private var titleStrip: some View {
+        Group {
+            if let np = monitor.nowPlaying {
+                Text("\(np.title) · \(np.artist)")
+                    .font(.system(size: 11, weight: .medium))
+                    .tracking(0.2)
+                    .foregroundStyle(palette.textFaint)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .padding(.horizontal, 80)
+            }
+        }
     }
 
     @ViewBuilder
     private var background: some View {
-        switch effectiveAppearance {
-        case .glass:
-            VisualEffectBackground()
-        case .solidDark:
-            Color(nsColor: NSColor(calibratedWhite: 0.08, alpha: 0.92))
-        case .solidLight:
-            Color(nsColor: NSColor(calibratedWhite: 0.98, alpha: 0.92))
+        let isSolid = bgStyle == .solid || degradeToSolid
+        if isSolid {
+            palette.bgElev
+        } else {
+            ZStack {
+                VisualEffectBackground(material: .hudWindow)
+                let t = max(0, min(1, prefs.glassOpacity))
+                (effectiveTone == .dark
+                    ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: t)
+                    : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: t))
+            }
         }
     }
 
-    private var borderColor: Color {
-        switch effectiveAppearance {
-        case .glass: return Color.white.opacity(0.14)
-        case .solidDark: return Color.white.opacity(0.10)
-        case .solidLight: return Color.black.opacity(0.10)
-        }
-    }
-
-    // MARK: - Content
+    // MARK: - Body content (glass/solid/minimal)
 
     @ViewBuilder
     private var content: some View {
-        // Player availability takes precedence over lyric state — if Spotify
-        // is missing, off, or hasn't been granted Automation access, that's
-        // what the user actually needs to fix.
         switch monitor.availability {
-        case .permissionDenied:
-            permissionDeniedView
-        case .notInstalled:
-            placeholder("Install Spotify to see lyrics here")
-        case .notRunning:
-            emptyStateView
+        case .permissionDenied: permissionDeniedView
+        case .notInstalled: placeholder("Install Spotify to see lyrics here")
+        case .notRunning: emptyStateView
         case .available:
-            availableContent
+            if monitor.nowPlaying == nil || monitor.nowPlaying?.state == .stopped {
+                emptyStateView
+            } else {
+                VStack(spacing: 0) {
+                    lyricsContent(forPill: false, stack: prefs.linesVisible > 1)
+                        .frame(maxHeight: .infinity)
+                }
+                .overlay(alignment: .bottom) { minimalFooter }
+            }
+        }
+    }
+
+    // MARK: - Lyrics renderer
+
+    @ViewBuilder
+    private func lyricsContent(forPill: Bool, stack: Bool, large: Bool = false) -> some View {
+        switch lyrics.state {
+        case .idle: placeholderCapsuleOrText("—", forPill: forPill)
+        case .loading: placeholderCapsuleOrText("Loading lyrics…", forPill: forPill)
+        case .notFound: placeholderCapsuleOrText("No lyrics found", forPill: forPill)
+        case .error(let msg): placeholderCapsuleOrText(msg, forPill: forPill)
+        case .plain(let text):
+            ScrollView {
+                Text(text)
+                    .font(.system(size: prefs.fontSize.bodySize))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(palette.text)
+            }
+        case .synced(let lines):
+            TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { ctx in
+                let pos = monitor.interpolatedPosition(now: ctx.date)
+                    ?? monitor.nowPlaying?.positionSeconds ?? 0
+                let lp = LyricPosition.compute(lines: lines, position: pos)
+                syncedRender(lp: lp, forPill: forPill, stack: stack, large: large)
+                    .animation(.easeInOut(duration: 0.3), value: lp.current?.timestamp)
+            }
         }
     }
 
     @ViewBuilder
-    private var availableContent: some View {
-        // Spotify is reachable but no track is loaded yet (or it's stopped).
-        if monitor.nowPlaying == nil || monitor.nowPlaying?.state == .stopped {
-            emptyStateView
+    private func syncedRender(lp: LyricPosition, forPill: Bool, stack: Bool, large: Bool) -> some View {
+        let cur = lp.current
+        let activeSize: CGFloat = large ? 48 : prefs.fontSize.activeSize
+        let dimSize: CGFloat = large ? 32 : max(12, prefs.fontSize.activeSize * 0.78)
+        let curWords = cur?.words ?? (forPill ? ["♪"] : ["♪  ♪  ♪"])
+
+        if forPill {
+            VStack(spacing: 8) {
+                if stack {
+                    LyricLineView(words: lp.prev?.words ?? ["♪"],
+                                  highlighted: true,
+                                  active: false, dim: true, color: palette.textFaint,
+                                  accent: palette.accent, size: 13)
+                        .opacity(lp.prev != nil ? 1 : 0)
+                }
+                PillCapsule(words: curWords, palette: palette, tone: effectiveTone,
+                            bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
+                if stack {
+                    LyricLineView(words: lp.next?.words ?? ["♪"],
+                                  highlighted: true,
+                                  active: false, dim: true, color: palette.textFaint,
+                                  accent: palette.accent, size: 13)
+                        .opacity(lp.next != nil ? 1 : 0)
+                }
+            }
         } else {
-            lyricsStateContent
+            VStack(spacing: large ? 26 : 10) {
+                if stack {
+                    LyricLineView(words: lp.prev?.words ?? ["♪"],
+                                  highlighted: true,
+                                  active: false, dim: true, color: palette.textFaint,
+                                  accent: palette.accent, size: dimSize)
+                        .opacity(lp.prev != nil ? 1 : 0)
+                }
+                LyricLineView(words: curWords, highlighted: true,
+                              active: true, dim: false, color: palette.text,
+                              accent: palette.accent, size: activeSize)
+                if stack {
+                    LyricLineView(words: lp.next?.words ?? ["♪"],
+                                  highlighted: false,
+                                  active: false, dim: true, color: palette.textFaint,
+                                  accent: palette.accent, size: dimSize)
+                        .opacity(lp.next != nil ? 1 : 0)
+                }
+            }
+            .frame(maxWidth: .infinity)
         }
     }
 
-    /// Shown on first launch and whenever Spotify is idle: a friendly nudge
-    /// to play a track. Acceptance criterion for US-009.
+    // MARK: - Footer
+
     @ViewBuilder
+    private func progressBar(fullscreen: Bool) -> some View {
+        if let np = monitor.nowPlaying, np.durationSeconds > 0 {
+            TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
+                let pos = monitor.interpolatedPosition(now: ctx.date) ?? np.positionSeconds
+                let pct = max(0, min(1, pos / np.durationSeconds))
+                VStack(spacing: 6) {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(fullscreen ? 0.18 : 0.10))
+                            Capsule()
+                                .fill(fullscreen ? Color.white.opacity(0.85) : palette.accent)
+                                .frame(width: geo.size.width * pct)
+                        }
+                    }
+                    .frame(height: 3)
+                    HStack {
+                        Text(formatTime(pos))
+                        Spacer()
+                        Text("−" + formatTime(np.durationSeconds - pos))
+                    }
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(palette.textFaint)
+                }
+            }
+        }
+    }
+
+    private var minimalFooter: some View {
+        Group {
+            if let np = monitor.nowPlaying, np.durationSeconds > 0 {
+                TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
+                    let pos = monitor.interpolatedPosition(now: ctx.date) ?? np.positionSeconds
+                    let pct = max(0, min(1, pos / np.durationSeconds))
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Rectangle().fill(Color.white.opacity(0.08))
+                            Rectangle().fill(palette.accent)
+                                .frame(width: geo.size.width * pct)
+                        }
+                    }
+                    .frame(height: 2)
+                }
+            }
+        }
+    }
+
+    // MARK: - Empty / permission
+
     private var emptyStateView: some View {
         VStack(spacing: 6) {
             Text("Open Spotify and play a song")
                 .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
-                .tracking(0.1)
-                .foregroundStyle(.primary)
+                .foregroundStyle(palette.text)
             Text("Floric will follow along with synced lyrics.")
-                .font(.system(size: max(11, prefs.fontSize.bodySize - 2), weight: .regular))
-                .foregroundStyle(.secondary)
+                .font(.system(size: max(11, prefs.fontSize.bodySize - 2)))
+                .foregroundStyle(palette.textMuted)
         }
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
     }
 
-    /// Inline error shown when AppleEvents Automation access has been
-    /// denied (or not yet granted). Includes a button that opens System
-    /// Settings → Privacy & Security → Automation.
-    @ViewBuilder
     private var permissionDeniedView: some View {
         VStack(spacing: 10) {
             Text("Spotify access needed")
                 .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
-                .tracking(0.1)
-                .foregroundStyle(.primary)
+                .foregroundStyle(palette.text)
             Text("Allow Floric to control Spotify in Privacy & Security → Automation.")
-                .font(.system(size: max(11, prefs.fontSize.bodySize - 2), weight: .regular))
-                .foregroundStyle(.secondary)
+                .font(.system(size: max(11, prefs.fontSize.bodySize - 2)))
+                .foregroundStyle(palette.textMuted)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             Button("Open System Settings") {
@@ -152,168 +341,377 @@ struct LyricsContentView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
+            .tint(palette.accent)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
     }
 
-    @ViewBuilder
-    private var lyricsStateContent: some View {
-        switch lyrics.state {
-        case .idle:
-            placeholder("—")
-        case .loading:
-            placeholder("Loading lyrics…")
-        case .notFound:
-            placeholder("No lyrics found")
-        case .error(let msg):
-            placeholder(msg)
-        case .plain(let text):
-            ScrollView {
-                Text(text)
-                    .font(.system(size: prefs.fontSize.bodySize, weight: .regular))
-                    .tracking(0.1)
-                    .multilineTextAlignment(.center)
-            }
-        case .synced(let lines):
-            // Drives a redraw at ~30 Hz so the active line stays within
-            // ±200 ms of Spotify between polls (we extrapolate locally).
-            TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { context in
-                let position = monitor.interpolatedPosition(now: context.date)
-                    ?? monitor.nowPlaying?.positionSeconds
-                    ?? 0
-                let activeIndex = LyricLine.activeIndex(in: lines, at: position)
-                syncedView(lines: lines, activeIndex: activeIndex)
-            }
-        }
+    private var permissionCapsule: some View {
+        PillCapsule(words: ["Grant", "Spotify", "access"],
+                    palette: palette, tone: effectiveTone,
+                    bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
     }
 
     private func placeholder(_ text: String) -> some View {
         Text(text)
             .font(.system(size: prefs.fontSize.bodySize, weight: .medium))
-            .tracking(0.1)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .center)
+            .foregroundStyle(palette.textMuted)
+            .frame(maxWidth: .infinity)
+    }
+
+    private func placeholderCapsule(_ text: String) -> some View {
+        let words = text.split(separator: " ").map(String.init)
+        return PillCapsule(words: words,
+                           palette: palette, tone: effectiveTone,
+                           bgStyle: bgStyle, glassOpacity: prefs.glassOpacity)
     }
 
     @ViewBuilder
-    private func syncedView(lines: [LyricLine], activeIndex: Int?) -> some View {
-        switch prefs.displayMode {
-        case .singleLine:
-            singleLine(lines: lines, activeIndex: activeIndex)
-        case .multiLine:
-            multiLine(lines: lines, activeIndex: activeIndex)
-        }
+    private func placeholderCapsuleOrText(_ text: String, forPill: Bool) -> some View {
+        if forPill { placeholderCapsule(text) } else { placeholder(text) }
     }
 
-    @ViewBuilder
-    private func singleLine(lines: [LyricLine], activeIndex: Int?) -> some View {
-        let text = activeIndex.map { lines[$0].text } ?? "♪"
-        Text(text.isEmpty ? "♪" : text)
-            .font(.system(size: prefs.fontSize.activeSize, weight: .semibold))
-            .tracking(-0.26)
-            .foregroundStyle(.primary)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .id(activeIndex ?? -1)
-            .transition(reduceMotion
-                ? .opacity
-                : .asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .bottom)),
-                    removal: .opacity.combined(with: .move(edge: .top))
-                ))
-            .animation(activeAnimation, value: activeIndex)
+    // MARK: - Helpers
+
+    private func formatTime(_ s: Double) -> String {
+        let total = Int(max(0, s))
+        return String(format: "%d:%02d", total / 60, total % 60)
     }
 
-    @ViewBuilder
-    private func multiLine(lines: [LyricLine], activeIndex: Int?) -> some View {
-        ScrollViewReader { proxy in
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(alignment: .center, spacing: 8) {
-                    Color.clear.frame(height: 24).id("__top__")
-                    ForEach(Array(lines.enumerated()), id: \.offset) { idx, line in
-                        lineView(line: line, isActive: idx == activeIndex)
-                            .id(idx)
-                    }
-                    Color.clear.frame(height: 24).id("__bot__")
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .frame(maxHeight: 180)
-            .onChange(of: activeIndex) { _, new in
-                guard let target = new else { return }
-                if reduceMotion {
-                    proxy.scrollTo(target, anchor: .center)
-                } else {
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
-                        proxy.scrollTo(target, anchor: .center)
-                    }
-                }
-            }
-            .onAppear {
-                if let target = activeIndex {
-                    proxy.scrollTo(target, anchor: .center)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func lineView(line: LyricLine, isActive: Bool) -> some View {
-        Text(line.text.isEmpty ? "♪" : line.text)
-            .font(.system(
-                size: isActive ? prefs.fontSize.activeSize : prefs.fontSize.bodySize,
-                weight: isActive ? .semibold : .regular
-            ))
-            .tracking(isActive ? -0.26 : 0.1)
-            .foregroundStyle(isActive ? Color.primary : Color.secondary.opacity(0.7))
-            .scaleEffect(isActive ? 1.0 : 0.96)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .animation(activeAnimation, value: isActive)
-    }
-
-    private var activeAnimation: Animation {
-        reduceMotion
-            ? .easeInOut(duration: 0.15)
-            : .spring(response: 0.25, dampingFraction: 0.85)
+    /// Deterministic art hues from the current track id.
+    private var trackHues: [Double] {
+        let seed = monitor.nowPlaying?.trackId ?? "floric"
+        var hash = UInt64(5381)
+        for ch in seed.unicodeScalars { hash = hash &* 33 &+ UInt64(ch.value) }
+        let h0 = Double(hash % 360)
+        return [h0, (h0 + 56).truncatingRemainder(dividingBy: 360),
+                (h0 + 110).truncatingRemainder(dividingBy: 360)]
     }
 }
 
+// MARK: - Lyric position (replaces old activeIndex)
+
+struct LyricPosition {
+    struct Line { let timestamp: Double; let text: String; let words: [String] }
+    let prev: Line?
+    let current: Line?
+    let next: Line?
+
+    static func compute(lines: [LyricLine], position: Double) -> LyricPosition {
+        guard !lines.isEmpty else {
+            return LyricPosition(prev: nil, current: nil, next: nil)
+        }
+        let idx = LyricLine.activeIndex(in: lines, at: position)
+        guard let i = idx else {
+            return LyricPosition(prev: nil, current: nil,
+                next: line(at: 0, in: lines))
+        }
+        let cur = line(at: i, in: lines)
+        let prev = i > 0 ? line(at: i - 1, in: lines) : nil
+        let nxt = i + 1 < lines.count ? line(at: i + 1, in: lines) : nil
+        return LyricPosition(prev: prev, current: cur, next: nxt)
+    }
+
+    private static func line(at i: Int, in lines: [LyricLine]) -> Line {
+        let l = lines[i]
+        let text = l.text.isEmpty ? "♪" : l.text
+        let words = text.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
+        return Line(timestamp: l.timestamp, text: text,
+                    words: words.isEmpty ? ["♪"] : words)
+    }
+}
+
+// MARK: - Lyric line renderer
+
+struct LyricLineView: View {
+    let words: [String]
+    let highlighted: Bool
+    let active: Bool
+    let dim: Bool
+    let color: Color
+    let accent: Color
+    let size: CGFloat
+
+    var body: some View {
+        let opacity: Double = active ? 1 : (dim ? 0.4 : 0.6)
+        FlowLayout(spacing: 6) {
+            ForEach(Array(words.enumerated()), id: \.offset) { _, w in
+                Text(w)
+                    .font(.system(size: size, weight: active ? .bold : .semibold))
+                    .foregroundStyle(highlighted ? accent : color.opacity(0.55))
+                    .fixedSize()
+            }
+        }
+        .opacity(opacity)
+    }
+}
+
+// MARK: - Pill capsule
+
+struct PillCapsule: View {
+    let words: [String]
+    let palette: FL.Palette
+    let tone: FL.Tone
+    let bgStyle: BackgroundStyle
+    var glassOpacity: Double = 0.4
+
+    var body: some View {
+        let stroke = tone == .dark ? Color.white.opacity(0.10) : Color.black.opacity(0.06)
+        HStack(spacing: 6) {
+            ForEach(Array(words.enumerated()), id: \.offset) { _, w in
+                Text(w)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(palette.accent)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 9)
+        .background(pillBackground)
+        .overlay(Capsule().strokeBorder(stroke, lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.22), radius: 5, y: 4)
+    }
+
+    @ViewBuilder
+    private var pillBackground: some View {
+        let solid = tone == .dark
+            ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: 0.92)
+            : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: 0.94)
+        let tint = max(0, min(1, glassOpacity))
+        let glassOp = 0.58 + 0.34 * tint
+        let glass = tone == .dark
+            ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: glassOp)
+            : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: glassOp)
+        switch bgStyle {
+        case .solid:
+            Capsule().fill(solid)
+        case .glass:
+            Capsule().fill(glass)
+        }
+    }
+}
+
+// MARK: - Track strip
+
+struct TrackStrip: View {
+    let track: NowPlaying
+    let palette: FL.Palette
+    let hues: [Double]
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AlbumArtView(hues: hues, size: 40, artworkURL: track.artworkURL)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(track.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(palette.text)
+                    .lineLimit(1)
+                Text("\(track.artist) · \(track.album)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(palette.textMuted)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            NowBars(color: palette.accent)
+        }
+    }
+}
+
+// MARK: - Album art (procedural)
+
+struct AlbumArtView: View {
+    let hues: [Double]
+    let size: CGFloat
+    var artworkURL: String? = nil
+
+    var body: some View {
+        ZStack {
+            procedural
+            if let s = artworkURL, let url = URL(string: s) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let img):
+                        img.resizable().scaledToFill()
+                            .transition(.opacity.animation(.easeOut(duration: 0.25)))
+                    default:
+                        Color.clear
+                    }
+                }
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: size * 0.12, style: .continuous)
+                .strokeBorder(.white.opacity(0.06), lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.25), radius: 1, y: 1)
+        .shadow(color: .black.opacity(0.18), radius: 14, y: 4)
+    }
+
+    @ViewBuilder
+    private var procedural: some View {
+        // HSB-based gradient: avoids OKLCH gamut clipping that can render
+        // certain hues nearly black, and provides a guaranteed-visible base
+        // color when RadialGradients don't fully cover the frame.
+        let h0 = hues[0] / 360
+        let h1 = hues[1] / 360
+        let h2 = hues[2] / 360
+        let base = Color(hue: h2, saturation: 0.55, brightness: 0.22)
+        ZStack {
+            base
+            RadialGradient(colors: [
+                Color(hue: h0, saturation: 0.72, brightness: 0.95),
+                Color(hue: h1, saturation: 0.65, brightness: 0.55),
+                base.opacity(0)
+            ], center: UnitPoint(x: 0.25, y: 0.2), startRadius: 0, endRadius: size)
+            RadialGradient(colors: [
+                Color(hue: h2, saturation: 0.65, brightness: 0.78).opacity(0.7),
+                .clear
+            ], center: UnitPoint(x: 0.85, y: 0.85), startRadius: 0, endRadius: size * 0.7)
+        }
+    }
+}
+
+// MARK: - Now-playing bars
+
+struct NowBars: View {
+    let color: Color
+    var size: CGFloat = 12
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            HStack(alignment: .bottom, spacing: 2) {
+                ForEach(0..<3, id: \.self) { i in
+                    let phase = sin(t * 3 + Double(i) * 0.7) * 0.5 + 0.5
+                    Capsule()
+                        .fill(color)
+                        .frame(width: 2, height: size * (0.3 + 0.7 * phase))
+                }
+            }
+            .frame(height: size)
+        }
+    }
+}
+
+// MARK: - Karaoke fullscreen backdrop
+
+struct KaraokeBackdrop: View {
+    let hues: [Double]
+
+    var body: some View {
+        TimelineView(.animation) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            ZStack {
+                FL.oklch(0.16, 0.02, hues[2])
+                let dx1 = sin(t * 0.35) * 60
+                let dy1 = cos(t * 0.30) * 40
+                Circle()
+                    .fill(RadialGradient(colors: [FL.oklch(0.55, 0.18, hues[0]), .clear],
+                          center: .center, startRadius: 0, endRadius: 500))
+                    .frame(width: 900, height: 900)
+                    .offset(x: -200 + dx1, y: -200 + dy1)
+                    .blur(radius: 40)
+                let dx2 = cos(t * 0.40) * 70
+                let dy2 = sin(t * 0.25) * 50
+                Circle()
+                    .fill(RadialGradient(colors: [FL.oklch(0.50, 0.17, hues[1]), .clear],
+                          center: .center, startRadius: 0, endRadius: 500))
+                    .frame(width: 900, height: 900)
+                    .offset(x: 200 + dx2, y: 200 + dy2)
+                    .blur(radius: 60)
+                LinearGradient(stops: [
+                    .init(color: .black.opacity(0.25), location: 0),
+                    .init(color: .clear, location: 0.3),
+                    .init(color: .clear, location: 0.7),
+                    .init(color: .black.opacity(0.45), location: 1)
+                ], startPoint: .top, endPoint: .bottom)
+            }
+            .compositingGroup()
+            .clipped()
+        }
+    }
+}
+
+// MARK: - FlowLayout (wraps words across lines)
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxW = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0, totalW: CGFloat = 0
+        for v in subviews {
+            let s = v.sizeThatFits(.unspecified)
+            if x + s.width > maxW {
+                y += rowH + spacing; x = 0; rowH = 0
+            }
+            x += s.width + spacing
+            rowH = max(rowH, s.height)
+            totalW = max(totalW, x)
+        }
+        return CGSize(width: totalW, height: y + rowH)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let maxW = bounds.width
+        // Two-pass to center each row.
+        var rows: [[(LayoutSubview, CGSize)]] = [[]]
+        var rowW: CGFloat = 0
+        for v in subviews {
+            let s = v.sizeThatFits(.unspecified)
+            if rowW + s.width > maxW && !rows[rows.count - 1].isEmpty {
+                rows.append([]); rowW = 0
+            }
+            rows[rows.count - 1].append((v, s))
+            rowW += s.width + spacing
+        }
+        var y = bounds.minY
+        for row in rows {
+            let totalW = row.reduce(0) { $0 + $1.1.width } + spacing * CGFloat(max(0, row.count - 1))
+            var x = bounds.minX + (maxW - totalW) / 2
+            let h = row.map { $0.1.height }.max() ?? 0
+            for (v, s) in row {
+                v.place(at: CGPoint(x: x, y: y + (h - s.height) / 2),
+                        proposal: ProposedViewSize(s))
+                x += s.width + spacing
+            }
+            y += h + spacing
+        }
+    }
+}
+
+// MARK: - Active-line index (kept for backwards compat)
+
 extension LyricLine {
-    /// Returns index of the line whose timestamp ≤ position < next.timestamp,
-    /// or `nil` if `position` precedes the first line.
     static func activeIndex(in lines: [LyricLine], at position: Double) -> Int? {
         guard !lines.isEmpty else { return nil }
         if position < lines[0].timestamp { return nil }
-        var lo = 0
-        var hi = lines.count - 1
+        var lo = 0, hi = lines.count - 1
         while lo < hi {
             let mid = (lo + hi + 1) / 2
-            if lines[mid].timestamp <= position {
-                lo = mid
-            } else {
-                hi = mid - 1
-            }
+            if lines[mid].timestamp <= position { lo = mid } else { hi = mid - 1 }
         }
         return lo
     }
 }
 
-/// `NSVisualEffectView` bridge for translucent, vibrant window background.
-///
-/// Uses `.hudWindow` material which is the closest AppKit equivalent to
-/// SwiftUI's `.ultraThinMaterial` for floating HUD-style surfaces and
-/// preserves vibrancy through behind-window blending.
-private struct VisualEffectBackground: NSViewRepresentable {
+// MARK: - Visual effect bridge
+
+struct VisualEffectBackground: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .hudWindow
+    var blending: NSVisualEffectView.BlendingMode = .behindWindow
+
     func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = .hudWindow
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.isEmphasized = true
-        return view
+        let v = NSVisualEffectView()
+        v.material = material
+        v.blendingMode = blending
+        v.state = .active
+        v.isEmphasized = true
+        return v
     }
 
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+        nsView.blendingMode = blending
+    }
 }

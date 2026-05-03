@@ -19,6 +19,8 @@ final class FloatingLyricsController {
 
     private var window: FloatingLyricsWindow?
     private var clickMonitor: Any?
+    private var globalMouseMonitor: Any?
+    private var localMouseMonitor: Any?
     private var cancellables = Set<AnyCancellable>()
 
     private static let frameAutosaveName = "FloricFloatingLyricsWindow"
@@ -33,11 +35,28 @@ final class FloatingLyricsController {
     func start() {
         if window == nil { buildWindow() }
         applyClickThrough()
+        applyWindowChrome()
         applyVisibility(animated: false)
         installClickMonitor()
+        installMousePassthroughMonitors()
         observePreferences()
         observePlayback()
         installGlobalHotKey()
+    }
+
+    /// Pill / pillStack / fullscreen presets render their own silhouette
+    /// (capsule shadow, full-bleed backdrop) and the rectangular NSWindow
+    /// shadow ends up framing them with a dark halo. Disable the window
+    /// shadow for those presets; keep it for chrome-bearing presets.
+    private func applyWindowChrome() {
+        guard let window else { return }
+        switch prefs.windowStyle {
+        case .pill, .fullscreen:
+            window.hasShadow = false
+        case .minimal:
+            window.hasShadow = true
+        }
+        window.invalidateShadow()
     }
 
     func toggleVisibility() {
@@ -111,18 +130,14 @@ final class FloatingLyricsController {
     // MARK: - Click-through
 
     private func applyClickThrough() {
-        window?.ignoresMouseEvents = prefs.clickThrough
+        guard let window else { return }
+        if prefs.windowStyle == .pill {
+            updatePillPassthrough()
+        } else {
+            window.ignoresMouseEvents = prefs.clickThrough
+        }
     }
 
-    /// Installs a global mouse-event monitor so Option-click anywhere on the
-    /// window toggles click-through. We install both local and global
-    /// monitors:
-    /// - local: catches the click while the window is interactive
-    /// - global: catches Option-click when click-through is on but the user
-    ///   wants to disable it (we can't because we won't get the click), so
-    ///   we instead respond to a global key flag (option) toggle via the
-    ///   menu/Preferences. The local monitor is sufficient for now; the
-    ///   menu provides the "settings" path.
     private func installClickMonitor() {
         if clickMonitor != nil { return }
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] event in
@@ -136,6 +151,44 @@ final class FloatingLyricsController {
             }
             return event
         }
+    }
+
+    // MARK: - Pill click-through (transparent areas pass through)
+
+    private func installMousePassthroughMonitors() {
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+            Task { @MainActor in self?.updatePillPassthrough() }
+        }
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
+            Task { @MainActor in self?.updatePillPassthrough() }
+            return event
+        }
+    }
+
+    private func updatePillPassthrough() {
+        guard let window, prefs.windowStyle == .pill else { return }
+        if prefs.clickThrough {
+            window.ignoresMouseEvents = true
+            return
+        }
+        let screenPoint = NSEvent.mouseLocation
+        guard window.frame.contains(screenPoint) else {
+            window.ignoresMouseEvents = true
+            return
+        }
+        window.ignoresMouseEvents = !isOpaqueAt(screenPoint: screenPoint)
+    }
+
+    private func isOpaqueAt(screenPoint: NSPoint) -> Bool {
+        guard let window, let contentView = window.contentView else { return false }
+        let windowPoint = window.convertPoint(fromScreen: screenPoint)
+        let viewPoint = contentView.convert(windowPoint, from: nil)
+        guard contentView.bounds.contains(viewPoint) else { return false }
+        let rect = NSRect(x: viewPoint.x, y: viewPoint.y, width: 1, height: 1)
+        guard let rep = contentView.bitmapImageRepForCachingDisplay(in: rect) else { return false }
+        contentView.cacheDisplay(in: rect, to: rep)
+        guard let color = rep.colorAt(x: 0, y: 0) else { return false }
+        return color.alphaComponent > 0.05
     }
 
     // MARK: - Observation
@@ -154,6 +207,16 @@ final class FloatingLyricsController {
         prefs.$hideWhenPaused
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.applyVisibility(animated: true) }
+            .store(in: &cancellables)
+
+        prefs.$windowStyle
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.applyWindowChrome() }
+            .store(in: &cancellables)
+
+        prefs.$backgroundStyle
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.applyWindowChrome() }
             .store(in: &cancellables)
     }
 
