@@ -18,6 +18,7 @@
 		2995884991ACCF28C8F81FB5 /* SpotifyPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF3CCEAC343576E261670E7 /* SpotifyPermission.swift */; };
 		2B1E3789310190D68A03CB7A /* test_menuBarPanel_light_emptyState.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 551B78748B56B3BB2E9DDF6B /* test_menuBarPanel_light_emptyState.1.png */; };
 		2CAC4AC631AB37744165D5B4 /* MenuBarPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */; };
+		2CAC4AC631AB37744165D5B5 /* StatusBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D22FA0799314AA24CA8C018 /* StatusBarPopover.swift */; };
 		2FA55B2D61207510B6AD42BA /* Lyrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738DC9A427DCACCCA78C93D4 /* Lyrics.swift */; };
 		3346497B9984FD75FBD63970 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1853290EDED3FFB04F5F8432 /* Assets.xcassets */; };
 		3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */; };
@@ -113,6 +114,7 @@
 		615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_pill_glass_dark.1.png; sourceTree = "<group>"; };
 		6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMonitor.swift; sourceTree = "<group>"; };
 		6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanel.swift; sourceTree = "<group>"; };
+		6D22FA0799314AA24CA8C018 /* StatusBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarPopover.swift; sourceTree = "<group>"; };
 		6D9BC1D6BBB862313064AC9B /* test_pillCapsule_dark_glass_inactive.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_inactive.1.png; sourceTree = "<group>"; };
 		738DC9A427DCACCCA78C93D4 /* Lyrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lyrics.swift; sourceTree = "<group>"; };
 		73A60FEC9E9290D971A10462 /* ExtrapolatePositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtrapolatePositionTests.swift; sourceTree = "<group>"; };
@@ -338,6 +340,7 @@
 				1767A35D842857D3A56A7C1E /* Floric.entitlements */,
 				09F9940E15947E74FF3EECDC /* FloricApp.swift */,
 				6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */,
+				6D22FA0799314AA24CA8C018 /* StatusBarPopover.swift */,
 				EDD90D31AC2A9D8D0684F067 /* Design */,
 				34F55CF2D335DF64908496BD /* Hotkey */,
 				4AE690A933C7DCB8711E35F3 /* Lyrics */,
@@ -569,6 +572,7 @@
 				AC4A77A2CB1A265C1EB34A9F /* LyricsService.swift in Sources */,
 				887E027B6F8F09227B1A8C73 /* LyricsStore.swift in Sources */,
 				2CAC4AC631AB37744165D5B4 /* MenuBarPanel.swift in Sources */,
+				2CAC4AC631AB37744165D5B5 /* StatusBarPopover.swift in Sources */,
 				1730A3996D6D3D10F7F0FDD2 /* NowPlaying.swift in Sources */,
 				036EFBDB3F5F51D47521D0A3 /* Preferences.swift in Sources */,
 				92FBFAA779DD23F7ABC6AF33 /* PreferencesView.swift in Sources */,

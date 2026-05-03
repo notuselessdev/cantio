@@ -6,18 +6,12 @@ struct FloricApp: App {
     @StateObject private var prefs = Preferences.shared
 
     var body: some Scene {
-        MenuBarExtra {
-            MenuBarPanel(
-                monitor: appDelegate.monitor,
-                lyrics: appDelegate.lyrics,
-                prefs: prefs,
-                onAppear: { appDelegate.bootstrapIfNeeded() }
-            )
-        } label: {
-            StatusItemLabel(monitor: appDelegate.monitor)
-        }
-        .menuBarExtraStyle(.window)
-
+        // Menu-bar UI is owned by `AppDelegate.statusBar` (NSStatusItem +
+        // borderless NSPanel). SwiftUI's `MenuBarExtra(.window)` installs an
+        // opaque MenuBarExtraWindow whose hosting chain defeats `.glassEffect()`
+        // on macOS 26 — Liquid Glass needs a real transparent NSWindow to blur
+        // the desktop behind it. Settings stays a SwiftUI Scene so SettingsLink
+        // keeps working.
         Settings {
             SettingsView(prefs: prefs)
         }
@@ -31,10 +25,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let prefs = Preferences.shared
     let pillHitTarget = PillHitTarget()
     private var floatingController: FloatingLyricsController?
+    private var statusBar: StatusBarPopover?
     private var didBootstrap = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         bootstrapIfNeeded()
+        installStatusBar()
+    }
+
+    private func installStatusBar() {
+        let bar = StatusBarPopover {
+            StatusItemLabel(monitor: self.monitor)
+        }
+        bar.setContent { [unowned self] in
+            MenuBarPanel(
+                monitor: self.monitor,
+                lyrics: self.lyrics,
+                prefs: self.prefs,
+                onAppear: {}
+            )
+        }
+        statusBar = bar
     }
 
     func bootstrapIfNeeded() {
@@ -56,7 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// Status-bar label: waveform glyph + "Artist · Title" truncated when
 /// available. Artist leads so multi-artist credits stay visible even when
 /// the title gets clipped.
-private struct StatusItemLabel: View {
+struct StatusItemLabel: View {
     @ObservedObject var monitor: SpotifyMonitor
     private static let maxTotalLength = 36
 
