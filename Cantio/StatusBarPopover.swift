@@ -259,7 +259,18 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         content.translatesAutoresizingMaskIntoConstraints = false
         // Size to fit the SwiftUI content's intrinsic dimensions.
         content.sizingOptions = [.intrinsicContentSize]
+        // Liquid Glass samples whatever sits behind it in the layer chain.
+        // NSHostingView is layer-backed by default, but its layer's
+        // backgroundColor isn't guaranteed to be transparent — explicitly
+        // clear it (and the panel's contentView wrapper, just in case)
+        // so `.glassEffect()` blurs the desktop instead of an opaque host.
+        content.wantsLayer = true
+        content.layer?.backgroundColor = NSColor.clear.cgColor
         p.contentView = content
+        if let cv = p.contentView {
+            cv.wantsLayer = true
+            cv.layer?.backgroundColor = NSColor.clear.cgColor
+        }
         return p
     }
 

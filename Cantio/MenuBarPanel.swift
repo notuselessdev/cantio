@@ -30,13 +30,12 @@ struct MenuBarPanel: View {
     var body: some View {
         Group {
             if #available(macOS 26, *), panelGlassStyle != .off {
-                GlassEffectContainer(spacing: 0) {
-                    panelContent
-                        .glassEffect(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(palette.borderStrong.opacity(0.45), lineWidth: 0.5))
-                }
+                // Single glass surface — no `GlassEffectContainer` wrapper.
+                // The container is for blending/morphing multiple glass
+                // shapes; with one shape it can suppress the edge lensing
+                // the system normally paints on the boundary.
+                panelContent
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             } else {
                 panelContent
                     .background(panelBackground)
@@ -62,7 +61,10 @@ struct MenuBarPanel: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 10)
             }
-            Divider().background(palette.border)
+            // Match Apple's dropdowns: dividers are inset from the panel
+            // edge (~10pt) so they don't bleed into the rounded corner /
+                // Liquid Glass edge highlight.
+            Divider().background(palette.border).padding(.horizontal, 10)
             // Single uniform list — uses native-menu hairline `Divider`s for
             // group separation rather than padding gaps, keeping vertical
             // rhythm consistent (HIG: equal spacing within a list).
@@ -84,7 +86,10 @@ struct MenuBarPanel: View {
                 .accessibilityValue(prefs.hideWhenPaused ? "On" : "Off")
                 .accessibilityAddTraits(.isToggle)
 
-                Divider().background(palette.border).padding(.vertical, 2)
+                Divider()
+                    .background(palette.border)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
 
                 HoverableSettingsRow(palette: palette)
                     .keyboardShortcut(",")
