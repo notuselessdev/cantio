@@ -633,8 +633,7 @@ struct PillCapsule: View {
         if #available(macOS 26, *), glassStyle != .off {
             GlassEffectContainer(spacing: 0) {
                 pillContent
-                    .glassEffectModifier(style: glassStyle,
-                                         tint: palette.accent.opacity(glassOpacity))
+                    .glassEffect(in: Capsule())
             }
             .transaction { $0.animation = nil }
         } else {
@@ -694,35 +693,6 @@ struct PillCapsule: View {
                 ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: glassOp)
                 : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: glassOp)
         }
-    }
-}
-
-/// Helper to apply `.glassEffect()` with optional tint inside a single
-/// branch. Extracted because the modifier chain differs by glass style and
-/// inline conditionals on `.glassEffect(...)` confuse the type checker.
-@available(macOS 26, *)
-extension View {
-    /// Applies `.glassEffect()` keyed off the user-selected `GlassStyle`.
-    /// `.off` is a no-op so callers can branch on availability without an
-    /// extra conditional.
-    @ViewBuilder
-    func glassEffectModifier<S: Shape>(style: GlassStyle,
-                                       tint: Color,
-                                       in shape: S) -> some View {
-        switch style {
-        case .off:
-            self
-        case .clear:
-            self.glassEffect(in: shape)
-        case .tinted:
-            self.glassEffect(.regular.tint(tint), in: shape)
-        }
-    }
-
-    /// Capsule-shape convenience — matches the pill silhouette.
-    @ViewBuilder
-    func glassEffectModifier(style: GlassStyle, tint: Color) -> some View {
-        glassEffectModifier(style: style, tint: tint, in: Capsule())
     }
 }
 
