@@ -38,22 +38,15 @@ struct MenuBarPanel: View {
             if #available(macOS 26, *), panelGlassStyle != .off {
                 GlassEffectContainer(spacing: 0) {
                     panelContent
-                        .glassEffectModifier(style: panelGlassStyle,
-                                             tint: palette.accent.opacity(prefs.glassOpacity),
-                                             in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .glassEffect(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
             } else {
                 panelContent
                     .background(panelBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
         .frame(width: 290)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(palette.borderStrong, lineWidth: 0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .background(WindowTransparencyApplier())
-        .preferredColorScheme(tone == .dark ? .dark : .light)
         .onAppear(perform: onAppear)
     }
 
@@ -600,55 +593,6 @@ private struct HoverableSettingsRow: View {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         w.makeKeyAndOrderFront(nil)
-    }
-}
-
-/// Walks up to the enclosing NSWindow (the MenuBarExtra panel host) and
-/// clears its opaque background so our SwiftUI VisualEffectBackground shows
-/// through. Without this, the panel's default solid backing masks the blur.
-private struct WindowTransparencyApplier: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView {
-        let v = NSView()
-        scheduleApply(from: v)
-        return v
-    }
-    func updateNSView(_ nsView: NSView, context: Context) {
-        scheduleApply(from: nsView)
-    }
-
-    /// SwiftUI re-installs an opaque backing on `MenuBarExtra(.window)`
-    /// after our first pass, so retry across a few runloop ticks.
-    private func scheduleApply(from view: NSView) {
-        for delay in [0.0, 0.05, 0.15, 0.4] {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                apply(from: view)
-            }
-        }
-    }
-
-    private func apply(from view: NSView) {
-        guard let win = view.window else { return }
-        win.isOpaque = false
-        win.backgroundColor = .clear
-        win.hasShadow = true
-        // Clear every ancestor layer between the SwiftUI host and the
-        // window's contentView — any opaque NSVisualEffectView / backing
-        // view in that chain will otherwise mask our blur.
-        var cur: NSView? = view
-        while let v = cur {
-            v.wantsLayer = true
-            v.layer?.backgroundColor = NSColor.clear.cgColor
-            if let ve = v as? NSVisualEffectView {
-                ve.state = .active
-                ve.blendingMode = .behindWindow
-            }
-            cur = v.superview
-        }
-        if let content = win.contentView {
-            content.wantsLayer = true
-            content.layer?.backgroundColor = NSColor.clear.cgColor
-        }
-        win.invalidateShadow()
     }
 }
 
