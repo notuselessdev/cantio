@@ -71,7 +71,6 @@ struct LyricsContentView: View {
             case .minimal: windowBody
             }
         }
-        .preferredColorScheme(effectiveTone == .dark ? .dark : .light)
     }
 
     // MARK: - Pill / Pill Stack
