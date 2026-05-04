@@ -39,10 +39,16 @@ struct MenuBarPanel: View {
                 GlassEffectContainer(spacing: 0) {
                     panelContent
                         .glassEffect(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(palette.borderStrong.opacity(0.45), lineWidth: 0.5))
                 }
             } else {
                 panelContent
                     .background(panelBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(palette.borderStrong, lineWidth: 0.5))
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
