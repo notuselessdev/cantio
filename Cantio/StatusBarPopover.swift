@@ -282,15 +282,18 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         let height = max(fittingSize.height, 80)
 
         let gap: CGFloat = 6
-        var origin = NSPoint(
-            x: buttonRectOnScreen.midX - width / 2,
-            y: buttonRectOnScreen.minY - height - gap
-        )
-        // Clamp to visible screen frame so the panel never spills off the right
-        // edge when the status item lives near the screen edge.
+        // Default left-align: panel's left edge under the status item's left
+        // edge. If the panel would spill off the right edge, flip to
+        // right-aligned (panel's right edge under the status item's right
+        // edge) — same fallback the system menus use.
         let visible = screen.visibleFrame
-        if origin.x + width > visible.maxX - 6 { origin.x = visible.maxX - width - 6 }
-        if origin.x < visible.minX + 6 { origin.x = visible.minX + 6 }
+        let edgeMargin: CGFloat = 6
+        var originX = buttonRectOnScreen.minX
+        if originX + width > visible.maxX - edgeMargin {
+            originX = buttonRectOnScreen.maxX - width
+        }
+        originX = min(max(originX, visible.minX + edgeMargin), visible.maxX - width - edgeMargin)
+        var origin = NSPoint(x: originX, y: buttonRectOnScreen.minY - height - gap)
         panel.setFrame(NSRect(origin: origin, size: CGSize(width: width, height: height)),
                        display: true)
     }
