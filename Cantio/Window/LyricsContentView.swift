@@ -260,11 +260,9 @@ struct LyricsContentView: View {
     private func lyricsContent(forPill: Bool, linesAround: Int,
                                fullscreenActiveSize: CGFloat? = nil) -> some View {
         switch lyrics.state {
-        // Floating window stays quiet when there are no lyrics — the
-        // menubar panel surfaces the "No lyrics found" nudge instead.
-        case .idle: EmptyView()
-        case .loading: placeholderCapsuleOrText("Loading lyrics…", forPill: forPill)
-        case .notFound: EmptyView()
+        // Floating window stays quiet for transient / empty states — the
+        // menubar panel surfaces "No lyrics found" / errors instead.
+        case .idle, .loading, .notFound: EmptyView()
         case .error(let msg): placeholderCapsuleOrText(msg, forPill: forPill)
         case .plain(let text):
             ScrollView {
