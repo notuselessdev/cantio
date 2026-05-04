@@ -77,11 +77,4 @@ enum FL {
         let c = max(0, min(1, v))
         return c <= 0.0031308 ? 12.92 * c : 1.055 * pow(c, 1/2.4) - 0.055
     }
-
-    /// Resolve `Tone.auto` against the current effective appearance.
-    static func resolveTone(_ tone: Tone?) -> Tone {
-        if let tone { return tone }
-        let dark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        return dark ? .dark : .light
-    }
 }

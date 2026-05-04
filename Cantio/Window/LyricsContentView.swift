@@ -28,16 +28,11 @@ struct LyricsContentView: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+    @Environment(\.colorScheme) private var colorScheme
 
     private var style: WindowStyle { prefs.windowStyle }
     private var bgStyle: BackgroundStyle { prefs.backgroundStyle }
-    private var resolvedTone: FL.Tone {
-        switch prefs.tone {
-        case .auto: return FL.resolveTone(nil)
-        case .light: return .light
-        case .dark: return .dark
-        }
-    }
+    private var resolvedTone: FL.Tone { colorScheme == .dark ? .dark : .light }
     private var palette: FL.Palette {
         FL.palette(tone: effectiveTone, hue: prefs.accentHue)
     }

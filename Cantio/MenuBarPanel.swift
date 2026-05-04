@@ -24,13 +24,7 @@ struct MenuBarPanel: View {
         return prefs.effectiveGlassStyle
     }
 
-    private var tone: FL.Tone {
-        switch prefs.tone {
-        case .auto: return colorScheme == .dark ? .dark : .light
-        case .light: return .light
-        case .dark: return .dark
-        }
-    }
+    private var tone: FL.Tone { colorScheme == .dark ? .dark : .light }
     private var palette: FL.Palette { FL.palette(tone: tone, hue: prefs.accentHue) }
 
     var body: some View {

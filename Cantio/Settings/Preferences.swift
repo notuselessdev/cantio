@@ -69,23 +69,6 @@ enum GlassStyle: String, CaseIterable, Identifiable {
     }
 }
 
-/// Color theme override.
-enum Tone: String, CaseIterable, Identifiable {
-    case auto
-    case light
-    case dark
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .auto: return "Auto"
-        case .light: return "Light"
-        case .dark: return "Dark"
-        }
-    }
-}
-
 enum FontSize: Int, CaseIterable, Identifiable, Comparable {
     case xsmall = -1
     case small = 0
@@ -153,7 +136,7 @@ final class Preferences: ObservableObject {
         static let glassStyle = "glassStyle"
         static let glassOpacity = "glassOpacity"
         static let legacyWindowPreset = "windowPreset"
-        static let tone = "tone"
+        static let legacyTone = "tone"
         static let accentHue = "accentHue"
         static let fontSize = "fontSize"
         static let legacyClickThrough = "clickThrough"
@@ -212,10 +195,6 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(glassOpacity, forKey: Key.glassOpacity) }
     }
 
-    @Published var tone: Tone {
-        didSet { defaults.set(tone.rawValue, forKey: Key.tone) }
-    }
-
     @Published var accentHue: Double {
         didSet { defaults.set(accentHue, forKey: Key.accentHue) }
     }
@@ -265,7 +244,6 @@ final class Preferences: ObservableObject {
         let legacyPresetRaw = defaults.string(forKey: Key.legacyWindowPreset)
         let styleRaw = defaults.string(forKey: Key.windowStyle)
         let bgRaw = defaults.string(forKey: Key.backgroundStyle)
-        let toneRaw = defaults.string(forKey: Key.tone)
 
         if let styleRaw, let s = WindowStyle(rawValue: styleRaw) {
             self.windowStyle = s
@@ -297,7 +275,9 @@ final class Preferences: ObservableObject {
         } else {
             self.glassStyle = Self.defaultGlassStyle
         }
-        self.tone = toneRaw.flatMap(Tone.init(rawValue:)) ?? .auto
+        // Drop the legacy `tone` override; menu bar + lyrics window now follow
+        // the system appearance. Discard the stored value if present.
+        defaults.removeObject(forKey: Key.legacyTone)
         self.glassOpacity = defaults.object(forKey: Key.glassOpacity) as? Double ?? 0.4
 
         self.accentHue = defaults.object(forKey: Key.accentHue) as? Double ?? 220

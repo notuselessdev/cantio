@@ -12,10 +12,6 @@ struct PreferencesMenu: View {
                 ForEach(WindowStyle.allCases) { p in Text(p.label).tag(p) }
             }
             .pickerStyle(.inline)
-            Picker("Theme", selection: $prefs.tone) {
-                ForEach(Tone.allCases) { t in Text(t.label).tag(t) }
-            }
-            .pickerStyle(.inline)
         }
     }
 }
@@ -27,13 +23,7 @@ struct SettingsView: View {
     @ObservedObject var prefs: Preferences
     @Environment(\.colorScheme) private var colorScheme
 
-    private var tone: FL.Tone {
-        switch prefs.tone {
-        case .auto: return colorScheme == .dark ? .dark : .light
-        case .light: return .light
-        case .dark: return .dark
-        }
-    }
+    private var tone: FL.Tone { colorScheme == .dark ? .dark : .light }
     private var palette: FL.Palette { FL.palette(tone: tone, hue: prefs.accentHue) }
 
     var body: some View {
@@ -55,17 +45,6 @@ struct SettingsView: View {
                                                    }
                                                }),
                                 options: WindowStyle.allCases.map(\.label),
-                                palette: palette)
-                        }
-                        PrefRow(label: "Color theme", palette: palette) {
-                            SegmentedPicker(
-                                value: Binding(get: { prefs.tone.label },
-                                               set: { newLabel in
-                                                   if let t = Tone.allCases.first(where: { $0.label == newLabel }) {
-                                                       prefs.tone = t
-                                                   }
-                                               }),
-                                options: ["Light", "Dark", "Auto"],
                                 palette: palette)
                         }
                         PrefRow(label: "Accent", palette: palette) {
