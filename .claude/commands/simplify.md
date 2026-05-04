@@ -6,6 +6,6 @@ Spawn the `code-simplifier` subagent. Brief: "Scope: files changed in current `g
 
 After agent finishes, run:
 
-!`xcodebuild -project Floric.xcodeproj -scheme Floric -configuration Debug build 2>&1 | tail -5`
+!`xcodebuild -project Cantio.xcodeproj -scheme Cantio -configuration Debug -derivedDataPath .build build 2>&1 | tail -5`
 
-Confirm build still green. Run `/test-floric` if any logic-bearing files changed.
+Confirm build still green. Run `/test-cantio` if any logic-bearing files changed.
