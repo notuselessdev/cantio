@@ -130,33 +130,38 @@ final class FloatingLyricsController {
 
         switch prefs.windowStyle {
         case .pill:
-            // Cocoa quirk: setFrameAutosaveName must be set BEFORE the first
-            // setFrame so the saved origin is read from defaults. Clear any
-            // prior autosave first to avoid a name collision warning.
+            // `setFrameAutosaveName` only enables autosave; it doesn't restore
+            // immediately. Pair with `setFrameUsingName` so the user's last
+            // origin loads on every reattach. The window's
+            // `constrainFrameRect` keeps later drags inside the visible
+            // frame, so we don't need to re-clamp here.
+            window.clampToVisibleFrame = true
             window.setFrameAutosaveName("")
             window.setFrameAutosaveName(Self.pillAutosaveName)
             window.contentMinSize = Self.pillDefaultSize
             window.contentMaxSize = Self.pillDefaultSize
-            // Fixed-size capsule: clamp to canonical size; keep autosaved origin.
+            let restored = window.setFrameUsingName(Self.pillAutosaveName)
             var f = window.frame
             f.size = Self.pillDefaultSize
-            if window.frame.origin == .zero { f.origin = Self.defaultOrigin(for: Self.pillDefaultSize) }
+            if !restored { f.origin = Self.defaultOrigin(for: Self.pillDefaultSize) }
             window.setFrame(f, display: true)
             window.isMovable = true
 
         case .minimal:
+            window.clampToVisibleFrame = true
             window.setFrameAutosaveName("")
             window.setFrameAutosaveName(Self.minimalAutosaveName)
             window.contentMinSize = Self.minimalMinSize
             window.contentMaxSize = Self.minimalMaxSize
-            // If no autosave restored the frame yet, seed a sensible default.
-            if window.frame.size.width < Self.minimalMinSize.width
-                || window.frame.size.height < Self.minimalMinSize.height
-                || window.frame.origin == .zero {
-                let size = Self.minimalDefaultSize
-                let origin = Self.defaultOrigin(for: size)
-                window.setFrame(NSRect(origin: origin, size: size), display: true)
+            let restored = window.setFrameUsingName(Self.minimalAutosaveName)
+            var f = window.frame
+            if !restored
+                || f.size.width < Self.minimalMinSize.width
+                || f.size.height < Self.minimalMinSize.height {
+                f.size = Self.minimalDefaultSize
+                f.origin = Self.defaultOrigin(for: Self.minimalDefaultSize)
             }
+            window.setFrame(f, display: true)
             window.isMovable = true
 
         case .fullscreen:
@@ -167,8 +172,10 @@ final class FloatingLyricsController {
                 preFullscreenStyle = previous
             }
             // Detach autosave: we don't want the screen-sized frame to clobber
-            // the user's saved pill/minimal position.
+            // the user's saved pill/minimal position. Allow off-screen frames
+            // so fullscreen can occupy the menu bar / Dock area.
             window.setFrameAutosaveName("")
+            window.clampToVisibleFrame = false
             window.contentMinSize = NSSize(width: 100, height: 100)
             window.contentMaxSize = NSSize(width: CGFloat.greatestFiniteMagnitude,
                                            height: CGFloat.greatestFiniteMagnitude)
