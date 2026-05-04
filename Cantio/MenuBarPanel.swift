@@ -71,11 +71,7 @@ struct MenuBarPanel: View {
                 }
                 MenuRow(icon: .eye,
                         label: "Auto-hide",
-                        trailing: Toggle("", isOn: .constant(prefs.hideWhenPaused))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                            .controlSize(.mini)
-                            .allowsHitTesting(false)
+                        trailing: NativeSwitch(isOn: prefs.hideWhenPaused)
                             .accessibilityHidden(true),
                         palette: palette) {
                     prefs.hideWhenPaused.toggle()
@@ -593,6 +589,34 @@ private struct HoverableSettingsRow: View {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         w.makeKeyAndOrderFront(nil)
+    }
+}
+
+/// Read-only switch matching the macOS 26 dropdown toggle. SwiftUI's
+/// `Toggle(.switch)` is bridged to NSSwitch on macOS, which ignores
+/// `.tint()` and renders against the system control accent — so when our
+/// menu lives in a panel that doesn't pick up that accent it falls back to
+/// gray. Drawing the capsule + knob ourselves matches the native blue
+/// (system blue) regardless of panel context.
+struct NativeSwitch: View {
+    let isOn: Bool
+
+    var body: some View {
+        let trackWidth: CGFloat = 30
+        let trackHeight: CGFloat = 18
+        let knobSize: CGFloat = 14
+        let inset: CGFloat = 2
+
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule()
+                .fill(isOn ? Color.blue : Color(nsColor: .quaternaryLabelColor))
+            Circle()
+                .fill(.white)
+                .frame(width: knobSize, height: knobSize)
+                .shadow(color: .black.opacity(0.18), radius: 0.5, y: 0.5)
+                .padding(inset)
+        }
+        .frame(width: trackWidth, height: trackHeight)
     }
 }
 
