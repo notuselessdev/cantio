@@ -73,4 +73,18 @@ final class LRCParserTests: XCTestCase {
 
         XCTAssertEqual(result, [LyricLine(timestamp: 5, text: "")])
     }
+
+    func test_parse_bilingualCaretSeparator_keepsOriginalSide() {
+        let src = "[00:01.00]Un verano en Nueva York^A summer in New York"
+
+        let result = LRCParser.parse(src)
+
+        XCTAssertEqual(result, [LyricLine(timestamp: 1, text: "Un verano en Nueva York")])
+    }
+
+    func test_parse_lineWithoutCaret_unchanged() {
+        let result = LRCParser.parse("[00:01.00]plain line")
+
+        XCTAssertEqual(result, [LyricLine(timestamp: 1, text: "plain line")])
+    }
 }

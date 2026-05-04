@@ -13,8 +13,14 @@ enum LRCParser {
             let line = String(rawLine)
             let (stamps, text) = extractTimestamps(from: line)
             guard !stamps.isEmpty else { continue }
+            // LRCLIB encodes bilingual lyrics as `original^translation`.
+            // Drop the translation half so the floating window doesn't show
+            // both languages stacked on the same line.
+            let primary = text.split(separator: "^", maxSplits: 1, omittingEmptySubsequences: false)
+                .first.map { String($0).trimmingCharacters(in: .whitespaces) }
+                ?? text
             for ts in stamps {
-                out.append(LyricLine(timestamp: ts, text: text))
+                out.append(LyricLine(timestamp: ts, text: primary))
             }
         }
         out.sort { $0.timestamp < $1.timestamp }
