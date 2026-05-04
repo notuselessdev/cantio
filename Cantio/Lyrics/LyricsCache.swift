@@ -67,6 +67,12 @@ struct LyricsCache {
         try? data.write(to: url, options: .atomic)
     }
 
+    /// Removes a single track's cached entry. Used by the "Refetch lyrics"
+    /// menu action.
+    func remove(trackId: String) {
+        try? fileManager.removeItem(at: fileURL(for: trackId))
+    }
+
     /// Maps a state back into a cache entry. `.loading` / `.idle` / `.error`
     /// are not persisted — we only cache real lookup results.
     static func entry(from state: LyricsState) -> Entry? {
@@ -78,10 +84,17 @@ struct LyricsCache {
     }
 
     /// Maps a cached entry into a state for display. Legacy entries with only
-    /// `plain` text (no synced lines) collapse to `.notFound`.
+    /// `plain` text (no synced lines) collapse to `.notFound`. Entries whose
+    /// stamps are all identical or span < 1s (placeholder timestamps from
+    /// LRCLIB) also collapse — they used to render as a stacked dump.
     static func state(from entry: Entry) -> LyricsState {
-        if let synced = entry.synced, !synced.isEmpty { return .synced(synced) }
-        return .notFound
+        guard let synced = entry.synced, !synced.isEmpty else { return .notFound }
+        let unique = Set(synced.map { $0.timestamp })
+        guard unique.count > 1,
+              let first = synced.first?.timestamp,
+              let last = synced.last?.timestamp,
+              last - first > 1 else { return .notFound }
+        return .synced(synced)
     }
 
     private func fileURL(for trackId: String) -> URL {

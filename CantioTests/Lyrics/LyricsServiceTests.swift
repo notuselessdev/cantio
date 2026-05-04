@@ -48,7 +48,7 @@ final class LyricsServiceTests: XCTestCase {
 
     func test_fetch_synced_returnsSyncedState() async {
         URLProtocolStub.requestHandler = { [self] _ in
-            okResponse(body: #"{"syncedLyrics":"[00:01.00]hi","plainLyrics":null}"#)
+            okResponse(body: #"{"syncedLyrics":"[00:01.00]hi\n[00:03.50]world","plainLyrics":null}"#)
         }
         let service = LyricsService(endpoint: endpoint, session: session)
 
@@ -57,7 +57,7 @@ final class LyricsServiceTests: XCTestCase {
         guard case .synced(let lines) = state else {
             return XCTFail("expected .synced, got \(state)")
         }
-        XCTAssertEqual(lines.count, 1)
+        XCTAssertEqual(lines.count, 2)
         XCTAssertEqual(lines.first?.text, "hi")
     }
 
@@ -105,16 +105,19 @@ final class LyricsServiceTests: XCTestCase {
         XCTAssertEqual(state, .notFound)
     }
 
-    func test_fetch_500_returnsError() async {
+    func test_fetch_500_collapsesToNotFound() async {
+        // /api/get and the search fallback both return 500 → no synced
+        // lyrics anywhere → .notFound. We don't surface a transient
+        // server error in the karaoke UI; the user can hit "Reload lyrics".
         URLProtocolStub.requestHandler = { [self] _ in statusResponse(500) }
         let service = LyricsService(endpoint: endpoint, session: session)
 
         let state = await service.fetch(track: makeTrack())
 
-        XCTAssertEqual(state, .error("HTTP 500"))
+        XCTAssertEqual(state, .notFound)
     }
 
-    func test_fetch_transportError_returnsError() async {
+    func test_fetch_transportError_collapsesToNotFound() async {
         URLProtocolStub.requestHandler = { _ in
             throw URLError(.notConnectedToInternet)
         }
@@ -122,16 +125,17 @@ final class LyricsServiceTests: XCTestCase {
 
         let state = await service.fetch(track: makeTrack())
 
-        guard case .error = state else {
-            return XCTFail("expected .error, got \(state)")
-        }
+        XCTAssertEqual(state, .notFound)
     }
 
     func test_fetch_request_includesUserAgentAndQueryItems() async {
+        // Capture the /api/get request specifically. A successful synced
+        // response keeps the search fallback from firing, so the captured
+        // request is unambiguously the primary GET.
         let captured = CapturedRequest()
         URLProtocolStub.requestHandler = { [self] request in
             captured.request = request
-            return okResponse(body: #"{"syncedLyrics":null,"plainLyrics":null}"#)
+            return okResponse(body: #"{"syncedLyrics":"[00:01.00]hi\n[00:03.50]bye","plainLyrics":null}"#)
         }
         let service = LyricsService(endpoint: endpoint, session: session)
 

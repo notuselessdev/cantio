@@ -147,7 +147,12 @@ final class LyricsStoreTests: XCTestCase {
     }
 
     func test_handle_cacheHit_skipsProviderCall() async {
-        let lines = [LyricLine(timestamp: 0, text: "cached")]
+        // Cache loader rejects single-line / placeholder-stamp entries, so
+        // give it two distinct stamps spanning >1s to mirror a real upload.
+        let lines = [
+            LyricLine(timestamp: 0, text: "cached"),
+            LyricLine(timestamp: 2.5, text: "again"),
+        ]
         cache.save(LyricsCache.Entry(synced: lines, plain: nil), trackId: "trk-3")
 
         source.yield(makeNowPlaying(id: "trk-3"))

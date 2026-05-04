@@ -114,10 +114,25 @@ final class LyricsCacheTests: XCTestCase {
     }
 
     func test_stateFromEntry_nonEmptySynced_returnsSynced() {
-        let lines = [LyricLine(timestamp: 0, text: "a")]
+        let lines = [
+            LyricLine(timestamp: 0, text: "a"),
+            LyricLine(timestamp: 2.5, text: "b"),
+        ]
         let e = LyricsCache.Entry(synced: lines, plain: nil)
 
         XCTAssertEqual(LyricsCache.state(from: e), .synced(lines))
+    }
+
+    func test_stateFromEntry_placeholderTimestamps_collapsesToNotFound() {
+        // LRCLIB sometimes serves uploads with all-zero stamps; they used to
+        // render as a stacked dump in the karaoke view. Validate at load.
+        let lines = [
+            LyricLine(timestamp: 0, text: "a"),
+            LyricLine(timestamp: 0, text: "b"),
+        ]
+        let e = LyricsCache.Entry(synced: lines, plain: nil)
+
+        XCTAssertEqual(LyricsCache.state(from: e), .notFound)
     }
 
     func test_stateFromEntry_legacyPlainOnly_collapsesToNotFound() {

@@ -86,6 +86,22 @@ struct MenuBarPanel: View {
                 .accessibilityValue(prefs.hideWhenPaused ? "On" : "Off")
                 .accessibilityAddTraits(.isToggle)
 
+                let isReloading = lyrics.isReloading || lyrics.state == .loading
+                MenuRow(icon: .reload,
+                        label: isReloading ? "Reloading lyrics…" : "Reload lyrics",
+                        trailing: isReloading
+                            ? AnyView(ProgressView()
+                                .controlSize(.small)
+                                .progressViewStyle(.circular))
+                            : AnyView(EmptyView()),
+                        muted: monitor.nowPlaying == nil || isReloading,
+                        palette: palette) {
+                    if let np = monitor.nowPlaying, !isReloading {
+                        lyrics.refetch(np)
+                    }
+                }
+                .disabled(monitor.nowPlaying == nil || isReloading)
+
                 Divider()
                     .background(palette.border)
                     .padding(.horizontal, 6)
@@ -122,7 +138,7 @@ struct MenuBarPanel: View {
 
     @ViewBuilder
     private var nowPlayingCard: some View {
-        HStack(spacing: 11) {
+        HStack(spacing: 8) {
             Button(action: focusSpotify) {
                 AlbumArtView(hues: trackHues, size: 42,
                              artworkURL: monitor.nowPlaying?.artworkURL)
@@ -139,7 +155,8 @@ struct MenuBarPanel: View {
                     MarqueeText(text: monitor.nowPlaying?.title ?? "Not playing",
                                 font: .system(size: 12.5, weight: .semibold),
                                 color: palette.text,
-                                underline: underlined)
+                                underline: underlined,
+                                animated: monitor.nowPlaying?.state == .playing)
                 }
 
                 LinkButton(action: openArtist,
@@ -149,9 +166,11 @@ struct MenuBarPanel: View {
                     MarqueeText(text: monitor.nowPlaying?.artist ?? "—",
                                 font: .system(size: 11),
                                 color: palette.textMuted,
-                                underline: underlined)
+                                underline: underlined,
+                                animated: monitor.nowPlaying?.state == .playing)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             Spacer(minLength: 4)
             TransportControls(monitor: monitor, palette: palette)
                 .accessibilityHidden(false)
@@ -426,7 +445,7 @@ private struct LyricsNudgeRow: View {
 
 // MARK: - Menu rows
 
-enum MenuIconKind { case window, theme, pause, play, gear, quit, eye }
+enum MenuIconKind { case window, theme, pause, play, gear, quit, eye, reload }
 
 struct MenuRow<Trailing: View>: View {
     let icon: MenuIconKind
@@ -638,6 +657,7 @@ struct MenuIcon: View {
         case .gear: return "gearshape"
         case .quit: return "power"
         case .eye: return "eye"
+        case .reload: return "arrow.clockwise"
         }
     }
 
@@ -661,6 +681,9 @@ struct MarqueeText: View {
     let font: Font
     let color: Color
     var underline: Bool = false
+    /// When false the text is rendered static + truncated even if it
+    /// overflows. Used to freeze the marquee while playback is paused.
+    var animated: Bool = true
     var pointsPerSecond: CGFloat = 18
     /// Explicit line-height override. Defaults to 16pt (panel rows). Pill
     /// callers pass the active font size so larger lyric text isn't clipped.
@@ -672,8 +695,12 @@ struct MarqueeText: View {
     @State private var containerWidth: CGFloat = 0
     @State private var startDate = Date()
 
-    private var overflows: Bool { contentWidth > containerWidth + 0.5 }
-    private var animate: Bool { overflows && !reduceMotion }
+    /// Minimum overflow (points) before the marquee animates. Below this the
+    /// text is truncated with an ellipsis instead — avoids a glitchy 1–2pt
+    /// bounce when the title nearly fits its container.
+    private static let overflowThreshold: CGFloat = 24
+    private var overflows: Bool { contentWidth > containerWidth + Self.overflowThreshold }
+    private var animate: Bool { overflows && animated && !reduceMotion }
 
     var body: some View {
         GeometryReader { geo in
@@ -718,7 +745,10 @@ struct MarqueeText: View {
             }
             .clipped()
         }
-        .frame(height: lineHeight)
+        // GeometryReader has no ideal width — without an explicit
+        // `maxWidth: .infinity` ancestors like `Button(.plain)` collapse
+        // around it, defeating the marquee's available-width measurement.
+        .frame(maxWidth: .infinity, minHeight: lineHeight, maxHeight: lineHeight, alignment: .leading)
     }
 
     private func bounceOffset(at date: Date) -> CGFloat {
@@ -751,6 +781,8 @@ private struct LinkButton<Label: View>: View {
     var body: some View {
         Button(action: action) {
             label(hover && enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!enabled)

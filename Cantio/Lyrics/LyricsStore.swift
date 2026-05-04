@@ -9,6 +9,9 @@ import Foundation
 final class LyricsStore: ObservableObject {
     @Published private(set) var state: LyricsState = .idle
     @Published private(set) var trackId: String?
+    /// True while a user-initiated refetch is in flight. Lets the UI show a
+    /// reload spinner without clearing the existing `.synced` lyrics.
+    @Published private(set) var isReloading = false
 
     private let service: LyricsProvider
     private let cache: LyricsCache
@@ -36,6 +39,34 @@ final class LyricsStore: ObservableObject {
         listenTask = nil
         fetchTask?.cancel()
         fetchTask = nil
+    }
+
+    /// Forces a fresh lookup for the supplied track, bypassing both the
+    /// on-disk cache and the same-track short-circuit. Wired to the
+    /// "Reload lyrics" menu row so users can recover from a stale or
+    /// mismatched LRCLIB hit without restarting.
+    ///
+    /// The currently-displayed `state` is preserved during the network call
+    /// — only swapped out when a new result arrives — so existing lyrics
+    /// keep scrolling instead of blanking to a spinner.
+    func refetch(_ np: NowPlaying) {
+        guard !isReloading else { return }
+        cache.remove(trackId: np.trackId)
+        fetchTask?.cancel()
+        isReloading = true
+        let captured = np
+        fetchTask = Task { [weak self] in
+            guard let self else { return }
+            let result = await self.service.fetch(track: captured)
+            if Task.isCancelled { return }
+            // Late guard: track may have changed mid-fetch.
+            if self.trackId != captured.trackId { self.isReloading = false; return }
+            self.state = result
+            if let entry = LyricsCache.entry(from: result) {
+                self.cache.save(entry, trackId: captured.trackId)
+            }
+            self.isReloading = false
+        }
     }
 
     private func handle(_ np: NowPlaying?) async {
