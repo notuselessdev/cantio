@@ -61,7 +61,9 @@ final class LyricsServiceTests: XCTestCase {
         XCTAssertEqual(lines.first?.text, "hi")
     }
 
-    func test_fetch_plainOnly_returnsPlainState() async {
+    func test_fetch_plainOnly_returnsNotFound() async {
+        // Un-timestamped lyrics aren't useful for a karaoke pill; treat
+        // them the same as a hard miss.
         URLProtocolStub.requestHandler = { [self] _ in
             okResponse(body: #"{"syncedLyrics":null,"plainLyrics":"hello"}"#)
         }
@@ -69,10 +71,10 @@ final class LyricsServiceTests: XCTestCase {
 
         let state = await service.fetch(track: makeTrack())
 
-        XCTAssertEqual(state, .plain("hello"))
+        XCTAssertEqual(state, .notFound)
     }
 
-    func test_fetch_syncedEmptyParse_fallsBackToPlain() async {
+    func test_fetch_syncedEmptyParse_returnsNotFound() async {
         URLProtocolStub.requestHandler = { [self] _ in
             okResponse(body: #"{"syncedLyrics":"   ","plainLyrics":"fallback"}"#)
         }
@@ -80,7 +82,7 @@ final class LyricsServiceTests: XCTestCase {
 
         let state = await service.fetch(track: makeTrack())
 
-        XCTAssertEqual(state, .plain("fallback"))
+        XCTAssertEqual(state, .notFound)
     }
 
     func test_fetch_bothEmpty_returnsNotFound() async {

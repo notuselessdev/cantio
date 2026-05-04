@@ -11,7 +11,6 @@ enum LyricsState: Equatable {
     case idle
     case loading
     case synced([LyricLine])
-    case plain(String)
     case notFound
     case error(String)
 }

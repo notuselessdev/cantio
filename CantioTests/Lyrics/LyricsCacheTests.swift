@@ -95,12 +95,6 @@ final class LyricsCacheTests: XCTestCase {
         XCTAssertEqual(e, LyricsCache.Entry(synced: lines, plain: nil))
     }
 
-    func test_entryFromState_plain_returnsPlainEntry() {
-        let e = LyricsCache.entry(from: .plain("hi"))
-
-        XCTAssertEqual(e, LyricsCache.Entry(synced: nil, plain: "hi"))
-    }
-
     func test_entryFromState_notFound_returnsEmptyEntry() {
         let e = LyricsCache.entry(from: .notFound)
 
@@ -126,10 +120,12 @@ final class LyricsCacheTests: XCTestCase {
         XCTAssertEqual(LyricsCache.state(from: e), .synced(lines))
     }
 
-    func test_stateFromEntry_plainOnly_returnsPlain() {
+    func test_stateFromEntry_legacyPlainOnly_collapsesToNotFound() {
+        // Legacy cache files written before un-timestamped lyrics were
+        // dropped still carry a `plain` payload; load them as not-found.
         let e = LyricsCache.Entry(synced: nil, plain: "hi")
 
-        XCTAssertEqual(LyricsCache.state(from: e), .plain("hi"))
+        XCTAssertEqual(LyricsCache.state(from: e), .notFound)
     }
 
     func test_stateFromEntry_allEmpty_returnsNotFound() {

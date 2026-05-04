@@ -60,9 +60,8 @@ struct LyricsService: LyricsProvider {
                 let lines = LRCParser.parse(lrc)
                 if !lines.isEmpty { return .synced(lines) }
             }
-            if let plain = decoded.plainLyrics, !plain.isEmpty {
-                return .plain(plain)
-            }
+            // Plain (un-timestamped) lyrics are surfaced as not-found —
+            // there's no useful way to display them in a karaoke pill.
             return .notFound
         } catch {
             return .error(error.localizedDescription)

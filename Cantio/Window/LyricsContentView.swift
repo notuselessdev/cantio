@@ -264,13 +264,6 @@ struct LyricsContentView: View {
         // menubar panel surfaces "No lyrics found" / errors instead.
         case .idle, .loading, .notFound: EmptyView()
         case .error(let msg): placeholderCapsuleOrText(msg, forPill: forPill)
-        case .plain(let text):
-            ScrollView {
-                Text(text)
-                    .font(.system(size: prefs.fontSize.bodySize))
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(palette.text)
-            }
         case .synced(let lines):
             TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { ctx in
                 let pos = monitor.interpolatedPosition(now: ctx.date)

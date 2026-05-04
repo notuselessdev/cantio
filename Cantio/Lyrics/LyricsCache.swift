@@ -28,8 +28,11 @@ struct LyricsCache {
         for u in urls { try? fileManager.removeItem(at: u) }
     }
 
-    /// Codable on-disk shape. Either `synced` is non-empty, `plain` is non-nil,
-    /// or both are absent (meaning: lookup was performed and nothing exists).
+    /// Codable on-disk shape. `synced` is non-empty for matches; nil means a
+    /// negative-cache entry (lookup ran and produced nothing usable).
+    /// `plain` is decoded for backward compatibility with old cache files but
+    /// never written and never surfaced — un-timestamped lyrics map to
+    /// `.notFound` at render time.
     struct Entry: Codable, Equatable {
         var synced: [LyricLine]?
         var plain: String?
@@ -69,16 +72,15 @@ struct LyricsCache {
     static func entry(from state: LyricsState) -> Entry? {
         switch state {
         case .synced(let lines): return Entry(synced: lines, plain: nil)
-        case .plain(let text): return Entry(synced: nil, plain: text)
         case .notFound: return Entry(synced: nil, plain: nil)
         case .idle, .loading, .error: return nil
         }
     }
 
-    /// Maps a cached entry into a state for display.
+    /// Maps a cached entry into a state for display. Legacy entries with only
+    /// `plain` text (no synced lines) collapse to `.notFound`.
     static func state(from entry: Entry) -> LyricsState {
         if let synced = entry.synced, !synced.isEmpty { return .synced(synced) }
-        if let plain = entry.plain, !plain.isEmpty { return .plain(plain) }
         return .notFound
     }
 
