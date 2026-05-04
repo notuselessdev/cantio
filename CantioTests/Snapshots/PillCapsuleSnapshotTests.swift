@@ -26,8 +26,7 @@ final class PillCapsuleSnapshotTests: XCTestCase {
     private func pill(
         tone: FL.Tone,
         bgStyle: Cantio.BackgroundStyle,
-        words: [String],
-        glassOpacity: Double = 0.4
+        words: [String]
     ) -> some View {
         let palette = FL.palette(tone: tone, hue: 220)
         let bg: Color = tone == .dark
@@ -38,8 +37,7 @@ final class PillCapsuleSnapshotTests: XCTestCase {
             PillCapsule(words: words,
                         palette: palette,
                         tone: tone,
-                        bgStyle: bgStyle,
-                        glassOpacity: glassOpacity)
+                        bgStyle: bgStyle)
         }
     }
 
@@ -158,8 +156,7 @@ final class PillCapsuleSnapshotTests: XCTestCase {
             PillCapsule(words: ["Hola", "mundo"],
                         palette: palette,
                         tone: .dark,
-                        bgStyle: .glass,
-                        glassOpacity: 0.0)
+                        bgStyle: .glass)
         }
         assertSnapshot(of: host(view, size: legacySize),
                        as: .image(precision: 0.99, perceptualPrecision: 0.97))

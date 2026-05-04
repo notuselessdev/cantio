@@ -43,8 +43,7 @@ final class PillCapsuleShadowLeakTests: XCTestCase {
             PillCapsule(words: words,
                         palette: palette,
                         tone: tone,
-                        bgStyle: bgStyle,
-                        glassOpacity: 0.4)
+                        bgStyle: bgStyle)
         }
 
         let hostView = NSHostingView(rootView: view)

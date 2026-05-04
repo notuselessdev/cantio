@@ -50,23 +50,23 @@ final class GlassStyleMigrationTests: XCTestCase {
     func test_init_storedGlassStyle_winsOverLegacyBackgroundStyle() {
         let d = makeDefaults()
         d.set("solid", forKey: "backgroundStyle")
-        d.set("tinted", forKey: "glassStyle")
+        d.set("clear", forKey: "glassStyle")
 
         let prefs = Preferences(defaults: d)
 
-        XCTAssertEqual(prefs.glassStyle, .tinted)
+        XCTAssertEqual(prefs.glassStyle, .clear)
     }
 
     /// On pre-macOS-26 runtimes, `effectiveGlassStyle` MUST coerce to `.off`
     /// regardless of stored pref. On macOS 26+ this test asserts the pass-through.
     func test_effectiveGlassStyle_coercesToOffOnPreTahoe() {
         let d = makeDefaults()
-        d.set("tinted", forKey: "glassStyle")
+        d.set("clear", forKey: "glassStyle")
 
         let prefs = Preferences(defaults: d)
 
         if #available(macOS 26, *) {
-            XCTAssertEqual(prefs.effectiveGlassStyle, .tinted)
+            XCTAssertEqual(prefs.effectiveGlassStyle, .clear)
         } else {
             XCTAssertEqual(prefs.effectiveGlassStyle, .off)
         }
@@ -76,8 +76,18 @@ final class GlassStyleMigrationTests: XCTestCase {
         let d = makeDefaults()
         let prefs = Preferences(defaults: d)
 
-        prefs.glassStyle = .tinted
+        prefs.glassStyle = .clear
 
-        XCTAssertEqual(d.string(forKey: "glassStyle"), "tinted")
+        XCTAssertEqual(d.string(forKey: "glassStyle"), "clear")
+    }
+
+    /// `.tinted` was retired; existing prefs that stored it migrate to `.clear`.
+    func test_init_legacyTintedStyle_migratesToClear() {
+        let d = makeDefaults()
+        d.set("tinted", forKey: "glassStyle")
+
+        let prefs = Preferences(defaults: d)
+
+        XCTAssertEqual(prefs.glassStyle, .clear)
     }
 }

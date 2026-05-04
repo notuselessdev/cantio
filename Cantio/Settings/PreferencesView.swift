@@ -74,18 +74,6 @@ struct SettingsView: View {
                                 .opacity(glassAvailable ? 1 : 0.5)
                                 .accessibilityLabel("Liquid Glass style")
                         }
-                        if prefs.glassStyle == .tinted && glassAvailable {
-                            PrefRow(label: "Tint strength",
-                                    sub: "Higher = more accent color over the glass",
-                                    palette: palette) {
-                                FlSlider(value: Binding(
-                                    get: { prefs.glassOpacity * 100 },
-                                    set: { prefs.glassOpacity = $0 / 100 }),
-                                    range: 0...100, suffix: "%", palette: palette)
-                                    .accessibilityLabel("Tint strength")
-                                    .accessibilityValue("\(Int(prefs.glassOpacity * 100)) percent")
-                            }
-                        }
                     }
 
                     PrefGroup(title: "Lyrics", palette: palette) {

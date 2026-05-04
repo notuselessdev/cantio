@@ -56,7 +56,6 @@ enum BackgroundStyle: String, CaseIterable, Identifiable {
 enum GlassStyle: String, CaseIterable, Identifiable {
     case off
     case clear
-    case tinted
 
     var id: String { rawValue }
 
@@ -64,7 +63,6 @@ enum GlassStyle: String, CaseIterable, Identifiable {
         switch self {
         case .off: return "Off"
         case .clear: return "Clear"
-        case .tinted: return "Tinted"
         }
     }
 }
@@ -134,7 +132,7 @@ final class Preferences: ObservableObject {
         static let windowStyle = "windowStyle"
         static let backgroundStyle = "backgroundStyle"
         static let glassStyle = "glassStyle"
-        static let glassOpacity = "glassOpacity"
+        static let legacyGlassOpacity = "glassOpacity"
         static let legacyWindowPreset = "windowPreset"
         static let legacyTone = "tone"
         static let accentHue = "accentHue"
@@ -187,12 +185,6 @@ final class Preferences: ObservableObject {
     static var defaultGlassStyle: GlassStyle {
         if #available(macOS 26, *) { return .clear }
         return .off
-    }
-
-    /// Tint opacity over the visual-effect blur when `backgroundStyle == .glass`.
-    /// 0 = pure blur (most transparent), 1 = fully tinted (least transparent).
-    @Published var glassOpacity: Double {
-        didSet { defaults.set(glassOpacity, forKey: Key.glassOpacity) }
     }
 
     @Published var accentHue: Double {
@@ -265,6 +257,9 @@ final class Preferences: ObservableObject {
         let storedGlass = defaults.string(forKey: Key.glassStyle)
         if let storedGlass, let g = GlassStyle(rawValue: storedGlass) {
             self.glassStyle = g
+        } else if storedGlass == "tinted" {
+            // `.tinted` was retired. Existing stored prefs migrate to `.clear`.
+            self.glassStyle = .clear
         } else if let bgRaw {
             switch bgRaw {
             case "glass": self.glassStyle = Self.defaultGlassStyle
@@ -278,7 +273,10 @@ final class Preferences: ObservableObject {
         // Drop the legacy `tone` override; menu bar + lyrics window now follow
         // the system appearance. Discard the stored value if present.
         defaults.removeObject(forKey: Key.legacyTone)
-        self.glassOpacity = defaults.object(forKey: Key.glassOpacity) as? Double ?? 0.4
+        // Tint strength + Tinted style were dropped (slider was a no-op
+        // and Tinted clashed with native Liquid Glass). Discard the stored
+        // value if present.
+        defaults.removeObject(forKey: Key.legacyGlassOpacity)
 
         self.accentHue = defaults.object(forKey: Key.accentHue) as? Double ?? 220
 

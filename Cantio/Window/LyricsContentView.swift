@@ -223,13 +223,7 @@ struct LyricsContentView: View {
         if isSolid {
             palette.bgElev
         } else {
-            ZStack {
-                VisualEffectBackground(material: .hudWindow)
-                let t = max(0, min(1, prefs.glassOpacity))
-                (effectiveTone == .dark
-                    ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: t)
-                    : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: t))
-            }
+            VisualEffectBackground(material: .hudWindow)
         }
     }
 
@@ -311,7 +305,6 @@ struct LyricsContentView: View {
                 }
                 PillCapsule(words: curWords, palette: palette, tone: effectiveTone,
                             bgStyle: bgStyle, fontSize: pillActive,
-                            glassOpacity: prefs.glassOpacity,
                             glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
                             reduceTransparency: reduceTransparency)
                     .modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
@@ -476,7 +469,6 @@ struct LyricsContentView: View {
             PillCapsule(words: ["Grant", "Spotify", "access"],
                         palette: palette, tone: effectiveTone,
                         bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
-                        glassOpacity: prefs.glassOpacity,
                         glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
                         reduceTransparency: reduceTransparency)
         }
@@ -497,7 +489,6 @@ struct LyricsContentView: View {
         return PillCapsule(words: words,
                            palette: palette, tone: effectiveTone,
                            bgStyle: bgStyle, fontSize: prefs.fontSize.activeSize,
-                           glassOpacity: prefs.glassOpacity,
                            glassStyle: pillGlassStyle, increaseContrast: increaseContrast,
                            reduceTransparency: reduceTransparency)
     }
@@ -599,7 +590,6 @@ struct PillCapsule: View {
     /// the legacy hard-coded 16 so existing tests / call sites that don't
     /// pass a size still render at the previous default.
     var fontSize: CGFloat = 16
-    var glassOpacity: Double = 0.4
     /// Liquid Glass style. `.off` keeps the existing solid/visual-effect
     /// rendering. Caller is expected to have already collapsed accessibility
     /// states (Reduce Transparency / Increase Contrast) into this value.
@@ -672,8 +662,10 @@ struct PillCapsule: View {
                 ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: 0.92)
                 : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: 0.94)
         case .glass:
-            let tint = max(0, min(1, glassOpacity))
-            let glassOp = 0.58 + 0.34 * tint
+            // Legacy fallback fill (pre-macOS-26 / `.off` glass style). Uses
+            // a fixed mid-translucency now that the user-controlled tint
+            // strength has been removed.
+            let glassOp = 0.75
             return tone == .dark
                 ? Color(.sRGB, red: 22/255, green: 24/255, blue: 30/255, opacity: glassOp)
                 : Color(.sRGB, red: 252/255, green: 252/255, blue: 254/255, opacity: glassOp)
