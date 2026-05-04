@@ -63,6 +63,9 @@ struct MenuBarPanel: View {
                     .padding(.bottom, 10)
             }
             Divider().background(palette.border)
+            // Single uniform list — uses native-menu hairline `Divider`s for
+            // group separation rather than padding gaps, keeping vertical
+            // rhythm consistent (HIG: equal spacing within a list).
             VStack(spacing: 2) {
                 MenuRow(icon: .window,
                         label: prefs.windowVisible ? "Hide lyrics window" : "Show lyrics window",
@@ -80,11 +83,9 @@ struct MenuBarPanel: View {
                 .accessibilityLabel("Auto-hide")
                 .accessibilityValue(prefs.hideWhenPaused ? "On" : "Off")
                 .accessibilityAddTraits(.isToggle)
-            }
-            .padding(.horizontal, 4)
-            .padding(.top, 4)
 
-            VStack(spacing: 2) {
+                Divider().background(palette.border).padding(.vertical, 2)
+
                 HoverableSettingsRow(palette: palette)
                     .keyboardShortcut(",")
 
@@ -95,8 +96,7 @@ struct MenuBarPanel: View {
                 .keyboardShortcut("q")
             }
             .padding(.horizontal, 4)
-            .padding(.top, 6)
-            .padding(.bottom, 4)
+            .padding(.vertical, 4)
         }
     }
 
