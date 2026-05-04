@@ -12,10 +12,17 @@ import Combine
 /// own Battery / Wi-Fi dropdowns do.
 @MainActor
 final class StatusBarPopover: NSObject, NSWindowDelegate {
-    private static let maxTitleWidth: CGFloat = 240
+    private static let maxTitleWidth: CGFloat = 260
     private static let marqueeStepInterval: TimeInterval = 1.0 / 30.0
     private static let marqueePointsPerSecond: CGFloat = 18
     private static let statusTitlePadding: CGFloat = 14
+    /// Gap between the fixed note glyph and the (possibly scrolling) title.
+    private static let noteTitleGap: CGFloat = 4
+    /// Minimum overflow (points) before the marquee animates. Below this the
+    /// title is truncated instead — avoids a frantic 1–2pt bounce when the
+    /// title nearly fits.
+    private static let marqueeOverflowThreshold: CGFloat = 24
+    private static let noteGlyph = "♪"
 
     private let statusItem: NSStatusItem
     private let monitor: SpotifyMonitor
@@ -25,9 +32,14 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
     private var contentBuilder: (() -> AnyView)?
     private var cancellables = Set<AnyCancellable>()
     private var marqueeTimer: Timer?
-    private var fullStatusTitle = ""
+    /// Title text only — no note prefix. Empty when nothing is playing
+    /// (status item then shows just the note glyph).
+    private var statusTitleText = ""
     private var marqueeOffset: CGFloat = 0
     private var marqueeDirection: CGFloat = 1
+    /// Tracks whether the last update saw playback running, so we know when
+    /// to start/stop the marquee on play-state transitions.
+    private var lastIsPlaying = false
 
     init(monitor: SpotifyMonitor) {
         self.monitor = monitor
@@ -76,28 +88,34 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
             button.toolTip = "Cantio"
             button.setAccessibilityLabel("Cantio")
         }
-        let nextTitle = displayText.map { "♪ \($0)" } ?? "♪"
-        if nextTitle != fullStatusTitle {
-            fullStatusTitle = nextTitle
+        let nextTitle = displayText ?? ""
+        let titleChanged = nextTitle != statusTitleText
+        let playingChanged = isPlaying != lastIsPlaying
+        if titleChanged {
+            statusTitleText = nextTitle
             marqueeOffset = 0
             marqueeDirection = 1
             updateStatusButtonFrame()
+        }
+        if titleChanged || playingChanged {
+            lastIsPlaying = isPlaying
             updateMarqueeTimer()
+            if !titleChanged { updateStatusButtonFrame() }
         }
         statusItem.isVisible = true
     }
 
     private func updateStatusButtonFrame() {
         guard let button = statusItem.button else { return }
-        if fullStatusTitle == "♪" {
+        if statusTitleText.isEmpty {
             button.image = nil
-            button.attributedTitle = statusAttributedTitle(fullStatusTitle)
+            button.attributedTitle = statusAttributedTitle(Self.noteGlyph)
             statusItem.length = NSStatusItem.squareLength
         } else {
             button.attributedTitle = NSAttributedString()
             button.image = renderStatusTitle(offset: marqueeOffset)
             button.imagePosition = .imageOnly
-            statusItem.length = min(fullStatusTitleWidth, Self.maxTitleWidth)
+            statusItem.length = totalImageWidth
         }
     }
 
@@ -105,7 +123,8 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         marqueeTimer?.invalidate()
         marqueeTimer = nil
 
-        guard fullStatusTitleWidth > Self.maxTitleWidth,
+        guard titleOverflow > Self.marqueeOverflowThreshold,
+              isPlaying,
               !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         else { return }
 
@@ -116,13 +135,34 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         marqueeTimer = timer
     }
 
-    private var fullStatusTitleWidth: CGFloat {
-        ceil(statusAttributedTitle(fullStatusTitle).size().width) + Self.statusTitlePadding
+    private var noteGlyphWidth: CGFloat {
+        ceil(statusAttributedTitle(Self.noteGlyph).size().width)
+    }
+
+    private var titleIntrinsicWidth: CGFloat {
+        ceil(statusAttributedTitle(statusTitleText).size().width)
+    }
+
+    /// Width budgeted for the title region (after note glyph + padding).
+    private var titleAvailableWidth: CGFloat {
+        let pad = Self.statusTitlePadding
+        return max(0, Self.maxTitleWidth - pad - noteGlyphWidth - Self.noteTitleGap)
+    }
+
+    private var titleOverflow: CGFloat {
+        max(0, titleIntrinsicWidth - titleAvailableWidth)
+    }
+
+    /// Width of the rendered status item image: note + gap + min(title, available).
+    private var totalImageWidth: CGFloat {
+        let pad = Self.statusTitlePadding
+        let visibleTitle = min(titleIntrinsicWidth, titleAvailableWidth)
+        return pad + noteGlyphWidth + Self.noteTitleGap + visibleTitle
     }
 
     private func advanceMarquee() {
-        guard fullStatusTitle.count > 1 else { return }
-        let maxOffset = max(0, fullStatusTitleWidth - Self.maxTitleWidth)
+        guard !statusTitleText.isEmpty else { return }
+        let maxOffset = titleOverflow
         marqueeOffset += marqueeDirection * Self.marqueePointsPerSecond * Self.marqueeStepInterval
         if marqueeOffset >= maxOffset {
             marqueeOffset = maxOffset
@@ -134,9 +174,9 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         updateStatusButtonFrame()
     }
 
-    private func statusAttributedTitle(_ title: String) -> NSAttributedString {
+    private func statusAttributedTitle(_ title: String, truncating: Bool = false) -> NSAttributedString {
         let paragraph = NSMutableParagraphStyle()
-        paragraph.lineBreakMode = .byClipping
+        paragraph.lineBreakMode = truncating ? .byTruncatingTail : .byClipping
         paragraph.alignment = .left
         let menuBarFont = NSFont.menuBarFont(ofSize: 0)
         let font = NSFont.systemFont(ofSize: menuBarFont.pointSize, weight: .semibold)
@@ -151,7 +191,7 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
     }
 
     private func renderStatusTitle(offset: CGFloat) -> NSImage {
-        let imageWidth = min(fullStatusTitleWidth, Self.maxTitleWidth)
+        let imageWidth = totalImageWidth
         let imageHeight = NSStatusBar.system.thickness
         let imageSize = NSSize(width: imageWidth, height: imageHeight)
         let scale = statusItem.button?.window?.backingScaleFactor
@@ -160,12 +200,19 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         let pixelsWide = max(1, Int(ceil(imageWidth * scale)))
         let pixelsHigh = max(1, Int(ceil(imageHeight * scale)))
         let image = NSImage(size: imageSize)
-        let maskTitle = NSMutableAttributedString(attributedString: statusAttributedTitle(fullStatusTitle))
-        maskTitle.addAttribute(.foregroundColor, value: NSColor.black,
-                               range: NSRange(location: 0, length: maskTitle.length))
-        let attributedTitle = maskTitle
-        let textSize = attributedTitle.size()
-        let y = (imageHeight - textSize.height) / 2
+        let isMarqueeing = marqueeTimer != nil
+
+        let noteAttr = NSMutableAttributedString(attributedString: statusAttributedTitle(Self.noteGlyph))
+        noteAttr.addAttribute(.foregroundColor, value: NSColor.black,
+                              range: NSRange(location: 0, length: noteAttr.length))
+        let titleAttr = NSMutableAttributedString(
+            attributedString: statusAttributedTitle(statusTitleText, truncating: !isMarqueeing)
+        )
+        titleAttr.addAttribute(.foregroundColor, value: NSColor.black,
+                               range: NSRange(location: 0, length: titleAttr.length))
+
+        let textHeight = max(noteAttr.size().height, titleAttr.size().height)
+        let y = (imageHeight - textHeight) / 2
 
         guard let rep = NSBitmapImageRep(
             bitmapDataPlanes: nil,
@@ -191,7 +238,29 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         NSColor.clear.setFill()
         NSRect(origin: .zero, size: imageSize).fill()
         NSGraphicsContext.current?.shouldAntialias = true
-        attributedTitle.draw(at: CGPoint(x: Self.statusTitlePadding / 2 - offset, y: y))
+
+        let leftInset = Self.statusTitlePadding / 2
+        // Note glyph: always at fixed left position.
+        noteAttr.draw(at: CGPoint(x: leftInset, y: y))
+
+        // Title: drawn inside a clipped rect to the right of the note. Marquee
+        // shifts the draw origin within that clip; truncating mode draws into
+        // a bounded rect so AppKit inserts an ellipsis when needed.
+        let titleX = leftInset + noteGlyphWidth + Self.noteTitleGap
+        let titleClip = NSRect(x: titleX, y: 0,
+                               width: titleAvailableWidth,
+                               height: imageHeight)
+        NSGraphicsContext.saveGraphicsState()
+        NSBezierPath(rect: titleClip).addClip()
+        if isMarqueeing {
+            titleAttr.draw(at: CGPoint(x: titleX - offset, y: y))
+        } else {
+            titleAttr.draw(in: NSRect(x: titleX, y: y,
+                                      width: titleAvailableWidth,
+                                      height: titleAttr.size().height))
+        }
+        NSGraphicsContext.restoreGraphicsState()
+
         NSGraphicsContext.restoreGraphicsState()
 
         image.addRepresentation(rep)
@@ -200,9 +269,16 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
     }
 
     private var displayText: String? {
-        guard let np = monitor.nowPlaying, np.state == .playing, !np.title.isEmpty else { return nil }
+        guard let np = monitor.nowPlaying, !np.title.isEmpty,
+              np.state != .stopped else { return nil }
         let artist = np.artist.trimmingCharacters(in: .whitespaces)
         return artist.isEmpty ? np.title : "\(np.title) · \(artist)"
+    }
+
+    /// Marquee should only run when audio is actually moving — pausing
+    /// freezes the title so the menu bar doesn't dance over a static song.
+    private var isPlaying: Bool {
+        monitor.nowPlaying?.state == .playing
     }
 
     @objc private func togglePanel() {
