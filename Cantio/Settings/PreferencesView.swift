@@ -1,6 +1,75 @@
 import SwiftUI
 import AppKit
 
+/// Centralizes Settings-window activation. Activation-policy changes
+/// (`.accessory` ↔ `.regular`) commit asynchronously inside AppKit, so any
+/// `NSApp.activate` / `makeKeyAndOrderFront` invoked synchronously after the
+/// flip may run before the policy is in effect — window orders forward but
+/// stays non-key (visible-but-unclickable). Deferring activation to the next
+/// runloop tick lets the policy commit first.
+enum SettingsActivator {
+    static func findWindow() -> NSWindow? {
+        for w in NSApp.windows {
+            let id = w.identifier?.rawValue ?? ""
+            if id.contains("Settings") || id.contains("settings") { return w }
+            if w.frameAutosaveName.contains("Settings") { return w }
+        }
+        return nil
+    }
+
+    /// Flip to `.regular` synchronously, then activate + key on the next
+    /// runloop tick so the policy is in effect by the time AppKit processes
+    /// the activate. `orderFrontRegardless` defeats `cmd-H` hidden state.
+    static func focus(_ window: NSWindow) {
+        if window.isMiniaturized { window.deminiaturize(nil) }
+        NSApp.setActivationPolicy(.regular)
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+            recenterIfOffscreen(window)
+        }
+    }
+
+    /// Flip to `.regular` ahead of `openSettings()` so the new window is
+    /// built under the correct policy. Caller invokes `openSettings()` from
+    /// the dispatched block.
+    static func prepareForOpen(_ open: @escaping () -> Void) {
+        NSApp.setActivationPolicy(.regular)
+        DispatchQueue.main.async {
+            open()
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                if let w = findWindow() {
+                    w.makeKeyAndOrderFront(nil)
+                    recenterIfOffscreen(w)
+                }
+            }
+        }
+    }
+
+    /// Defer the demote so a transient dismount/remount doesn't flap the
+    /// policy. Only flip back to `.accessory` if no Settings window remains.
+    static func demoteIfNoSettingsWindow() {
+        DispatchQueue.main.async {
+            guard findWindow() == nil else { return }
+            NSApp.setActivationPolicy(.accessory)
+        }
+    }
+
+    private static func recenterIfOffscreen(_ w: NSWindow) {
+        let screens = NSScreen.screens.map(\.visibleFrame)
+        if Self.shouldRecenter(frame: w.frame, visibleFrames: screens) { w.center() }
+    }
+
+    /// Pure geometry decision: re-center the window if its frame doesn't
+    /// intersect any screen's visible area. Partial overlap counts as
+    /// on-screen — the user can drag it back.
+    static func shouldRecenter(frame: CGRect, visibleFrames: [CGRect]) -> Bool {
+        !visibleFrames.contains { $0.intersects(frame) }
+    }
+}
+
 /// Quick toggles inside the menu-bar dropdown — kept for the legacy menu
 /// style. The new `.window` MenuBarExtra renders `MenuBarPanel` instead.
 struct PreferencesMenu: View {
@@ -164,10 +233,15 @@ struct SettingsView: View {
         .frame(width: 560, height: 680)
         .onAppear {
             NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                if let w = SettingsActivator.findWindow() {
+                    w.makeKeyAndOrderFront(nil)
+                }
+            }
         }
         .onDisappear {
-            NSApp.setActivationPolicy(.accessory)
+            SettingsActivator.demoteIfNoSettingsWindow()
         }
     }
 

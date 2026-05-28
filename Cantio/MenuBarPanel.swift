@@ -564,55 +564,29 @@ extension MenuRowLabel where Trailing == EmptyView {
 }
 
 /// Settings row that focuses an existing window when one is already on
-/// screen, instead of letting `SettingsLink` spawn / re-open. Falls back to
-/// `SettingsLink` when no Settings window exists.
+/// screen, instead of letting `SettingsLink` spawn / re-open. For the
+/// fresh-open path, flips activation policy to `.regular` *before*
+/// invoking `openSettings`, so the new window is built under the correct
+/// policy and becomes key on first show (see `SettingsActivator`).
 private struct HoverableSettingsRow: View {
     let palette: FL.Palette
     @State private var hover = false
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
-        if let _ = Self.findSettingsWindow() {
-            // Existing window — render a Button that focuses it directly.
-            Button {
-                Self.focusExistingSettingsWindow()
-            } label: {
-                MenuRowLabel(icon: .gear, label: "Settings…",
-                             shortcut: "⌘,", active: hover, palette: palette)
+        Button {
+            if let w = SettingsActivator.findWindow() {
+                SettingsActivator.focus(w)
+            } else {
+                SettingsActivator.prepareForOpen { openSettings() }
             }
-            .buttonStyle(.plain)
-            .onHover { hover = $0 }
-        } else {
-            SettingsLink {
-                MenuRowLabel(icon: .gear, label: "Settings…",
-                             shortcut: "⌘,", active: hover, palette: palette)
-            }
-            .buttonStyle(.plain)
-            .onHover { hover = $0 }
+        } label: {
+            MenuRowLabel(icon: .gear, label: "Settings…",
+                         shortcut: "⌘,", active: hover, palette: palette)
         }
-    }
-
-    /// Locates the SwiftUI Settings scene window. SwiftUI gives it a stable
-    /// identifier (`com_apple_SwiftUI_Settings_window`); also tolerate a
-    /// frame-autosave-name fallback in case Apple changes that contract.
-    static func findSettingsWindow() -> NSWindow? {
-        for w in NSApp.windows {
-            let id = w.identifier?.rawValue ?? ""
-            if id.contains("Settings") || id.contains("settings") {
-                return w
-            }
-            if w.frameAutosaveName.contains("Settings") {
-                return w
-            }
-        }
-        return nil
-    }
-
-    static func focusExistingSettingsWindow() {
-        guard let w = findSettingsWindow() else { return }
-        if w.isMiniaturized { w.deminiaturize(nil) }
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-        w.makeKeyAndOrderFront(nil)
+        .buttonStyle(.plain)
+        .onHover { hover = $0 }
+        .keyboardShortcut(",", modifiers: .command)
     }
 }
 
