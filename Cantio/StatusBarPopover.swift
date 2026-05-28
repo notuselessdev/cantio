@@ -368,7 +368,7 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         let width = max(fittingSize.width, 290)
         let height = max(fittingSize.height, 80)
 
-        let gap: CGFloat = 6
+        let gap: CGFloat = 5
         // Default left-align: panel's left edge under the status item's left
         // edge. If the panel would spill off the right edge, flip to
         // right-aligned (panel's right edge under the status item's right
