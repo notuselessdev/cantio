@@ -10,6 +10,7 @@ struct MenuBarPanel: View {
     @ObservedObject var lyrics: LyricsStore
     @ObservedObject var prefs: Preferences
     let onAppear: () -> Void
+    var onDismiss: () -> Void = {}
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openSettings) private var openSettings
@@ -107,7 +108,7 @@ struct MenuBarPanel: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
 
-                HoverableSettingsRow(palette: palette)
+                HoverableSettingsRow(palette: palette, onDismiss: onDismiss)
                     .keyboardShortcut(",")
 
                 MenuRow(icon: .quit, label: "Quit Cantio",
@@ -570,11 +571,13 @@ extension MenuRowLabel where Trailing == EmptyView {
 /// policy and becomes key on first show (see `SettingsActivator`).
 private struct HoverableSettingsRow: View {
     let palette: FL.Palette
+    var onDismiss: () -> Void = {}
     @State private var hover = false
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Button {
+            onDismiss()
             if let w = SettingsActivator.findWindow() {
                 SettingsActivator.focus(w)
             } else {

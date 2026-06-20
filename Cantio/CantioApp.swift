@@ -30,12 +30,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func installStatusBar() {
         let bar = StatusBarPopover(monitor: monitor)
-        bar.setContent { [unowned self] in
+        bar.setContent { [unowned self, unowned bar] in
             MenuBarPanel(
                 monitor: self.monitor,
                 lyrics: self.lyrics,
                 prefs: self.prefs,
-                onAppear: {}
+                onAppear: {},
+                onDismiss: { bar.dismiss() }
             )
         }
         statusBar = bar

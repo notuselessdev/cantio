@@ -289,6 +289,15 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         }
     }
 
+    /// Dismiss the dropdown programmatically. Used by in-panel actions that
+    /// open another window (Settings) — opening it defers activation across
+    /// runloop ticks (see `SettingsActivator`), so the panel never resigns
+    /// key on its own and must be closed explicitly.
+    func dismiss() {
+        guard panel?.isVisible == true else { return }
+        close()
+    }
+
     private func open() {
         guard let builder = contentBuilder else { return }
         let panel = panel ?? makePanel()
@@ -303,7 +312,14 @@ final class StatusBarPopover: NSObject, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: false)
         panel.makeKeyAndOrderFront(nil)
         installEventMonitors()
-        statusItem.button?.highlight(true)
+        // The action fires on `.leftMouseDown`, so we're still inside AppKit's
+        // button tracking — it clears the highlight on mouse-up, flashing the
+        // selection. Re-assert after the event drains so it sticks while the
+        // panel is open.
+        DispatchQueue.main.async { [weak self] in
+            guard self?.panel?.isVisible == true else { return }
+            self?.statusItem.button?.highlight(true)
+        }
     }
 
     private func close() {
