@@ -36,7 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 lyrics: self.lyrics,
                 prefs: self.prefs,
                 onAppear: {},
-                onDismiss: { bar.dismiss() }
+                onDismiss: { bar.dismiss() },
+                onRecenter: { [unowned self] in self.floatingController?.recenter() }
             )
         }
         statusBar = bar

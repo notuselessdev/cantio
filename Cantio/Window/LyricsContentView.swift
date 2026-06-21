@@ -10,11 +10,14 @@ import AppKit
 @MainActor
 final class PillHitTarget: ObservableObject {
     @Published var capsuleRectInContentView: CGRect = .zero
+    /// True while the user is dragging the pill. The view freezes to a
+    /// fixed-size placeholder capsule so the silhouette is a stable
+    /// alignment target instead of flickering with live lyric width.
+    @Published var isDragging: Bool = false
 }
 
-/// Floating lyrics window content. Implements the six visual presets from
-/// the design handoff: pill / pillStack / glass / solid / minimal /
-/// fullscreen.
+/// Floating lyrics window content. Two styles: pill (capsule overlay) and
+/// fullscreen (karaoke backdrop).
 struct LyricsContentView: View {
     @ObservedObject var monitor: SpotifyMonitor
     @ObservedObject var lyrics: LyricsStore
@@ -61,9 +64,8 @@ struct LyricsContentView: View {
     var body: some View {
         Group {
             switch style {
-            case .pill: pillBody(linesAround: linesAroundFromPref)
+            case .floating: pillBody(linesAround: linesAroundFromPref)
             case .fullscreen: fullscreenBody
-            case .minimal: windowBody
             }
         }
     }
@@ -74,6 +76,9 @@ struct LyricsContentView: View {
     private func pillBody(linesAround: Int) -> some View {
         ZStack {
             // No window chrome — capsule(s) hover over wallpaper.
+            if hitTarget.isDragging {
+                dragPlaceholder
+            } else {
             switch monitor.availability {
             case .permissionDenied:
                 permissionCapsule.modifier(PillCapsuleFrameReporter(space: Self.pillCoordinateSpace, hitTarget: hitTarget))
@@ -95,29 +100,32 @@ struct LyricsContentView: View {
                     lyricsContent(forPill: true, linesAround: linesAround)
                 }
             }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .coordinateSpace(name: Self.pillCoordinateSpace)
     }
 
-    // MARK: - Window (glass / solid / minimal)
-
+    /// Fixed-size pill shown while dragging. Its footprint equals `DragPill`,
+    /// so the guide rulers hug it exactly regardless of the playing lyric.
     @ViewBuilder
-    private var windowBody: some View {
-        ZStack {
-            background
-            content
-                .padding(.horizontal, 22)
-                .padding(.top, 20)
-                .padding(.bottom, 18)
+    private var dragPlaceholder: some View {
+        let s = DragPill.size(activeFontSize: prefs.fontSize.activeSize)
+        let fs = prefs.fontSize.activeSize
+        let label = Text(DragPill.text)
+            .font(.system(size: fs, weight: .semibold))
+            .tracking(max(0.4, fs * 0.04))
+            .foregroundStyle(palette.accent)
+            .frame(width: s.width, height: s.height)
+        if #available(macOS 26, *), pillGlassStyle != .off {
+            label.glassEffect(.regular, in: Capsule())
+        } else {
+            label.background {
+                Capsule().fill(palette.bgElev)
+                    .overlay(Capsule().strokeBorder(palette.borderStrong, lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.10), radius: 1, y: 1)
+            }
         }
-        .frame(minWidth: 280, minHeight: 80)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(palette.borderStrong, lineWidth: 0.5)
-        )
-        .overlay(alignment: .topLeading) { trafficLights }
     }
 
     // MARK: - Fullscreen karaoke
@@ -169,7 +177,7 @@ struct LyricsContentView: View {
             // Visible exit affordance — Esc also works (controller's local
             // key monitor) but a discoverable button matches HIG.
             Button {
-                prefs.windowStyle = .pill
+                prefs.windowStyle = .floating
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 22, weight: .semibold))
@@ -184,68 +192,6 @@ struct LyricsContentView: View {
             .padding(.trailing, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    // MARK: - Window chrome
-
-    private var trafficLights: some View {
-        HStack(spacing: 7) {
-            ForEach([Color(red: 1, green: 0.37, blue: 0.34),
-                     Color(red: 1, green: 0.74, blue: 0.18),
-                     Color(red: 0.16, green: 0.78, blue: 0.25)], id: \.self) { c in
-                Circle()
-                    .fill(c)
-                    .overlay(Circle().strokeBorder(.black.opacity(0.22), lineWidth: 0.5))
-                    .frame(width: 11, height: 11)
-            }
-        }
-        .padding(.top, 10)
-        .padding(.leading, 12)
-    }
-
-    private var titleStrip: some View {
-        Group {
-            if let np = monitor.nowPlaying {
-                Text("\(np.title) · \(np.artist)")
-                    .font(.system(size: 11, weight: .medium))
-                    .tracking(0.2)
-                    .foregroundStyle(palette.textFaint)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .padding(.horizontal, 80)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var background: some View {
-        let isSolid = bgStyle == .solid || degradeToSolid
-        if isSolid {
-            palette.bgElev
-        } else {
-            VisualEffectBackground(material: .hudWindow)
-        }
-    }
-
-    // MARK: - Body content (glass/solid/minimal)
-
-    @ViewBuilder
-    private var content: some View {
-        switch monitor.availability {
-        case .permissionDenied: permissionDeniedView
-        case .notInstalled: placeholder("Install Spotify to see lyrics here")
-        case .notRunning: emptyStateView
-        case .available:
-            if monitor.nowPlaying == nil || monitor.nowPlaying?.state == .stopped {
-                emptyStateView
-            } else {
-                VStack(spacing: 0) {
-                    lyricsContent(forPill: false, linesAround: linesAroundFromPref)
-                        .frame(maxHeight: .infinity)
-                }
-                .overlay(alignment: .bottom) { minimalFooter }
-            }
-        }
     }
 
     // MARK: - Lyrics renderer
@@ -408,59 +354,7 @@ struct LyricsContentView: View {
         }
     }
 
-    private var minimalFooter: some View {
-        Group {
-            if let np = monitor.nowPlaying, np.durationSeconds > 0 {
-                TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
-                    let pos = monitor.interpolatedPosition(now: ctx.date) ?? np.positionSeconds
-                    let pct = max(0, min(1, pos / np.durationSeconds))
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Rectangle().fill(Color.white.opacity(0.08))
-                            Rectangle().fill(palette.accent)
-                                .frame(width: geo.size.width * pct)
-                        }
-                    }
-                    .frame(height: 2)
-                }
-            }
-        }
-    }
-
-    // MARK: - Empty / permission
-
-    private var emptyStateView: some View {
-        VStack(spacing: 6) {
-            Text("Open Spotify and play a song")
-                .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
-                .foregroundStyle(palette.text)
-            Text("Cantio will follow along with synced lyrics.")
-                .font(.system(size: max(11, prefs.fontSize.bodySize - 2)))
-                .foregroundStyle(palette.textMuted)
-        }
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity)
-    }
-
-    private var permissionDeniedView: some View {
-        VStack(spacing: 10) {
-            Text("Spotify access needed")
-                .font(.system(size: prefs.fontSize.bodySize, weight: .semibold))
-                .foregroundStyle(palette.text)
-            Text("Allow Cantio to control Spotify in Privacy & Security → Automation.")
-                .font(.system(size: max(11, prefs.fontSize.bodySize - 2)))
-                .foregroundStyle(palette.textMuted)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-            Button("Open System Settings") {
-                SpotifyPermission.openSystemSettings()
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
-            .tint(palette.accent)
-        }
-        .frame(maxWidth: .infinity)
-    }
+    // MARK: - Permission capsule
 
     private var permissionCapsule: some View {
         Button {

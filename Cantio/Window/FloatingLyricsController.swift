@@ -5,12 +5,11 @@ import SwiftUI
 /// Owns the floating lyrics `NSWindow` and the SwiftUI hosting bridge.
 ///
 /// Click-through policy (W4) is derived from `windowStyle`:
-/// - `.pill` → window is interactive; `installClickMonitor` distinguishes a
+/// - `.floating` → window is interactive; `installClickMonitor` distinguishes a
 ///   true click (mouseDown + mouseUp without movement past the drag
 ///   threshold) from a drag, so future tap targets inside the pill receive
 ///   the click while drags trigger `performDrag`. Option-click is the
 ///   pass-through escape hatch — events propagate to whatever is beneath.
-/// - `.minimal` → never click-through (real chrome window, must be interactive).
 /// - `.fullscreen` → interactive (Esc exits via global key monitor; future
 ///   in-overlay controls need to receive clicks).
 @MainActor
@@ -29,24 +28,21 @@ final class FloatingLyricsController {
     private var preFullscreenStyle: WindowStyle?
     private var cancellables = Set<AnyCancellable>()
 
+    /// Raycast-style alignment guides, shown only while dragging.
+    private let guideOverlay = DragGuideOverlay()
+
     /// Drag detection threshold (points) — movement below this on mouseDown
     /// is classified as a click, so embedded tap targets receive the event.
     private static let dragThresholdPoints: CGFloat = 4
 
-    /// W3: minimal style has its own autosave so resizes survive launches.
-    /// Pill is a fixed-size capsule and must NOT inherit a stale resized frame.
+    /// Pill is a fixed-size capsule; autosave persists its origin only.
     private static let pillAutosaveName = "CantioFloatingLyricsWindow"
-    private static let minimalAutosaveName = "CantioFloatingLyricsWindow.minimal"
 
     /// Saved frame to restore when leaving fullscreen — never written to autosave.
     private var preFullscreenFrame: NSRect?
     /// True while the window is currently sized to fullscreen.
     private var isFullscreenActive = false
 
-    /// Minimal content size constraints (W3) — keep lyric text readable.
-    private static let minimalMinSize = NSSize(width: 320, height: 60)
-    private static let minimalMaxSize = NSSize(width: 1600, height: 600)
-    private static let minimalDefaultSize = NSSize(width: 520, height: 120)
     private static let pillDefaultSize = NSSize(width: 520, height: 80)
 
     init(monitor: SpotifyMonitor, lyrics: LyricsStore, prefs: Preferences,
@@ -73,17 +69,12 @@ final class FloatingLyricsController {
 
     /// Pill / fullscreen render their own silhouette (capsule shadow,
     /// full-bleed backdrop) — disable the rectangular NSWindow shadow so it
-    /// doesn't halo the silhouette. Minimal keeps the chrome shadow.
+    /// doesn't halo the silhouette.
     private func applyWindowChrome() {
         guard let window else { return }
         window.isOpaque = false
         window.backgroundColor = .clear
-        switch prefs.windowStyle {
-        case .pill, .fullscreen:
-            window.hasShadow = false
-        case .minimal:
-            window.hasShadow = true
-        }
+        window.hasShadow = false
         window.invalidateShadow()
     }
 
@@ -129,7 +120,7 @@ final class FloatingLyricsController {
         }
 
         switch prefs.windowStyle {
-        case .pill:
+        case .floating:
             // `setFrameAutosaveName` only enables autosave; it doesn't restore
             // immediately. Pair with `setFrameUsingName` so the user's last
             // origin loads on every reattach. The window's
@@ -143,24 +134,7 @@ final class FloatingLyricsController {
             let restored = window.setFrameUsingName(Self.pillAutosaveName)
             var f = window.frame
             f.size = Self.pillDefaultSize
-            if !restored { f.origin = Self.defaultOrigin(for: Self.pillDefaultSize) }
-            window.setFrame(f, display: true)
-            window.isMovable = true
-
-        case .minimal:
-            window.clampToVisibleFrame = true
-            window.setFrameAutosaveName("")
-            window.setFrameAutosaveName(Self.minimalAutosaveName)
-            window.contentMinSize = Self.minimalMinSize
-            window.contentMaxSize = Self.minimalMaxSize
-            let restored = window.setFrameUsingName(Self.minimalAutosaveName)
-            var f = window.frame
-            if !restored
-                || f.size.width < Self.minimalMinSize.width
-                || f.size.height < Self.minimalMinSize.height {
-                f.size = Self.minimalDefaultSize
-                f.origin = Self.defaultOrigin(for: Self.minimalDefaultSize)
-            }
+            if !restored { f.origin = Self.defaultOrigin(for: Self.pillDefaultSize, on: window.screen) }
             window.setFrame(f, display: true)
             window.isMovable = true
 
@@ -172,8 +146,8 @@ final class FloatingLyricsController {
                 preFullscreenStyle = previous
             }
             // Detach autosave: we don't want the screen-sized frame to clobber
-            // the user's saved pill/minimal position. Allow off-screen frames
-            // so fullscreen can occupy the menu bar / Dock area.
+            // the user's saved pill position. Allow off-screen frames so
+            // fullscreen can occupy the menu bar / Dock area.
             window.setFrameAutosaveName("")
             window.clampToVisibleFrame = false
             window.contentMinSize = NSSize(width: 100, height: 100)
@@ -198,11 +172,37 @@ final class FloatingLyricsController {
         window.setFrame(target.frame, display: true)
     }
 
-    private static func defaultOrigin(for size: NSSize) -> NSPoint {
-        let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
-        let x = screen.midX - size.width / 2
-        let y = screen.maxY - size.height - 60
-        return NSPoint(x: x, y: y)
+    private static func defaultOrigin(for size: NSSize, on screen: NSScreen? = nil) -> NSPoint {
+        let vf = (screen ?? NSScreen.main)?.visibleFrame
+            ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+        return DragSnap.defaultOrigin(in: vf, size: size)
+    }
+
+    /// Reset the pill to its factory resting position: horizontally centered,
+    /// anchored toward the bottom of the screen it currently lives on.
+    func recenter() {
+        guard let window, prefs.windowStyle == .floating else { return }
+        // Use the exact inputs the drag snap uses — live window size + the
+        // window's own screen visibleFrame — so the landing point is the same
+        // origin the guide rulers center on (no constant-vs-actual drift).
+        let size = window.frame.size
+        let visible = (window.screen ?? NSScreen.main ?? NSScreen.screens.first)?.visibleFrame
+            ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+        let target = DragSnap.defaultOrigin(in: visible, size: size)
+        // Keep the live size (no resize → no center shift); animate via
+        // setFrame, the only frame setter the NSWindow animator drives
+        // (animator().setFrameOrigin is a silent no-op).
+        let frame = NSRect(origin: target, size: size)
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            window.setFrame(frame, display: true)
+        } else {
+            NSAnimationContext.runAnimationGroup { ctx in
+                ctx.duration = 0.28
+                ctx.allowsImplicitAnimation = true
+                window.animator().setFrame(frame, display: true)
+            }
+        }
+        window.saveFrame(usingName: Self.pillAutosaveName)
     }
 
     // MARK: - Visibility
@@ -242,8 +242,7 @@ final class FloatingLyricsController {
     /// Exposed for unit tests as a free function on the type.
     static func effectiveClickThrough(for style: WindowStyle) -> Bool {
         switch style {
-        case .pill:       return true
-        case .minimal:    return false
+        case .floating:   return true
         case .fullscreen: return false
         }
     }
@@ -251,7 +250,7 @@ final class FloatingLyricsController {
     private func applyClickThrough() {
         guard let window else { return }
         switch prefs.windowStyle {
-        case .pill:
+        case .floating:
             // Shape-based hit-test: the 520x80 borderless frame contains a
             // capsule that hugs its content, leaving transparent margins.
             // Per-pixel alpha sampling can't probe `.glassEffect()` reliably
@@ -261,10 +260,6 @@ final class FloatingLyricsController {
             // pass-through until the first move event lands.
             window.ignoresMouseEvents = true
             installPillMouseMovedMonitors()
-        case .minimal:
-            // W1: minimal is always interactive regardless of any other state.
-            window.ignoresMouseEvents = false
-            removePillMouseMovedMonitors()
         case .fullscreen:
             // Fullscreen accepts clicks so the user can interact with the
             // overlay (and so Esc / future close affordance lives inside it).
@@ -294,7 +289,7 @@ final class FloatingLyricsController {
     }
 
     private func updatePillIgnoresMouseEvents() {
-        guard let window, prefs.windowStyle == .pill else { return }
+        guard let window, prefs.windowStyle == .floating else { return }
         let mouse = NSEvent.mouseLocation
         let inside = Self.pointInsideCapsuleRect(
             mouseScreen: mouse,
@@ -347,7 +342,7 @@ final class FloatingLyricsController {
     }
 
     func exitFullscreen() {
-        let restore = preFullscreenStyle ?? .pill
+        let restore = preFullscreenStyle ?? .floating
         prefs.windowStyle = restore
     }
 
@@ -356,7 +351,7 @@ final class FloatingLyricsController {
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown]) { [weak self] event in
             guard let self else { return event }
             guard event.window === self.window else { return event }
-            guard self.prefs.windowStyle == .pill else { return event }
+            guard self.prefs.windowStyle == .floating else { return event }
 
             // Option-click escape hatch: do not drag, do not consume —
             // pass through so power users can interact with whatever is
@@ -384,12 +379,104 @@ final class FloatingLyricsController {
                 }
                 if Self.shouldStartDrag(beginEvent: event, currentEvent: next,
                                         thresholdPoints: threshold) {
-                    self.window?.performDrag(with: event)
+                    self.beginMonitorDrag()
                     return nil
                 }
             }
             return nil
         }
+    }
+
+    /// Per-drag state captured at mouse-down. Held while the monitor-driven
+    /// drag is live so each move event can snap + redraw without recomputing.
+    private struct DragSession {
+        let grab: CGPoint
+        let visible: NSRect
+        let defOrigin: NSPoint
+        let windowSize: NSSize
+        let screen: NSScreen
+        let tint: Color
+    }
+    private var dragSession: DragSession?
+    private var dragMonitors: [Any] = []
+
+    /// Start a non-blocking drag. We intentionally do NOT spin a synchronous
+    /// `nextEvent` loop — that monopolizes the main run loop, so SwiftUI never
+    /// swaps in the `isDragging` placeholder and the capsule frame reporter
+    /// stays frozen on the previous lyric, making the guide slot jump per
+    /// line. Local event monitors let the run loop breathe between moves.
+    private func beginMonitorDrag() {
+        guard let window,
+              let screen = window.screen ?? NSScreen.main ?? NSScreen.screens.first
+        else { return }
+        let size = window.frame.size
+        let visible = screen.visibleFrame
+        let tone: FL.Tone = window.effectiveAppearance
+            .bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
+        // Grab the window by its center, not the cursor's offset within the
+        // (520pt-wide) frame. The drag swaps the live capsule for the small
+        // centered placeholder; preserving the original offset would leave
+        // the placeholder far from the cursor when you grabbed a wide lyric's
+        // edge. Centering keeps the placeholder under the pointer.
+        dragSession = DragSession(
+            grab: CGPoint(x: size.width / 2, y: size.height / 2),
+            visible: visible,
+            defOrigin: DragSnap.defaultOrigin(in: visible, size: size),
+            windowSize: size,
+            screen: screen,
+            tint: FL.palette(tone: tone, hue: prefs.accentHue).accent)
+
+        hitTarget.isDragging = true
+
+        let dragged = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) { [weak self] ev in
+            self?.updateDrag(); return ev
+        }
+        let up = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseUp]) { [weak self] ev in
+            self?.endMonitorDrag(); return ev
+        }
+        dragMonitors = [dragged, up].compactMap { $0 }
+        // Snap the placeholder under the cursor immediately, before the first
+        // drag event lands.
+        updateDrag()
+    }
+
+    private func updateDrag() {
+        guard let window, let s = dragSession else { return }
+        let mouse = NSEvent.mouseLocation
+        let proposed = NSPoint(x: mouse.x - s.grab.x, y: mouse.y - s.grab.y)
+        let snapped = DragSnap.snap(proposedOrigin: proposed, windowSize: s.windowSize,
+                                    visibleFrame: s.visible, defaultOrigin: s.defOrigin)
+        window.setFrameOrigin(snapped.origin)
+        // Fixed-size slot, centered on the window's default center — identical
+        // to where Re-center parks the pill, and never lyric-dependent.
+        let slot = Self.slotRect(defaultOrigin: s.defOrigin, windowSize: s.windowSize,
+                                 slotSize: DragPill.size(activeFontSize: prefs.fontSize.activeSize))
+        guideOverlay.update(screen: s.screen, slot: slot,
+                            snapX: snapped.snapX, snapY: snapped.snapY, tint: s.tint)
+    }
+
+    private func endMonitorDrag() {
+        for m in dragMonitors { NSEvent.removeMonitor(m) }
+        dragMonitors = []
+        dragSession = nil
+        hitTarget.isDragging = false
+        guideOverlay.hide()
+        window?.saveFrame(usingName: Self.pillAutosaveName)
+    }
+
+    /// Pure helper: the default parking-slot rect in AppKit screen coords —
+    /// a fixed `slotSize` centered on the window's default center. The pill
+    /// capsule is itself centered in the (fixed) window, so the slot lands
+    /// exactly where the pill sits when parked. No measurement involved, so
+    /// the rulers never resize with the playing lyric.
+    /// Exposed for unit tests — no `NSWindow` required.
+    static func slotRect(defaultOrigin: NSPoint, windowSize: NSSize,
+                         slotSize: NSSize) -> NSRect {
+        let centerX = defaultOrigin.x + windowSize.width / 2
+        let centerY = defaultOrigin.y + windowSize.height / 2
+        return NSRect(x: centerX - slotSize.width / 2,
+                      y: centerY - slotSize.height / 2,
+                      width: slotSize.width, height: slotSize.height)
     }
 
     /// Pure helper: classify a mouseDown follow-up event as drag-worthy.

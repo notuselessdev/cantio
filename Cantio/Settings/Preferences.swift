@@ -20,16 +20,14 @@ enum LyricsDisplayMode: String, CaseIterable, Identifiable {
 
 /// Window silhouette — controls layout / chrome.
 enum WindowStyle: String, CaseIterable, Identifiable {
-    case pill
-    case minimal
+    case floating
     case fullscreen
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
-        case .pill: return "Pill"
-        case .minimal: return "Minimal"
+        case .floating: return "Floating"
         case .fullscreen: return "Fullscreen"
         }
     }
@@ -239,12 +237,13 @@ final class Preferences: ObservableObject {
 
         if let styleRaw, let s = WindowStyle(rawValue: styleRaw) {
             self.windowStyle = s
+        } else if styleRaw == "pill" {
+            // Renamed `.pill` → `.floating` (display + raw value).
+            self.windowStyle = .floating
         } else {
             switch legacyPresetRaw {
-            case "minimal": self.windowStyle = .minimal
             case "fullscreen": self.windowStyle = .fullscreen
-            case "glass", "solid": self.windowStyle = .minimal
-            default: self.windowStyle = .pill
+            default: self.windowStyle = .floating
             }
         }
         if let bgRaw, let b = BackgroundStyle(rawValue: bgRaw) {

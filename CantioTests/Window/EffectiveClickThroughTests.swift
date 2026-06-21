@@ -4,12 +4,8 @@ import AppKit
 
 @MainActor
 final class EffectiveClickThroughTests: XCTestCase {
-    func test_effectiveClickThrough_minimal_isFalse() {
-        XCTAssertFalse(FloatingLyricsController.effectiveClickThrough(for: .minimal))
-    }
-
-    func test_effectiveClickThrough_pill_isTrue() {
-        XCTAssertTrue(FloatingLyricsController.effectiveClickThrough(for: .pill))
+    func test_effectiveClickThrough_floating_isTrue() {
+        XCTAssertTrue(FloatingLyricsController.effectiveClickThrough(for: .floating))
     }
 
     func test_effectiveClickThrough_fullscreen_isFalse() {
@@ -119,5 +115,32 @@ final class EffectiveClickThroughTests: XCTestCase {
             mouseScreen: NSPoint(x: 360, y: 240),
             capsuleInContentView: .zero,
             windowFrame: testWindowFrame))
+    }
+
+    // MARK: - Parking-slot rect
+
+    private let slotDefault = NSPoint(x: 1000, y: 300)
+    private let slotWindow = NSSize(width: 520, height: 80)
+
+    func test_slotRect_centersFixedSizeOnWindowCenter() {
+        // Window center at default = (1000+260, 300+40) = (1260, 340).
+        let slotSize = NSSize(width: 200, height: 52)
+        let r = FloatingLyricsController.slotRect(
+            defaultOrigin: slotDefault, windowSize: slotWindow, slotSize: slotSize)
+        XCTAssertEqual(r.midX, 1260, accuracy: 0.001)
+        XCTAssertEqual(r.midY, 340, accuracy: 0.001)
+        XCTAssertEqual(r.width, 200, accuracy: 0.001)
+        XCTAssertEqual(r.height, 52, accuracy: 0.001)
+    }
+
+    func test_slotRect_independentOfLyric_sameSizeAlways() {
+        // Two different "lyrics" can't change the slot — size is fixed input.
+        let a = FloatingLyricsController.slotRect(
+            defaultOrigin: slotDefault, windowSize: slotWindow,
+            slotSize: NSSize(width: 180, height: 50))
+        let b = FloatingLyricsController.slotRect(
+            defaultOrigin: slotDefault, windowSize: slotWindow,
+            slotSize: NSSize(width: 180, height: 50))
+        XCTAssertEqual(a, b)
     }
 }

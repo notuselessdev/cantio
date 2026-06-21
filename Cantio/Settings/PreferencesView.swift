@@ -520,7 +520,7 @@ struct AccentRow: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach([220.0, 200.0, 160.0, 120.0, 90.0, 50.0, 20.0, 340.0, 280.0], id: \.self) { h in
+            ForEach([220.0, 160.0, 120.0, 90.0, 50.0, 340.0, 280.0], id: \.self) { h in
                 let active = abs(h - hue) < 1
                 Circle()
                     .fill(FL.oklch(0.78, 0.12, h))

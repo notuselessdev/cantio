@@ -5,12 +5,12 @@ Native macOS menu-bar app. Floats Spotify lyrics over the desktop in sync. Targe
 ## Build & run
 
 ```bash
-xcodebuild -project /Users/mayron/projects/mayron/floric/Cantio.xcodeproj \
+xcodebuild -project /Users/mayron/projects/mayron/cantio/Cantio.xcodeproj \
   -scheme Cantio -configuration Debug \
-  -derivedDataPath /Users/mayron/projects/mayron/floric/.build build
+  -derivedDataPath /Users/mayron/projects/mayron/cantio/.build build
 
 killall Cantio 2>/dev/null; \
-open /Users/mayron/projects/mayron/floric/.build/Build/Products/Debug/Cantio.app
+open /Users/mayron/projects/mayron/cantio/.build/Build/Products/Debug/Cantio.app
 ```
 
 Tests: `xcodebuild -scheme Cantio test -derivedDataPath .build` (targets pending — see testing-strategy.md §10).

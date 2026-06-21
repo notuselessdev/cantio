@@ -41,20 +41,8 @@ final class LyricsContentViewSnapshotTests: XCTestCase {
             .environment(\.colorScheme, scheme)
     }
 
-    func test_lyricsContent_minimal_solid_light() {
-        let view = makeView(style: Cantio.WindowStyle.minimal, bgStyle: Cantio.BackgroundStyle.solid, scheme: .light)
-        assertSnapshot(of: host(view, size: CGSize(width: 520, height: 120)),
-                       as: .image(precision: 0.99, perceptualPrecision: 0.96))
-    }
-
-    func test_lyricsContent_minimal_glass_dark() {
-        let view = makeView(style: Cantio.WindowStyle.minimal, bgStyle: Cantio.BackgroundStyle.glass, scheme: .dark)
-        assertSnapshot(of: host(view, size: CGSize(width: 520, height: 120)),
-                       as: .image(precision: 0.99, perceptualPrecision: 0.96))
-    }
-
-    func test_lyricsContent_pill_glass_dark() {
-        let view = makeView(style: Cantio.WindowStyle.pill, bgStyle: Cantio.BackgroundStyle.glass, scheme: .dark)
+    func test_lyricsContent_floating_glass_dark() {
+        let view = makeView(style: Cantio.WindowStyle.floating, bgStyle: Cantio.BackgroundStyle.glass, scheme: .dark)
         assertSnapshot(of: host(view, size: CGSize(width: 520, height: 80)),
                        as: .image(precision: 0.99, perceptualPrecision: 0.96))
     }

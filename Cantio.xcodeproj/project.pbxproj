@@ -26,7 +26,6 @@
 		49588CFB23F48E3F4A864F6B /* LyricPositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149144520AF6EC3FC7A395B3 /* LyricPositionTests.swift */; };
 		4DE00B56601CEDCA7BCBA57C /* LyricsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBEEC1D0436B931F17D6212 /* LyricsCache.swift */; };
 		4FF4B58F9CA9A929C5AF8652 /* test_menuBarPanel_dark_emptyState.1.png in Resources */ = {isa = PBXBuildFile; fileRef = B0112047A8D80327EC24732B /* test_menuBarPanel_dark_emptyState.1.png */; };
-		59E6375BFF0FFE787D19A893 /* test_lyricsContent_minimal_solid_light.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9A459DC927CCDD727199922D /* test_lyricsContent_minimal_solid_light.1.png */; };
 		5F17CA8C7FA28BAD3BF922E7 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80312E3E509BBE8B2803F718 /* HotKeyManager.swift */; };
 		6163A3FCCCC78117D7E8EE03 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = FDF12CD0693717979BC141B5 /* Sparkle */; };
 		63AAD3C36B1540416035DF87 /* test_pillCapsule_dark_glass_short.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 006DBF2BEEF18971C88B1DDC /* test_pillCapsule_dark_glass_short.1.png */; };
@@ -56,12 +55,14 @@
 		AF8E417F0CCAF785CC0A5022 /* test_pillCapsule_light_solid_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 9BEECDE6AF92C0A7B5D17840 /* test_pillCapsule_light_solid_long.1.png */; };
 		B23D490560F4C8E98F6E48E2 /* LRCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99E944F2511C3CFE982729C /* LRCParser.swift */; };
 		B39BB5018B70E1099305A70B /* PillCapsuleShadowLeakTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29B286F31B0505A9F5ED80A2 /* PillCapsuleShadowLeakTests.swift */; };
-		B3F5C9C0D1ECFCD2496CF930 /* test_lyricsContent_minimal_glass_dark.1.png in Resources */ = {isa = PBXBuildFile; fileRef = FEADF818577B60665BA69F39 /* test_lyricsContent_minimal_glass_dark.1.png */; };
 		B959989D8719EEBE3335A154 /* LRCParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90257AEB51D9B6EB5F77253C /* LRCParserTests.swift */; };
 		B9A6775786653020EE4D7450 /* test_pillCapsule_light_glass_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 41A9AA2FCBE8A234DB40EA6F /* test_pillCapsule_light_glass_long.1.png */; };
 		BAF3ED9C872CBDB2DFB8C427 /* EffectiveClickThroughTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C341C9D76A1F0508921B7CC /* EffectiveClickThroughTests.swift */; };
 		BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */; };
-		C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_pill_glass_dark.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */; };
+		A1B2C3D4E5F60718293A4B02 /* DragSnap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B01 /* DragSnap.swift */; };
+		A1B2C3D4E5F60718293A4B04 /* DragGuideOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B03 /* DragGuideOverlay.swift */; };
+		A1B2C3D4E5F60718293A4C02 /* DragSnapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4C01 /* DragSnapTests.swift */; };
+		C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_floating_glass_dark.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 615D01210283462662939B6F /* test_lyricsContent_floating_glass_dark.1.png */; };
 		CBBD40EEF40E2BBD4F4A8932 /* CantioIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 805895C7E283B2A97ABCEAF1 /* CantioIcon.swift */; };
 		D005B0D14D43093E93C9E1BA /* test_pillCapsule_dark_glass_long.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 5DB315D7A6379D8F9D91B6A8 /* test_pillCapsule_dark_glass_long.1.png */; };
 		D05000E09B6F925E53C74D05 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AED8DBA0EE2AEECA0DA71DAE /* UpdateController.swift */; };
@@ -109,10 +110,13 @@
 		4F3C01DBD56EC2ECEC7BD136 /* test_pillCapsule_light_solid_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_solid_short.1.png; sourceTree = "<group>"; };
 		551B78748B56B3BB2E9DDF6B /* test_menuBarPanel_light_emptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_menuBarPanel_light_emptyState.1.png; sourceTree = "<group>"; };
 		58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsWindow.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B01 /* DragSnap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragSnap.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B03 /* DragGuideOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragGuideOverlay.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4C01 /* DragSnapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragSnapTests.swift; sourceTree = "<group>"; };
 		5948E7C0114649963CAAFE40 /* test_pillCapsule_light_glass_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass_medium.1.png; sourceTree = "<group>"; };
 		5DB315D7A6379D8F9D91B6A8 /* test_pillCapsule_dark_glass_long.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_long.1.png; sourceTree = "<group>"; };
 		5E98C21EB7B4D4E3C52C26E0 /* test_pillCapsule_dark_solid_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_solid_short.1.png; sourceTree = "<group>"; };
-		615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_pill_glass_dark.1.png; sourceTree = "<group>"; };
+		615D01210283462662939B6F /* test_lyricsContent_floating_glass_dark.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_floating_glass_dark.1.png; sourceTree = "<group>"; };
 		6B6E9552BE39CECB5BDCDF44 /* SpotifyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMonitor.swift; sourceTree = "<group>"; };
 		6D22FA0799314AA24CA8C017 /* MenuBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanel.swift; sourceTree = "<group>"; };
 		6D22FA0799314AA24CA8C018 /* StatusBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarPopover.swift; sourceTree = "<group>"; };
@@ -132,7 +136,6 @@
 		96F158C06BC6616031F872ED /* FontSizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeTests.swift; sourceTree = "<group>"; };
 		77D5D2FE37AAA11A0770A33A /* SettingsActivatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsActivatorTests.swift; sourceTree = "<group>"; };
 		99A35BD2D6C698AA3EBD7F7A /* Cantio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cantio.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A459DC927CCDD727199922D /* test_lyricsContent_minimal_solid_light.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_minimal_solid_light.1.png; sourceTree = "<group>"; };
 		9BEECDE6AF92C0A7B5D17840 /* test_pillCapsule_light_solid_long.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_solid_long.1.png; sourceTree = "<group>"; };
 		A7B1768B2F790BC6C74F2512 /* MenuBarPanelSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanelSnapshotTests.swift; sourceTree = "<group>"; };
 		A9E7FD1E48B4E3B65A2A77F8 /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
@@ -153,7 +156,6 @@
 		E5283BE27DF45807909549F1 /* test_pillCapsule_dark_glass_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_medium.1.png; sourceTree = "<group>"; };
 		E74AD85B3B4C457CEFC8F071 /* LyricsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsStoreTests.swift; sourceTree = "<group>"; };
 		FB49C7AA2338B1EA3513B262 /* test_pillCapsule_light_glass.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass.1.png; sourceTree = "<group>"; };
-		FEADF818577B60665BA69F39 /* test_lyricsContent_minimal_glass_dark.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_lyricsContent_minimal_glass_dark.1.png; sourceTree = "<group>"; };
 		FF9E8186C29B584CB5E1ED2E /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -215,9 +217,7 @@
 		397AA90597D685950C71BB90 /* LyricsContentViewSnapshotTests */ = {
 			isa = PBXGroup;
 			children = (
-				FEADF818577B60665BA69F39 /* test_lyricsContent_minimal_glass_dark.1.png */,
-				9A459DC927CCDD727199922D /* test_lyricsContent_minimal_solid_light.1.png */,
-				615D01210283462662939B6F /* test_lyricsContent_pill_glass_dark.1.png */,
+				615D01210283462662939B6F /* test_lyricsContent_floating_glass_dark.1.png */,
 			);
 			path = LyricsContentViewSnapshotTests;
 			sourceTree = "<group>";
@@ -320,6 +320,8 @@
 			children = (
 				7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */,
 				58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */,
+				A1B2C3D4E5F60718293A4B01 /* DragSnap.swift */,
+				A1B2C3D4E5F60718293A4B03 /* DragGuideOverlay.swift */,
 				311193D96022FFDD167967DE /* LyricsContentView.swift */,
 			);
 			path = Window;
@@ -387,6 +389,7 @@
 			isa = PBXGroup;
 			children = (
 				7C341C9D76A1F0508921B7CC /* EffectiveClickThroughTests.swift */,
+				A1B2C3D4E5F60718293A4C01 /* DragSnapTests.swift */,
 				4E1C7ED9F2B4C98FF342E687 /* FlowLayoutTests.swift */,
 				E217993E1F526FDF1A6A1595 /* HotKeyTests.swift */,
 			);
@@ -495,9 +498,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B3F5C9C0D1ECFCD2496CF930 /* test_lyricsContent_minimal_glass_dark.1.png in Resources */,
-				59E6375BFF0FFE787D19A893 /* test_lyricsContent_minimal_solid_light.1.png in Resources */,
-				C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_pill_glass_dark.1.png in Resources */,
+				C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_floating_glass_dark.1.png in Resources */,
 				4FF4B58F9CA9A929C5AF8652 /* test_menuBarPanel_dark_emptyState.1.png in Resources */,
 				2B1E3789310190D68A03CB7A /* test_menuBarPanel_light_emptyState.1.png in Resources */,
 				98E43B3F1BD2D146C3EA1F70 /* test_pillCapsule_dark_glass.1.png in Resources */,
@@ -535,6 +536,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BAF3ED9C872CBDB2DFB8C427 /* EffectiveClickThroughTests.swift in Sources */,
+				A1B2C3D4E5F60718293A4C02 /* DragSnapTests.swift in Sources */,
 				FC90294A4DA9F1AD35538393 /* ExtrapolatePositionTests.swift in Sources */,
 				6931C8C1ABB9480A12F965C5 /* CantioTests.swift in Sources */,
 				A0B85F0E3A0E9FAA96045C97 /* FlowLayoutTests.swift in Sources */,
@@ -564,6 +566,8 @@
 			files = (
 				3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */,
 				BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */,
+				A1B2C3D4E5F60718293A4B02 /* DragSnap.swift in Sources */,
+				A1B2C3D4E5F60718293A4B04 /* DragGuideOverlay.swift in Sources */,
 				108639FE94380676BB5724CC /* CantioApp.swift in Sources */,
 				CBBD40EEF40E2BBD4F4A8932 /* CantioIcon.swift in Sources */,
 				F0B032E65C99C56516B2CDB8 /* HotKey.swift in Sources */,

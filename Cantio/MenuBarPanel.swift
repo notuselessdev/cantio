@@ -11,6 +11,7 @@ struct MenuBarPanel: View {
     @ObservedObject var prefs: Preferences
     let onAppear: () -> Void
     var onDismiss: () -> Void = {}
+    var onRecenter: () -> Void = {}
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.openSettings) private var openSettings
@@ -74,6 +75,17 @@ struct MenuBarPanel: View {
                         label: prefs.windowVisible ? "Hide lyrics window" : "Show lyrics window",
                         shortcut: "⌥⌘L", palette: palette) {
                     prefs.windowVisible.toggle()
+                }
+                if prefs.windowStyle == .floating {
+                    MenuRow(icon: .recenter,
+                            label: "Re-center lyrics",
+                            muted: !prefs.windowVisible,
+                            palette: palette) {
+                        onDismiss()
+                        onRecenter()
+                    }
+                    .disabled(!prefs.windowVisible)
+                    .accessibilityLabel("Re-center lyrics window")
                 }
                 MenuRow(icon: .eye,
                         label: "Auto-hide",
@@ -446,7 +458,7 @@ private struct LyricsNudgeRow: View {
 
 // MARK: - Menu rows
 
-enum MenuIconKind { case window, theme, pause, play, gear, quit, eye, reload }
+enum MenuIconKind { case window, theme, pause, play, gear, quit, eye, reload, recenter }
 
 struct MenuRow<Trailing: View>: View {
     let icon: MenuIconKind
@@ -635,6 +647,7 @@ struct MenuIcon: View {
         case .quit: return "power"
         case .eye: return "eye"
         case .reload: return "arrow.clockwise"
+        case .recenter: return "scope"
         }
     }
 

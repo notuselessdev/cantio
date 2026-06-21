@@ -11,33 +11,33 @@ final class PreferencesMigrationTests: XCTestCase {
         return d
     }
 
-    func test_init_legacyGlassPreset_mapsToMinimalGlass() {
+    func test_init_legacyGlassPreset_mapsToFloatingGlass() {
         let d = makeDefaults()
         d.set("glass", forKey: "windowPreset")
 
         let prefs = Preferences(defaults: d)
 
-        XCTAssertEqual(prefs.windowStyle, .minimal)
+        XCTAssertEqual(prefs.windowStyle, .floating)
         XCTAssertEqual(prefs.backgroundStyle, .glass)
     }
 
-    func test_init_legacySolidPreset_mapsToMinimalSolid() {
+    func test_init_legacySolidPreset_mapsToFloatingSolid() {
         let d = makeDefaults()
         d.set("solid", forKey: "windowPreset")
 
         let prefs = Preferences(defaults: d)
 
-        XCTAssertEqual(prefs.windowStyle, .minimal)
+        XCTAssertEqual(prefs.windowStyle, .floating)
         XCTAssertEqual(prefs.backgroundStyle, .solid)
     }
 
-    func test_init_legacyMinimalPreset_mapsToMinimalGlass() {
+    func test_init_legacyMinimalPreset_mapsToFloatingGlass() {
         let d = makeDefaults()
         d.set("minimal", forKey: "windowPreset")
 
         let prefs = Preferences(defaults: d)
 
-        XCTAssertEqual(prefs.windowStyle, .minimal)
+        XCTAssertEqual(prefs.windowStyle, .floating)
         XCTAssertEqual(prefs.backgroundStyle, .glass)
     }
 
@@ -51,12 +51,12 @@ final class PreferencesMigrationTests: XCTestCase {
         XCTAssertEqual(prefs.backgroundStyle, .glass)
     }
 
-    func test_init_noLegacyOrCurrent_defaultsToPillGlass() {
+    func test_init_noLegacyOrCurrent_defaultsToFloatingGlass() {
         let d = makeDefaults()
 
         let prefs = Preferences(defaults: d)
 
-        XCTAssertEqual(prefs.windowStyle, .pill)
+        XCTAssertEqual(prefs.windowStyle, .floating)
         XCTAssertEqual(prefs.backgroundStyle, .glass)
     }
 
