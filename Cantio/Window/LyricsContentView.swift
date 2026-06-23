@@ -23,15 +23,30 @@ struct LyricsContentView: View {
     @ObservedObject var lyrics: LyricsStore
     @ObservedObject var prefs: Preferences
     @EnvironmentObject var hitTarget: PillHitTarget
+    @StateObject private var artColors = ArtworkColors()
 
     /// Coordinate space declared at the root of `pillBody` so PillCapsule
     /// can report its frame relative to the NSHostingView's contentView.
     private static let pillCoordinateSpace = "pillContent"
 
+    /// Upper bound on pill-line width, a hair inside the fixed pill window
+    /// (`FloatingLyricsController.pillDefaultSize` = 520pt). Bounding the
+    /// proposed width here keeps a long line from reporting an unbounded
+    /// intrinsic size, which previously let the borderless window grow past
+    /// its fixed footprint and the centered capsule creep sideways over a song.
+    private static let pillContentMaxWidth: CGFloat = 496
+
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Environment(\.colorScheme) private var colorScheme
+
+    /// Fullscreen chrome (header + transport + exit) auto-hides ~3s after the
+    /// last pointer movement so the lyrics read clean. Kept visible whenever
+    /// VoiceOver is on so the controls never vanish from the a11y tree.
+    @State private var chromeVisible = true
+    @State private var chromeHideTask: Task<Void, Never>?
 
     private var style: WindowStyle { prefs.windowStyle }
     private var bgStyle: BackgroundStyle { prefs.backgroundStyle }
@@ -68,6 +83,13 @@ struct LyricsContentView: View {
             case .fullscreen: fullscreenBody
             }
         }
+        .onAppear { syncArtColors() }
+        .onChange(of: monitor.nowPlaying?.trackId) { _, _ in syncArtColors() }
+    }
+
+    private func syncArtColors() {
+        artColors.update(trackId: monitor.nowPlaying?.trackId,
+                         artworkURL: monitor.nowPlaying?.artworkURL)
     }
 
     // MARK: - Pill / Pill Stack
@@ -135,25 +157,34 @@ struct LyricsContentView: View {
         ZStack(alignment: .topTrailing) {
             KaraokeBackdrop(hues: trackHues, tone: effectiveTone,
                             palette: palette, reduceMotion: reduceMotion)
+            // Top + bottom scrims so the white chrome clears AA contrast even
+            // over a bright album-art backdrop. Fades with the chrome.
+            chromeScrim
+                .modifier(ChromeFade(visible: chromeVisible, reduceMotion: reduceMotion))
+                .allowsHitTesting(false)
             VStack(spacing: 0) {
                 // Header — album art + title.
                 if let np = monitor.nowPlaying {
-                    HStack(spacing: 14) {
-                        AlbumArtView(hues: trackHues, size: 56, artworkURL: np.artworkURL)
-                        VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 22) {
+                        AlbumArtView(hues: trackHues, size: 96, artworkURL: np.artworkURL)
+                        VStack(alignment: .leading, spacing: 5) {
                             Text(np.title)
-                                .font(.system(size: 17, weight: .semibold))
+                                .font(.system(size: 28, weight: .bold))
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 8, y: 1)
                             Text("\(np.artist) · \(np.album)")
-                                .font(.system(size: 12.5))
-                                .foregroundStyle(Color.white.opacity(0.72))
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(Color.white.opacity(0.74))
                                 .shadow(color: .black.opacity(0.4), radius: 6, y: 1)
                         }
                         Spacer()
                     }
-                    .padding(.top, 36)
-                    .padding(.horizontal, 40)
+                    .padding(.top, 44)
+                    .padding(.horizontal, 48)
+                    // Read as one VoiceOver element; art is decorative.
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("\(np.title), \(np.artist), \(np.album)")
+                    .modifier(ChromeFade(visible: chromeVisible, reduceMotion: reduceMotion))
                 }
                 Spacer(minLength: 0)
                 // Fullscreen ignores prefs.fontSize and auto-scales to fill
@@ -169,9 +200,10 @@ struct LyricsContentView: View {
                 .padding(.horizontal, 80)
                 Spacer(minLength: 0)
                 if monitor.nowPlaying != nil {
-                    progressBar(fullscreen: true)
-                        .padding(.horizontal, 80)
-                        .padding(.bottom, 56)
+                    FullscreenTransport(monitor: monitor, onInteract: revealChrome)
+                        .padding(.horizontal, 40)
+                        .padding(.bottom, 48)
+                        .modifier(ChromeFade(visible: chromeVisible, reduceMotion: reduceMotion))
                 }
             }
             // Visible exit affordance — Esc also works (controller's local
@@ -190,8 +222,50 @@ struct LyricsContentView: View {
             .accessibilityLabel("Exit fullscreen")
             .padding(.top, 24)
             .padding(.trailing, 24)
+            .modifier(ChromeFade(visible: chromeVisible, reduceMotion: reduceMotion))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        // Esc exits — bound to the root so it works even when the exit button's
+        // chrome has auto-hidden (its own keyboardShortcut goes inert then).
+        // Backstops the controller's local key monitor, which only fires while
+        // the borderless window holds key focus.
+        .onExitCommand { prefs.windowStyle = .floating }
+        // Pointer movement reveals the chrome and restarts the idle countdown.
+        .onContinuousHover { phase in
+            if case .active = phase { revealChrome() }
+        }
+        .onAppear { revealChrome() }
+        .onDisappear { chromeHideTask?.cancel(); chromeHideTask = nil }
+    }
+
+    /// Dark gradient behind the top header and bottom transport so white
+    /// chrome text/controls keep AA contrast over a bright album-art backdrop.
+    private var chromeScrim: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [.black.opacity(0.45), .clear],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: 220)
+            Spacer(minLength: 0)
+            LinearGradient(colors: [.clear, .black.opacity(0.5)],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: 240)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityHidden(true)
+    }
+
+    /// Show the chrome and (unless VoiceOver is active) schedule it to hide
+    /// after a short idle period.
+    private func revealChrome() {
+        chromeHideTask?.cancel()
+        if !chromeVisible { chromeVisible = true }
+        guard !voiceOverEnabled else { return }
+        chromeHideTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            chromeVisible = false
+        }
     }
 
     // MARK: - Lyrics renderer
@@ -263,6 +337,7 @@ struct LyricsContentView: View {
                                 size: pillFar, opacity: 0.6)
                 }
             }
+            .frame(maxWidth: Self.pillContentMaxWidth)
         } else {
             VStack(spacing: large ? 26 : 10) {
                 if linesAround >= 2 {
@@ -324,36 +399,6 @@ struct LyricsContentView: View {
             .blur(radius: 2)
     }
 
-    // MARK: - Footer
-
-    @ViewBuilder
-    private func progressBar(fullscreen: Bool) -> some View {
-        if let np = monitor.nowPlaying, np.durationSeconds > 0 {
-            TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
-                let pos = monitor.interpolatedPosition(now: ctx.date) ?? np.positionSeconds
-                let pct = max(0, min(1, pos / np.durationSeconds))
-                VStack(spacing: 6) {
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.white.opacity(fullscreen ? 0.18 : 0.10))
-                            Capsule()
-                                .fill(fullscreen ? Color.white.opacity(0.85) : palette.accent)
-                                .frame(width: geo.size.width * pct)
-                        }
-                    }
-                    .frame(height: 3)
-                    HStack {
-                        Text(formatTime(pos))
-                        Spacer()
-                        Text("−" + formatTime(np.durationSeconds - pos))
-                    }
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(palette.textFaint)
-                }
-            }
-        }
-    }
-
     // MARK: - Permission capsule
 
     private var permissionCapsule: some View {
@@ -394,13 +439,11 @@ struct LyricsContentView: View {
 
     // MARK: - Helpers
 
-    private func formatTime(_ s: Double) -> String {
-        let total = Int(max(0, s))
-        return String(format: "%d:%02d", total / 60, total % 60)
-    }
+    /// Album-art-derived hues when extraction succeeded, else a deterministic
+    /// hash of the track id so identity still reads before/without artwork.
+    private var trackHues: [Double] { artColors.hues ?? hashHues }
 
-    /// Deterministic art hues from the current track id.
-    private var trackHues: [Double] {
+    private var hashHues: [Double] {
         let seed = monitor.nowPlaying?.trackId ?? "cantio"
         var hash = UInt64(5381)
         for ch in seed.unicodeScalars { hash = hash &* 33 &+ UInt64(ch.value) }
@@ -513,18 +556,17 @@ struct PillCapsule: View {
     }
 
     private var pillContent: some View {
-        // Capsule hugs the rendered text so short lines stay tight and
-        // long lines extend up to the parent's available width before
-        // MarqueeText takes over the overflow. `.fixedSize(horizontal:)`
-        // lets the inner Text report its natural width to the parent
-        // layout instead of being stretched to maxWidth.
+        // Capsule hugs the rendered text so short lines stay tight; a long
+        // line is bounded by the parent's proposed width (the pill window) and
+        // truncates with a tail ellipsis. The capsule must NOT report an
+        // unbounded intrinsic width (no `.fixedSize(horizontal:)`) — that let
+        // the borderless window grow and the centered pill drift sideways.
         Text(words.joined(separator: " "))
             .font(.system(size: fontSize, weight: .semibold))
             .tracking(max(0.4, fontSize * 0.04))
             .foregroundStyle(palette.accent)
             .lineLimit(1)
             .truncationMode(.tail)
-            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, max(12, fontSize * 0.9))
             .padding(.vertical, max(7, fontSize * 0.5))
     }
@@ -622,6 +664,8 @@ struct AlbumArtView: View {
                 .strokeBorder(.white.opacity(0.06), lineWidth: 0.5))
         .shadow(color: .black.opacity(0.25), radius: 1, y: 1)
         .shadow(color: .black.opacity(0.18), radius: 14, y: 4)
+        // Purely decorative — the song title/artist text carries the label.
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder
@@ -687,58 +731,71 @@ struct KaraokeBackdrop: View {
     private var vignetteOpacity: Double { tone == .dark ? 0.45 : 0.18 }
     private var vignetteTopOpacity: Double { tone == .dark ? 0.25 : 0.10 }
 
+    /// Soft blobs that drift on slow, independent sine paths so the backdrop
+    /// breathes without distracting from the lyrics. Positions / amplitudes are
+    /// fractions of the live screen so it scales from a laptop to a 27" display.
+    private struct Bubble {
+        let cx: Double, cy: Double      // base center, fraction of (w, h)
+        let size: Double                // diameter, fraction of min(w, h)
+        let hueIndex: Int
+        let bright: Bool                // pick bloomA (true) vs bloomB luminance
+        let ampX: Double, ampY: Double  // drift amplitude, fraction of (w, h)
+        let speedX: Double, speedY: Double, speedPulse: Double
+        let phase: Double, blur: Double
+    }
+
+    private static let bubbles: [Bubble] = [
+        Bubble(cx: 0.24, cy: 0.30, size: 0.95, hueIndex: 0, bright: true,
+               ampX: 0.11, ampY: 0.13, speedX: 0.42, speedY: 0.33, speedPulse: 0.55, phase: 0.0, blur: 55),
+        Bubble(cx: 0.74, cy: 0.24, size: 0.78, hueIndex: 1, bright: false,
+               ampX: 0.13, ampY: 0.10, speedX: 0.31, speedY: 0.46, speedPulse: 0.48, phase: 1.7, blur: 62),
+        Bubble(cx: 0.60, cy: 0.72, size: 1.05, hueIndex: 2, bright: true,
+               ampX: 0.10, ampY: 0.11, speedX: 0.38, speedY: 0.28, speedPulse: 0.60, phase: 3.1, blur: 70),
+        Bubble(cx: 0.32, cy: 0.78, size: 0.66, hueIndex: 1, bright: false,
+               ampX: 0.14, ampY: 0.12, speedX: 0.27, speedY: 0.40, speedPulse: 0.52, phase: 4.5, blur: 58),
+        Bubble(cx: 0.86, cy: 0.62, size: 0.72, hueIndex: 0, bright: true,
+               ampX: 0.11, ampY: 0.14, speedX: 0.35, speedY: 0.24, speedPulse: 0.50, phase: 5.9, blur: 64),
+    ]
+
     var body: some View {
         if reduceMotion {
-            staticBackdrop
+            // Reduce Motion: freeze every bubble at t = 0 — no drift, no pulse.
+            GeometryReader { geo in bubbleField(geo: geo, t: 0, animate: false) }
+                .compositingGroup()
+                .clipped()
         } else {
             TimelineView(.animation) { ctx in
-                animatedBackdrop(t: ctx.date.timeIntervalSinceReferenceDate)
+                GeometryReader { geo in
+                    bubbleField(geo: geo, t: ctx.date.timeIntervalSinceReferenceDate, animate: true)
+                }
+                .compositingGroup()
+                .clipped()
             }
         }
     }
 
-    private var staticBackdrop: some View {
-        ZStack {
+    private func bubbleField(geo: GeometryProxy, t: TimeInterval, animate: Bool) -> some View {
+        let w = geo.size.width, h = geo.size.height
+        let m = min(w, h)
+        return ZStack {
             FL.oklch(baseLuminance, 0.02, hues[2])
-            Circle()
-                .fill(RadialGradient(colors: [FL.oklch(bloomALuminance, 0.18, hues[0]), .clear],
-                      center: .center, startRadius: 0, endRadius: 500))
-                .frame(width: 900, height: 900)
-                .offset(x: -200, y: -200)
-            Circle()
-                .fill(RadialGradient(colors: [FL.oklch(bloomBLuminance, 0.17, hues[1]), .clear],
-                      center: .center, startRadius: 0, endRadius: 500))
-                .frame(width: 900, height: 900)
-                .offset(x: 200, y: 200)
+            ForEach(Array(Self.bubbles.enumerated()), id: \.offset) { _, b in
+                let hue = hues[b.hueIndex % hues.count]
+                let lum = b.bright ? bloomALuminance : bloomBLuminance
+                let dx = animate ? sin(t * b.speedX + b.phase) * (w * b.ampX) : 0
+                let dy = animate ? cos(t * b.speedY + b.phase) * (h * b.ampY) : 0
+                let pulse = animate ? 1 + 0.12 * sin(t * b.speedPulse + b.phase) : 1
+                let d = b.size * m
+                Circle()
+                    .fill(RadialGradient(colors: [FL.oklch(lum, 0.18, hue), .clear],
+                          center: .center, startRadius: 0, endRadius: d / 2))
+                    .frame(width: d, height: d)
+                    .scaleEffect(pulse)
+                    .position(x: w * b.cx + dx, y: h * b.cy + dy)
+                    .blur(radius: b.blur)
+            }
             vignette
         }
-        .compositingGroup()
-        .clipped()
-    }
-
-    private func animatedBackdrop(t: TimeInterval) -> some View {
-        ZStack {
-            FL.oklch(baseLuminance, 0.02, hues[2])
-            let dx1 = sin(t * 0.35) * 60
-            let dy1 = cos(t * 0.30) * 40
-            Circle()
-                .fill(RadialGradient(colors: [FL.oklch(bloomALuminance, 0.18, hues[0]), .clear],
-                      center: .center, startRadius: 0, endRadius: 500))
-                .frame(width: 900, height: 900)
-                .offset(x: -200 + dx1, y: -200 + dy1)
-                .blur(radius: 40)
-            let dx2 = cos(t * 0.40) * 70
-            let dy2 = sin(t * 0.25) * 50
-            Circle()
-                .fill(RadialGradient(colors: [FL.oklch(bloomBLuminance, 0.17, hues[1]), .clear],
-                      center: .center, startRadius: 0, endRadius: 500))
-                .frame(width: 900, height: 900)
-                .offset(x: 200 + dx2, y: 200 + dy2)
-                .blur(radius: 60)
-            vignette
-        }
-        .compositingGroup()
-        .clipped()
     }
 
     private var vignette: some View {
@@ -750,6 +807,216 @@ struct KaraokeBackdrop: View {
             .init(color: .clear, location: 0.7),
             .init(color: .black.opacity(vignetteOpacity), location: 1)
         ], startPoint: .top, endPoint: .bottom)
+    }
+}
+
+// MARK: - Fullscreen chrome fade
+
+/// Fades + disables hit-testing for auto-hiding fullscreen chrome. Reduce
+/// Motion still fades (opacity only, no movement) so the controls don't
+/// pop in/out abruptly.
+private struct ChromeFade: ViewModifier {
+    let visible: Bool
+    let reduceMotion: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(visible ? 1 : 0)
+            .allowsHitTesting(visible)
+            // Drop hidden chrome from the AX tree so VoiceOver / Tab can't land
+            // on an invisible, non-actionable control (dead focus stop).
+            .accessibilityHidden(!visible)
+            .animation(reduceMotion ? .linear(duration: 0.15) : .easeOut(duration: 0.22),
+                       value: visible)
+    }
+}
+
+// MARK: - Fullscreen transport
+
+/// Centered scrubber + transport cluster for the fullscreen overlay. Reuses
+/// `SpotifyMonitor`'s optimistic commands (`playPause` / `previousTrack` /
+/// `nextTrack` / `seek`). Styled white-on-glass for the dark karaoke backdrop
+/// rather than the menu panel's palette-tinted look.
+struct FullscreenTransport: View {
+    @ObservedObject var monitor: SpotifyMonitor
+    /// Called on any transport interaction (pointer or keyboard shortcut) so
+    /// the auto-hiding chrome reveals itself and restarts its idle countdown —
+    /// this is what keeps keyboard-only users from operating invisible controls.
+    var onInteract: () -> Void = {}
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// ± step (seconds) for the seek-back / seek-forward glyphs.
+    private static let seekStep: Double = 10
+
+    @State private var dragPosition: Double?
+    @State private var tickedNow = Date()
+    @State private var ticker: Task<Void, Never>?
+
+    private var np: NowPlaying? { monitor.nowPlaying }
+    private var duration: Double { np?.durationSeconds ?? 0 }
+    private var available: Bool { monitor.availability == .available }
+    private var scrubDisabled: Bool { !available || duration <= 0 }
+    private var isPlaying: Bool { np?.state == .playing }
+
+    private var displayed: Double {
+        if let dragPosition { return dragPosition }
+        return monitor.interpolatedPosition(now: tickedNow) ?? np?.positionSeconds ?? 0
+    }
+
+    var body: some View {
+        VStack(spacing: 20) {
+            scrubber
+            controls
+        }
+        .frame(maxWidth: 640)
+        .frame(maxWidth: .infinity)   // center the 640pt cluster in the screen
+        .onAppear { startTicker() }
+        .onDisappear { ticker?.cancel(); ticker = nil }
+    }
+
+    /// Run a transport command and reveal the chrome in one step. Wrapping the
+    /// command means a keyboard shortcut fired while the chrome is hidden both
+    /// acts and brings the controls back (and resets the idle timer).
+    private func act(_ command: () -> Void) {
+        onInteract()
+        command()
+    }
+
+    private var scrubber: some View {
+        VStack(spacing: 7) {
+            GeometryReader { geo in
+                let pct = duration > 0 ? max(0, min(1, displayed / duration)) : 0
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.18)).frame(height: 4)
+                    Capsule().fill(Color.white.opacity(0.9))
+                        .frame(width: geo.size.width * pct, height: 4)
+                    Circle().fill(.white)
+                        .frame(width: 12, height: 12)
+                        .offset(x: geo.size.width * pct - 6)
+                        .opacity(dragPosition != nil ? 1 : 0)
+                }
+                .frame(height: 22)
+                .contentShape(Rectangle())
+                .gesture(scrubGesture(width: geo.size.width))
+            }
+            .frame(height: 22)
+            HStack {
+                Text(format(displayed))
+                Spacer()
+                Text("−" + format(max(0, duration - displayed)))
+            }
+            .font(.system(size: 11).monospacedDigit())
+            .foregroundStyle(.white.opacity(0.65))
+        }
+        .opacity(scrubDisabled ? 0.4 : 1)
+        .allowsHitTesting(!scrubDisabled)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Playback position")
+        .accessibilityValue("\(format(displayed)) of \(format(duration))")
+        .accessibilityAdjustableAction { dir in
+            seekBy(dir == .increment ? Self.seekStep : -Self.seekStep)
+        }
+    }
+
+    private var controls: some View {
+        // Keyboard equivalents survive the hidden-chrome state (shortcuts fire
+        // through the responder chain, not hit-testing): ← / → scrub ±10s,
+        // ⌘← / ⌘→ skip tracks, space toggles play/pause. Each reveals chrome.
+        HStack(spacing: 32) {
+            glyph("backward.end.fill", "Previous track", size: 22,
+                  key: .leftArrow, modifiers: .command) { act { monitor.previousTrack() } }
+            glyph("gobackward.10", "Back 10 seconds", size: 25,
+                  key: .leftArrow, modifiers: []) { seekBy(-Self.seekStep) }
+            playPauseButton
+            glyph("goforward.10", "Forward 10 seconds", size: 25,
+                  key: .rightArrow, modifiers: []) { seekBy(Self.seekStep) }
+            glyph("forward.end.fill", "Next track", size: 22,
+                  key: .rightArrow, modifiers: .command) { act { monitor.nextTrack() } }
+        }
+        .opacity(available ? 1 : 0.4)
+        .disabled(!available)
+    }
+
+    private var playPauseButton: some View {
+        Button { act { monitor.playPause() } } label: {
+            ZStack {
+                Circle().fill(.white).frame(width: 62, height: 62)
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 25, weight: .bold))
+                    .foregroundStyle(.black.opacity(0.85))
+                    // Nudge the play triangle to its optical center.
+                    .offset(x: isPlaying ? 0 : 2)
+            }
+            .contentShape(Circle())
+            .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
+        }
+        .buttonStyle(.plain)
+        .keyboardShortcut(.space, modifiers: [])
+        .accessibilityLabel(isPlaying ? "Pause" : "Play")
+        .help(isPlaying ? "Pause" : "Play")
+    }
+
+    private func glyph(_ symbol: String, _ label: String, size: CGFloat,
+                       key: KeyEquivalent, modifiers: EventModifiers,
+                       action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+                .shadow(color: .black.opacity(0.35), radius: 5, y: 1)
+        }
+        .buttonStyle(.plain)
+        .keyboardShortcut(key, modifiers: modifiers)
+        .accessibilityLabel(label)
+        .help(label)
+    }
+
+    private func seekBy(_ delta: Double) {
+        guard !scrubDisabled else { onInteract(); return }
+        onInteract()
+        let target = max(0, min(duration, displayed + delta))
+        monitor.seek(to: target)
+        // Hold the value briefly so the bar doesn't snap back before the next
+        // poll lands (~500 ms).
+        dragPosition = target
+        let hold = target
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            if dragPosition == hold { dragPosition = nil }
+        }
+    }
+
+    private func scrubGesture(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { g in
+                guard !scrubDisabled, duration > 0, width > 0 else { return }
+                onInteract()
+                dragPosition = max(0, min(1, g.location.x / width)) * duration
+            }
+            .onEnded { _ in
+                guard !scrubDisabled, let target = dragPosition else { return }
+                monitor.seek(to: target)
+                let hold = target
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    if dragPosition == hold { dragPosition = nil }
+                }
+            }
+    }
+
+    private func startTicker() {
+        guard ticker == nil, !reduceMotion else { tickedNow = Date(); return }
+        ticker = Task { @MainActor in
+            while !Task.isCancelled {
+                tickedNow = Date()
+                try? await Task.sleep(nanoseconds: 250_000_000)
+            }
+        }
+    }
+
+    private func format(_ s: Double) -> String {
+        let total = max(0, Int(s.rounded()))
+        return String(format: "%d:%02d", total / 60, total % 60)
     }
 }
 

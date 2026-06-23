@@ -38,8 +38,6 @@ final class FloatingLyricsController {
     /// Pill is a fixed-size capsule; autosave persists its origin only.
     private static let pillAutosaveName = "CantioFloatingLyricsWindow"
 
-    /// Saved frame to restore when leaving fullscreen — never written to autosave.
-    private var preFullscreenFrame: NSRect?
     /// True while the window is currently sized to fullscreen.
     private var isFullscreenActive = false
 
@@ -108,41 +106,43 @@ final class FloatingLyricsController {
     private func applyStyleGeometry(previous: WindowStyle?) {
         guard let window else { return }
 
-        // Leaving fullscreen: restore the saved frame and re-enable movement
-        // before swapping autosave / setting style frames.
-        if previous == .fullscreen, prefs.windowStyle != .fullscreen {
+        let leavingFullscreen = previous == .fullscreen && prefs.windowStyle != .fullscreen
+        if leavingFullscreen {
             isFullscreenActive = false
             window.isMovable = true
-            if let saved = preFullscreenFrame {
-                window.setFrame(saved, display: true)
-            }
-            preFullscreenFrame = nil
+            window.level = .floating // fullscreen raised it to .statusBar
         }
 
         switch prefs.windowStyle {
         case .floating:
-            // `setFrameAutosaveName` only enables autosave; it doesn't restore
-            // immediately. Pair with `setFrameUsingName` so the user's last
-            // origin loads on every reattach. The window's
-            // `constrainFrameRect` keeps later drags inside the visible
-            // frame, so we don't need to re-clamp here.
-            window.clampToVisibleFrame = true
+            // The user's last pill position lives in the durable autosave store
+            // (written on every drag, and on fullscreen-enter below). Reload it
+            // verbatim on every reattach. `setFrameAutosaveName` only enables
+            // autosave; pair it with `setFrameUsingName` to actually restore.
+            window.level = .floating
             window.setFrameAutosaveName("")
             window.setFrameAutosaveName(Self.pillAutosaveName)
             window.contentMinSize = Self.pillDefaultSize
             window.contentMaxSize = Self.pillDefaultSize
+            // Disable clamping while we place the frame so a position near a
+            // screen edge is honored exactly — otherwise constrainFrameRect
+            // nudges the restored pill inward (up/left of where it was).
+            window.clampToVisibleFrame = false
             let restored = window.setFrameUsingName(Self.pillAutosaveName)
             var f = window.frame
             f.size = Self.pillDefaultSize
             if !restored { f.origin = Self.defaultOrigin(for: Self.pillDefaultSize, on: window.screen) }
             window.setFrame(f, display: true)
+            window.clampToVisibleFrame = true
             window.isMovable = true
 
         case .fullscreen:
-            // Save the prior style's frame + style so we can restore on exit.
-            // Don't save another fullscreen-sized frame on top.
             if !isFullscreenActive {
-                preFullscreenFrame = window.frame
+                // Persist the live pill position so the floating branch can
+                // reload it on exit. Skip at launch (previous == nil): the
+                // window still holds the placeholder frame, which would clobber
+                // the real position saved by the prior session.
+                if previous == .floating { persistFrame() }
                 preFullscreenStyle = previous
             }
             // Detach autosave: we don't want the screen-sized frame to clobber
@@ -202,7 +202,7 @@ final class FloatingLyricsController {
                 window.animator().setFrame(frame, display: true)
             }
         }
-        window.saveFrame(usingName: Self.pillAutosaveName)
+        persistFrame()
     }
 
     // MARK: - Visibility
@@ -328,7 +328,25 @@ final class FloatingLyricsController {
             // Make the window key so SwiftUI's responder chain (and our local
             // monitor) actually receive keyDown. addGlobalMonitorForEvents
             // would need Accessibility permission to observe Esc cross-app.
+            // Activate the app first — when toggled from the menu the panel
+            // holds key focus and the app may be inactive, so makeKey alone
+            // won't stick and Esc wouldn't fire until the user clicks in.
+            NSApp.activate(ignoringOtherApps: true)
             window?.makeKeyAndOrderFront(nil)
+            // The menu-bar panel dismiss races this and can steal key focus back
+            // a tick later, leaving Esc dead until the user clicks in. Re-assert
+            // key + first responder across the next few runloop ticks so the
+            // window reliably owns keyDown by the time the dust settles.
+            for delay in [0.05, 0.15, 0.3] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                    guard let window = self?.window, self?.prefs.windowStyle == .fullscreen else { return }
+                    if !window.isKeyWindow {
+                        NSApp.activate(ignoringOtherApps: true)
+                        window.makeKeyAndOrderFront(nil)
+                    }
+                    window.makeFirstResponder(window.contentView)
+                }
+            }
             if fullscreenEscMonitor != nil { return }
             fullscreenEscMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
                 guard event.keyCode == 53 else { return event } // 53 = Escape
@@ -461,7 +479,17 @@ final class FloatingLyricsController {
         dragSession = nil
         hitTarget.isDragging = false
         guideOverlay.hide()
-        window?.saveFrame(usingName: Self.pillAutosaveName)
+        persistFrame()
+    }
+
+    /// Persist the pill's frame durably. `saveFrame` writes to UserDefaults,
+    /// but a SIGTERM (e.g. `killall` during dev rebuilds) kills the process
+    /// before cfprefsd's lazy flush — so force a synchronize to survive an
+    /// abrupt exit.
+    private func persistFrame() {
+        guard let window else { return }
+        window.saveFrame(usingName: Self.pillAutosaveName)
+        UserDefaults.standard.synchronize()
     }
 
     /// Pure helper: the default parking-slot rect in AppKit screen coords —

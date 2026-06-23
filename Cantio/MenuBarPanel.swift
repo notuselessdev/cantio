@@ -76,6 +76,28 @@ struct MenuBarPanel: View {
                         shortcut: "⌥⌘L", palette: palette) {
                     prefs.windowVisible.toggle()
                 }
+                let isFullscreen = prefs.windowStyle == .fullscreen
+                MenuRow(icon: .fullscreen,
+                        label: "Fullscreen",
+                        trailing: NativeSwitch(isOn: isFullscreen)
+                            .accessibilityHidden(true),
+                        palette: palette) {
+                    if isFullscreen {
+                        prefs.windowStyle = .floating
+                    } else {
+                        // Fullscreen is gated by windowVisible — make sure the
+                        // overlay can actually appear when toggled on. Dismiss
+                        // the panel so it releases key focus; the controller
+                        // then makes the fullscreen window key for Esc.
+                        prefs.windowVisible = true
+                        prefs.windowStyle = .fullscreen
+                        onDismiss()
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Fullscreen")
+                .accessibilityValue(isFullscreen ? "On" : "Off")
+                .accessibilityAddTraits(.isToggle)
                 if prefs.windowStyle == .floating {
                     MenuRow(icon: .recenter,
                             label: "Re-center lyrics",
@@ -458,7 +480,7 @@ private struct LyricsNudgeRow: View {
 
 // MARK: - Menu rows
 
-enum MenuIconKind { case window, theme, pause, play, gear, quit, eye, reload, recenter }
+enum MenuIconKind { case window, theme, pause, play, gear, quit, eye, reload, recenter, fullscreen }
 
 struct MenuRow<Trailing: View>: View {
     let icon: MenuIconKind
@@ -648,6 +670,7 @@ struct MenuIcon: View {
         case .eye: return "eye"
         case .reload: return "arrow.clockwise"
         case .recenter: return "scope"
+        case .fullscreen: return "arrow.up.left.and.arrow.down.right"
         }
     }
 

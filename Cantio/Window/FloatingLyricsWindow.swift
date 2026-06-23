@@ -46,7 +46,10 @@ final class FloatingLyricsWindow: NSWindow {
 
     override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
         guard clampToVisibleFrame else {
-            return super.constrainFrameRect(frameRect, to: screen)
+            // Return the frame untouched — `super` still nudges (e.g. keeps the
+            // window below the menu bar), which both shifts a restored pill by
+            // a few points and stops fullscreen from covering the menu bar.
+            return frameRect
         }
         let target = screen ?? self.screen ?? NSScreen.main
         guard let visible = target?.visibleFrame else {

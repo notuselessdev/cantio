@@ -105,17 +105,6 @@ struct SettingsView: View {
                     hero.padding(.bottom, 28)
 
                     PrefGroup(title: "Appearance", palette: palette) {
-                        PrefRow(label: "Window style", palette: palette) {
-                            SegmentedPicker(
-                                value: Binding(get: { prefs.windowStyle.label },
-                                               set: { newLabel in
-                                                   if let p = WindowStyle.allCases.first(where: { $0.label == newLabel }) {
-                                                       prefs.windowStyle = p
-                                                   }
-                                               }),
-                                options: WindowStyle.allCases.map(\.label),
-                                palette: palette)
-                        }
                         PrefRow(label: "Accent", palette: palette) {
                             AccentRow(hue: $prefs.accentHue, palette: palette)
                         }

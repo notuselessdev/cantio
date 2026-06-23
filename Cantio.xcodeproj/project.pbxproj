@@ -60,6 +60,7 @@
 		BAF3ED9C872CBDB2DFB8C427 /* EffectiveClickThroughTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C341C9D76A1F0508921B7CC /* EffectiveClickThroughTests.swift */; };
 		BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */; };
 		A1B2C3D4E5F60718293A4B02 /* DragSnap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B01 /* DragSnap.swift */; };
+		A1B2C3D4E5F60718293A4D02 /* ArtworkColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4D01 /* ArtworkColors.swift */; };
 		A1B2C3D4E5F60718293A4B04 /* DragGuideOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B03 /* DragGuideOverlay.swift */; };
 		A1B2C3D4E5F60718293A4C02 /* DragSnapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4C01 /* DragSnapTests.swift */; };
 		C1CDF2AD1DDB56CC82CB7B4D /* test_lyricsContent_floating_glass_dark.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 615D01210283462662939B6F /* test_lyricsContent_floating_glass_dark.1.png */; };
@@ -111,6 +112,7 @@
 		551B78748B56B3BB2E9DDF6B /* test_menuBarPanel_light_emptyState.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_menuBarPanel_light_emptyState.1.png; sourceTree = "<group>"; };
 		58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsWindow.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B01 /* DragSnap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragSnap.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4D01 /* ArtworkColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkColors.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B03 /* DragGuideOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragGuideOverlay.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4C01 /* DragSnapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragSnapTests.swift; sourceTree = "<group>"; };
 		5948E7C0114649963CAAFE40 /* test_pillCapsule_light_glass_medium.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_light_glass_medium.1.png; sourceTree = "<group>"; };
@@ -321,6 +323,7 @@
 				7F49DAC34251F7317C390A0B /* FloatingLyricsController.swift */,
 				58DFD7E4CBA6AC8E76F61337 /* FloatingLyricsWindow.swift */,
 				A1B2C3D4E5F60718293A4B01 /* DragSnap.swift */,
+				A1B2C3D4E5F60718293A4D01 /* ArtworkColors.swift */,
 				A1B2C3D4E5F60718293A4B03 /* DragGuideOverlay.swift */,
 				311193D96022FFDD167967DE /* LyricsContentView.swift */,
 			);
@@ -567,6 +570,7 @@
 				3596B5F02F8108C9FA111AF8 /* FloatingLyricsController.swift in Sources */,
 				BB5160647676AE8D6147E8B2 /* FloatingLyricsWindow.swift in Sources */,
 				A1B2C3D4E5F60718293A4B02 /* DragSnap.swift in Sources */,
+				A1B2C3D4E5F60718293A4D02 /* ArtworkColors.swift in Sources */,
 				A1B2C3D4E5F60718293A4B04 /* DragGuideOverlay.swift in Sources */,
 				108639FE94380676BB5724CC /* CantioApp.swift in Sources */,
 				CBBD40EEF40E2BBD4F4A8932 /* CantioIcon.swift in Sources */,
