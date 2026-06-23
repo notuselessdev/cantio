@@ -15,7 +15,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A7835E0A0B9ED2CA5C7A5281"
+               BlueprintIdentifier = "DEE07AF9531E290E9D89D863"
                BuildableName = "Cantio.app"
                BlueprintName = "Cantio"
                ReferencedContainer = "container:Cantio.xcodeproj">
@@ -33,7 +33,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A7835E0A0B9ED2CA5C7A5281"
+            BlueprintIdentifier = "DEE07AF9531E290E9D89D863"
             BuildableName = "Cantio.app"
             BlueprintName = "Cantio"
             ReferencedContainer = "container:Cantio.xcodeproj">
@@ -45,7 +45,7 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3F42C0915C376796D484FD38"
+               BlueprintIdentifier = "4EBE767DA9EEE41D5480C8F7"
                BuildableName = "CantioTests.xctest"
                BlueprintName = "CantioTests"
                ReferencedContainer = "container:Cantio.xcodeproj">
@@ -69,7 +69,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A7835E0A0B9ED2CA5C7A5281"
+            BlueprintIdentifier = "DEE07AF9531E290E9D89D863"
             BuildableName = "Cantio.app"
             BlueprintName = "Cantio"
             ReferencedContainer = "container:Cantio.xcodeproj">
@@ -88,7 +88,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A7835E0A0B9ED2CA5C7A5281"
+            BlueprintIdentifier = "DEE07AF9531E290E9D89D863"
             BuildableName = "Cantio.app"
             BlueprintName = "Cantio"
             ReferencedContainer = "container:Cantio.xcodeproj">
