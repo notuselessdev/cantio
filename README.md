@@ -1,92 +1,101 @@
-# Cantio
+<p align="center">
+  <img src="docs/assets/icon.png" width="140" alt="Cantio icon" />
+</p>
 
-Floating, time-synced song lyrics for macOS. Reads the currently-playing
-track directly from the local Spotify app — no Spotify Web API, no OAuth.
+<h1 align="center">Cantio</h1>
 
-## Requirements
+<p align="center">
+  <em>Karaoke-grade Spotify lyrics, floating over your desktop.</em>
+</p>
 
-- macOS 14 (Sonoma) or newer
-- Xcode 15+ (Swift 5.9+)
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) — `brew install xcodegen`
+<p align="center">
+  Time-synced lyrics in a menu-bar app that looks like Apple shipped it.<br/>
+  Reads Spotify locally — no Web API, no OAuth, no telemetry.
+</p>
 
-## Build & Run
+<p align="center">
+  <a href="https://github.com/notuselessdev/cantio/releases/latest"><img src="https://img.shields.io/github/v/release/notuselessdev/cantio" alt="Release"></a>
+  <a href="https://github.com/notuselessdev/cantio/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14+">
+  <img src="https://img.shields.io/badge/universal-arm64%20%7C%20x86__64-blue" alt="Universal">
+</p>
 
-The Xcode project is generated from `project.yml` via XcodeGen. Regenerate
-whenever you add files or change build settings.
+<!-- TODO: drop a fullscreen screenshot/gif at docs/assets/fullscreen.png -->
+<p align="center">
+  <img src="docs/assets/fullscreen.png" width="760" alt="Cantio fullscreen karaoke view" />
+</p>
+
+---
+
+Cantio shows the lyrics of whatever's playing in Spotify, synced line-by-line, in a floating pill over your desktop — or a fullscreen karaoke view with an album-art-tinted backdrop. It reads the track straight from the local Spotify app over AppleScript, so there are no API keys, no logins, and the only thing it ever sends over the network is a lyrics lookup to [LRCLIB](https://lrclib.net).
+
+## Install
+
+### Homebrew (recommended)
 
 ```sh
+brew install --cask --no-quarantine notuselessdev/tap/cantio
+```
+
+`--no-quarantine` is required: Cantio isn't signed with a paid Apple Developer ID, so the flag tells macOS to skip the Gatekeeper prompt. Update later with `brew upgrade`.
+
+### Manual
+
+Download the DMG from the [latest release](https://github.com/notuselessdev/cantio/releases/latest), drag **Cantio** to Applications, then on first launch **right-click → Open** (or run):
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Cantio.app
+```
+
+Cantio lives in the menu bar (no Dock icon) — look for the music-note glyph.
+
+## Features
+
+- **Synced lyrics** — line-by-line highlight that tracks playback position
+- **Two looks** — a draggable floating pill, or a fullscreen karaoke view
+- **Fullscreen karaoke** — large lyrics, album-art-tinted floating backdrop, auto-hiding transport controls (play/pause, ±10s seek, prev/next) and a scrubber
+- **Double-click the pill** to go fullscreen; double-click or `Esc` to come back
+- **Native feel** — glass materials, alignment guides while dragging, honors Reduce Motion / Reduce Transparency / VoiceOver
+- **Private by design** — playback read locally via AppleScript; the only network call is the LRCLIB lyrics lookup
+
+## How it works
+
+| Piece | What it does |
+|-------|--------------|
+| `SpotifyMonitor` | Polls the local Spotify app over AppleScript for the now-playing track + position |
+| `LyricsService` | Fetches timed lyrics from LRCLIB, cached to disk per track |
+| `FloatingLyricsController` | Owns the borderless overlay window (pill / fullscreen), drag + click-through |
+| `ArtworkColors` | Derives the backdrop hues from the album cover |
+
+Spotify automation permission is requested lazily on first use, never at launch.
+
+## Build from source
+
+The Xcode project is generated from `project.yml` with [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+
+```sh
+brew install xcodegen
 xcodegen generate
 open Cantio.xcodeproj
 ```
 
-Or build and run from the command line:
+Or from the command line:
 
 ```sh
 xcodegen generate
 xcodebuild -project Cantio.xcodeproj -scheme Cantio -configuration Debug build
-open ~/Library/Developer/Xcode/DerivedData/Cantio-*/Build/Products/Debug/Cantio.app
 ```
 
-Cantio runs as a menu-bar (status item) app — no Dock icon — driven by
-`LSUIElement = true`. Look for the music-note glyph in your menu bar.
+`Cantio.xcodeproj` is generated — edit `project.yml`, not the pbxproj.
 
-## Project Layout
-
-```
-Cantio/              SwiftUI sources
-  CantioApp.swift    @main entry point + MenuBarExtra scene
-  Assets.xcassets    AppIcon catalog
-project.yml          XcodeGen spec — source of truth for the Xcode project
-```
-
-`Cantio.xcodeproj` is generated; do not hand-edit. Modify `project.yml`
-and re-run `xcodegen generate`.
-
-## Packaging & distribution
-
-Cantio ships as a universal (Apple Silicon + Intel) `.app` inside a
-drag-to-Applications DMG. Release builds use a hardened runtime, are
-signed with Developer ID, and are notarized + stapled.
+### Packaging
 
 ```sh
-export DEVELOPER_ID_APPLICATION="Developer ID Application: Acme LLC (TEAMID)"
-export APPLE_TEAM_ID="ABCDE12345"
-export APPLE_ID="you@example.com"
-export APPLE_APP_PASSWORD="abcd-efgh-ijkl-mnop"   # app-specific password
-
-scripts/build-release.sh
-# → build/Cantio.dmg
+scripts/build-unsigned.sh    # ad-hoc-signed universal DMG (what releases ship)
 ```
 
-`SKIP_NOTARIZE=1 scripts/build-release.sh` skips notarization (useful for
-local-only smoke tests of signing + DMG layout).
+`scripts/build-release.sh` is the notarized path (hardened runtime, Developer ID, stapled) for when a paid Apple Developer account is available — see the script header for the required env vars.
 
-The script:
+## License
 
-1. Regenerates the Xcode project via XcodeGen.
-2. Archives a universal binary (`ARCHS = "arm64 x86_64"`).
-3. Exports the `.app` with manual Developer ID signing + hardened runtime.
-4. Verifies `lipo -archs` reports both slices and `codesign` reports the
-   `runtime` flag.
-5. Submits to Apple Notary Service (`xcrun notarytool ... --wait`) and
-   staples the ticket.
-6. Builds a `Cantio.dmg` with a `/Applications` symlink for drag-to-install.
-
-### Auto-update (Sparkle)
-
-The Sparkle 2 framework is wired in via SwiftPM and exposed through the
-"Check for Updates…" menu item. The update channel is **stubbed** — before
-shipping a real release, replace the placeholders in `project.yml`:
-
-- `INFOPLIST_KEY_SUFeedURL` — public URL of your `appcast.xml`.
-- `INFOPLIST_KEY_SUPublicEDKey` — base64 EdDSA public key generated via
-  Sparkle's `generate_keys` tool. Keep the matching private key out of
-  version control and use it to sign new appcast entries.
-
-See [Sparkle's documentation](https://sparkle-project.org/documentation/)
-for the appcast format and signing workflow.
-
-## Status
-
-US-001 through US-010. Subsequent work iterates on packaging, the appcast
-pipeline, and feature polish.
+MIT — see [LICENSE](LICENSE).
