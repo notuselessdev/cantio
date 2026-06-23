@@ -20,9 +20,14 @@
   <img src="https://img.shields.io/badge/universal-arm64%20%7C%20x86__64-blue" alt="Universal">
 </p>
 
-<!-- TODO: drop a fullscreen screenshot/gif at docs/assets/fullscreen.png -->
 <p align="center">
   <img src="docs/assets/fullscreen.png" width="760" alt="Cantio fullscreen karaoke view" />
+</p>
+
+<p align="center">
+  <img src="docs/assets/pill.jpg" width="760" alt="Cantio floating lyrics pill over the desktop" />
+  <br/>
+  <em>Floating pill over the desktop · fullscreen karaoke view above</em>
 </p>
 
 ---
