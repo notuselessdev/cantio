@@ -231,6 +231,11 @@ struct LyricsContentView: View {
         // Backstops the controller's local key monitor, which only fires while
         // the borderless window holds key focus.
         .onExitCommand { prefs.windowStyle = .floating }
+        // Symmetric with the pill's double-click-to-enter: double-click empty
+        // backdrop to drop back to the floating pill. Transport buttons /
+        // scrubber consume their own taps first, so this only fires on the
+        // backdrop.
+        .onTapGesture(count: 2) { prefs.windowStyle = .floating }
         // Pointer movement reveals the chrome and restarts the idle countdown.
         .onContinuousHover { phase in
             if case .active = phase { revealChrome() }
@@ -338,6 +343,7 @@ struct LyricsContentView: View {
                 }
             }
             .frame(maxWidth: Self.pillContentMaxWidth)
+            .help("Double-click for fullscreen")
         } else {
             VStack(spacing: large ? 26 : 10) {
                 if linesAround >= 2 {
@@ -513,6 +519,12 @@ struct LyricLineView: View {
             }
         }
         .opacity(opacity)
+        // Legibility halo: a tight dark edge + a softer spread so the line
+        // stays readable even when the album-art backdrop drifts to the same
+        // hue as the text. Only the active line carries the full weight; dim
+        // siblings get a lighter shadow so the halos don't stack into murk.
+        .shadow(color: .black.opacity(active ? 0.6 : 0.35), radius: active ? 3 : 2, y: 1)
+        .shadow(color: .black.opacity(active ? 0.4 : 0.22), radius: active ? 14 : 8, y: 2)
     }
 }
 

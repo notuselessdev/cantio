@@ -376,6 +376,20 @@ final class FloatingLyricsController {
             // beneath the pill.
             if event.modifierFlags.contains(.option) { return event }
 
+            // Double-click the capsule → jump to fullscreen. `clickCount` is 2
+            // on the second press; the first (clickCount 1) already fell
+            // through as a harmless single click — the pill has no single-click
+            // action mid-song, so there's nothing to delay or undo.
+            if event.clickCount >= 2,
+               let window = self.window,
+               Self.pointInsideCapsuleRect(mouseScreen: NSEvent.mouseLocation,
+                                           capsuleInContentView: self.hitTarget.capsuleRectInContentView,
+                                           windowFrame: window.frame) {
+                self.prefs.windowVisible = true
+                self.prefs.windowStyle = .fullscreen
+                return nil
+            }
+
             // Click-vs-drag: peek the upcoming event stream. If the user
             // releases without moving past the threshold, this is a click —
             // let it propagate so embedded tap targets fire. Otherwise
