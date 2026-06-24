@@ -53,12 +53,17 @@ Cantio lives in the menu bar (no Dock icon) — look for the music-note glyph.
 
 ## Features
 
+<img src="docs/assets/menu.png" align="right" width="280" alt="Cantio menu-bar panel" />
+
 - **Synced lyrics** — line-by-line highlight that tracks playback position
 - **Two looks** — a draggable floating pill, or a fullscreen karaoke view
 - **Fullscreen karaoke** — large lyrics, album-art-tinted floating backdrop, auto-hiding transport controls (play/pause, ±10s seek, prev/next) and a scrubber
+- **Menu-bar controls** — playback, scrubber, and quick toggles from the status item
 - **Double-click the pill** to go fullscreen; double-click or `Esc` to come back
 - **Native feel** — glass materials, alignment guides while dragging, honors Reduce Motion / Reduce Transparency / VoiceOver
 - **Private by design** — playback read locally via AppleScript; the only network call is the LRCLIB lyrics lookup
+
+<br clear="all" />
 
 ## How it works
 
