@@ -31,7 +31,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func presentOnboardingIfNeeded() {
-        let controller = OnboardingController(prefs: prefs)
+        // While the assistant is up, the Spotify consent prompt must come only
+        // from its dedicated step — hold off the polling loop's lazy prompt so
+        // it can't pop standalone over the splash. Re-enable on completion.
+        guard !prefs.didCompleteOnboarding else { return }
+        monitor.allowsPermissionPrompt = false
+        let controller = OnboardingController(prefs: prefs) { [weak self] in
+            self?.monitor.allowsPermissionPrompt = true
+        }
         onboarding = controller
         controller.presentIfNeeded()
     }

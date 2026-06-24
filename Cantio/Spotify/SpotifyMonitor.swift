@@ -103,6 +103,13 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
     /// user has refused or revoked access in System Settings.
     @Published private(set) var permission: AutomationPermission = .targetNotRunning
 
+    /// When `false`, polling only *queries* permission state and never surfaces
+    /// the system consent prompt. Onboarding holds this off so the prompt fires
+    /// solely from its dedicated Spotify step — not as a standalone popup over
+    /// the desktop. Re-enabled once onboarding completes so a later revoke/reset
+    /// can still re-prompt on first use.
+    var allowsPermissionPrompt = true
+
     private var task: Task<Void, Never>?
     private var lastEmitted: NowPlaying?
     private var didRequestPermission = false
@@ -229,7 +236,7 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         // terminal decision (granted/denied). Dismissed prompts and post-login
         // TCC resets both leave the state at `.notDetermined` — a one-shot
         // gate would silently strand the app there.
-        let askUser = !didRequestPermission
+        let askUser = allowsPermissionPrompt && !didRequestPermission
         if askUser, permission != .notDetermined {
             permission = .notDetermined
             if availability != .notRunning { availability = .notRunning }

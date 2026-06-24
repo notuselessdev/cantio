@@ -12,14 +12,19 @@ import SwiftUI
 @MainActor
 final class OnboardingController: NSObject, NSWindowDelegate {
     private let prefs: Preferences
+    private let onComplete: () -> Void
     private let chime = OnboardingChime()
     private var splashWindow: NSWindow?
     private var window: NSWindow?
     private var finishing = false
     private var transitioned = false
 
-    init(prefs: Preferences) {
+    /// `onComplete` fires exactly once when the assistant closes (any path:
+    /// Done, close button, Esc, Skip) — lets the caller resume normal behavior
+    /// such as re-enabling the lazy Spotify permission prompt.
+    init(prefs: Preferences, onComplete: @escaping () -> Void = {}) {
         self.prefs = prefs
+        self.onComplete = onComplete
         super.init()
     }
 
@@ -141,6 +146,7 @@ final class OnboardingController: NSObject, NSWindowDelegate {
         window = nil
         // Drop back to menu-bar-only unless a Settings window is up.
         SettingsActivator.demoteIfNoSettingsWindow()
+        onComplete()
     }
 }
 

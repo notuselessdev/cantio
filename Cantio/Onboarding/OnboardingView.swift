@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// First-run setup assistant. A welcome flourish (rising chime + icon reveal)
@@ -33,7 +34,7 @@ struct OnboardingView: View {
         tone == .dark ? FL.oklch(0.16, 0.008, 250) : .white
     }
 
-    private static let lastStep = 3
+    private static let lastStep = 4
 
     private var motion: Animation {
         reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.34, dampingFraction: 0.86)
@@ -66,6 +67,7 @@ struct OnboardingView: View {
                     case 0: accentPage
                     case 1: linesPage
                     case 2: fontPage
+                    case 3: spotifyPage
                     default: launchPage
                     }
                 }
@@ -154,6 +156,15 @@ struct OnboardingView: View {
                 .accessibilityLabel("Lyric font size")
                 lyricPreview
             }
+        }
+    }
+
+    private var spotifyPage: some View {
+        stepScaffold(
+            title: "Connect Spotify",
+            subtitle: "Cantio reads your current track to match lyrics. It only talks to Spotify on this Mac — nothing leaves your device."
+        ) {
+            OBSpotifyStep(palette: palette)
         }
     }
 
@@ -344,6 +355,181 @@ struct OnboardingView: View {
 }
 
 // MARK: - Onboarding controls
+
+/// The five surfaces the Spotify step can present, derived from whether the app
+/// is installed/running and TCC's automation decision. Each carries its own
+/// glyph + copy + action so progress never reads by color alone.
+private enum OBSpotifyState: Equatable {
+    case notInstalled
+    case notRunning
+    case undecided
+    case denied
+    case granted
+}
+
+/// Snapshots the current Spotify connection state without surfacing a prompt.
+/// `SpotifyPermission.check()` is the no-ask query; install/run checks gate it
+/// since TCC can't be queried for an app that isn't present or running.
+private func currentSpotifyState() -> OBSpotifyState {
+    let id = "com.spotify.client"
+    if NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) == nil { return .notInstalled }
+    if NSRunningApplication.runningApplications(withBundleIdentifier: id).isEmpty { return .notRunning }
+    switch SpotifyPermission.check() {
+    case .granted: return .granted
+    case .denied: return .denied
+    case .notDetermined, .targetNotRunning, .unknown: return .undecided
+    }
+}
+
+/// Contextual permission step: explains the ask, then fires the system consent
+/// prompt *here* (over the assistant) instead of letting the polling loop pop it
+/// standalone over the desktop. Polls state so launching Spotify or granting in
+/// System Settings reflects without leaving the assistant.
+private struct OBSpotifyStep: View {
+    let palette: FL.Palette
+
+    @State private var state: OBSpotifyState = .undecided
+    @State private var requesting = false
+
+    // Light cadence — enough to catch Spotify opening or an external grant.
+    private let poll = Timer.publish(every: 1.2, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        VStack(spacing: 16) {
+            card
+            if let action { actionButton(action) }
+        }
+        .onAppear { refresh() }
+        // Don't clobber state while the modal prompt is up (its result lands
+        // via `requestAccess`'s completion).
+        .onReceive(poll) { _ in if !requesting { refresh() } }
+    }
+
+    private func refresh() { state = currentSpotifyState() }
+
+    // MARK: Per-state content
+
+    private var icon: String {
+        switch state {
+        case .granted: return "checkmark.circle.fill"
+        case .denied: return "exclamationmark.triangle.fill"
+        case .undecided: return "waveform"
+        case .notRunning: return "play.circle"
+        case .notInstalled: return "questionmark.circle"
+        }
+    }
+
+    private var iconTint: Color {
+        switch state {
+        case .granted, .undecided: return palette.accent
+        case .denied: return palette.text
+        case .notRunning, .notInstalled: return palette.textMuted
+        }
+    }
+
+    private var headline: String {
+        switch state {
+        case .granted: return "Connected to Spotify"
+        case .denied: return "Access turned off"
+        case .undecided: return "Ready to connect"
+        case .notRunning: return "Spotify isn’t open"
+        case .notInstalled: return "Spotify not found"
+        }
+    }
+
+    private var detail: String {
+        switch state {
+        case .granted: return "Cantio can read your current track."
+        case .denied: return "Turn Cantio on under Automation → Spotify in System Settings."
+        case .undecided: return "Allow Cantio to control Spotify when macOS asks."
+        case .notRunning: return "Open Spotify, then allow access."
+        case .notInstalled: return "Install the Spotify desktop app to use Cantio."
+        }
+    }
+
+    private struct Action { let label: String; let run: () -> Void }
+
+    private var action: Action? {
+        switch state {
+        case .granted: return nil
+        case .undecided: return Action(label: "Allow access", run: requestAccess)
+        case .denied: return Action(label: "Open System Settings", run: SpotifyPermission.openSystemSettings)
+        case .notRunning: return Action(label: "Open Spotify", run: launchSpotify)
+        case .notInstalled: return Action(label: "Get Spotify", run: openDownloadPage)
+        }
+    }
+
+    // MARK: Actions
+
+    /// Off-main so the blocking TCC prompt doesn't freeze the runloop; the
+    /// resolved decision is reflected on completion.
+    private func requestAccess() {
+        requesting = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            _ = SpotifyPermission.request()
+            DispatchQueue.main.async {
+                requesting = false
+                refresh()
+            }
+        }
+    }
+
+    private func launchSpotify() {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.spotify.client") else { return }
+        NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+    }
+
+    private func openDownloadPage() {
+        guard let url = URL(string: "https://www.spotify.com/download") else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    // MARK: Pieces
+
+    private var card: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(iconTint)
+                .frame(width: 30)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(headline)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(palette.text)
+                Text(detail)
+                    .font(.system(size: 12))
+                    .foregroundStyle(palette.textMuted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(palette.bgElev)
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(palette.border, lineWidth: 0.5)))
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Secondary capsule (accent text on a soft accent fill) so it reads as the
+    /// step's helper action, leaving the footer's filled Continue as the CTA.
+    private func actionButton(_ a: Action) -> some View {
+        Button(action: a.run) {
+            Text(a.label)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(palette.accent)
+                .padding(.horizontal, 18).padding(.vertical, 10)
+                .frame(minHeight: 36)
+                .background(Capsule().fill(palette.accentSoft))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(requesting)
+        .accessibilityLabel(a.label)
+    }
+}
 
 /// Larger accent swatches than the Settings row — 30pt circles clear the 28pt
 /// hit-target floor for a first-touch screen.
