@@ -36,10 +36,11 @@ Cantio shows the lyrics of whatever's playing in Spotify, synced line-by-line, i
 ### Homebrew (recommended)
 
 ```sh
-brew install --cask --no-quarantine notuselessdev/tap/cantio
+brew install --cask notuselessdev/tap/cantio
+xattr -dr com.apple.quarantine /Applications/Cantio.app
 ```
 
-`--no-quarantine` is required: Cantio isn't signed with a paid Apple Developer ID, so the flag tells macOS to skip the Gatekeeper prompt. Update later with `brew upgrade`.
+Cantio isn't signed with a paid Apple Developer ID, so macOS quarantines it. The `xattr` step clears that so the app launches (Homebrew dropped the `--no-quarantine` flag, so it now runs as a separate step). Update later with `brew upgrade`.
 
 ### Manual
 

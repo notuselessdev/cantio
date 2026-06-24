@@ -3,8 +3,8 @@
 # Build an UNSIGNED, ad-hoc-signed, universal (arm64 + x86_64) Cantio.app and
 # wrap it in a DMG for Homebrew-cask distribution. No Apple Developer account
 # required — the app is ad-hoc signed ("-"), so it runs once the quarantine
-# attribute is absent (Homebrew installs with `--no-quarantine`, or the user
-# right-clicks → Open / runs `xattr -dr com.apple.quarantine`).
+# attribute is absent (the user right-clicks → Open, or runs
+# `xattr -dr com.apple.quarantine`).
 #
 # This is the no-notarization sibling of build-release.sh. Prints the DMG path
 # and its sha256 (the value the cask needs).
