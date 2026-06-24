@@ -33,3 +33,6 @@ Package.resolved
 # Personal Claude overrides
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Personal local scripts (never commit)
+.local/
