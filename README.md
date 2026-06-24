@@ -21,13 +21,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/fullscreen.png" width="760" alt="Cantio fullscreen karaoke view" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/pill.jpg" width="760" alt="Cantio floating lyrics pill over the desktop" />
+  <img src="docs/assets/fullscreen.png" width="49%" alt="Cantio fullscreen karaoke view" />
+  <img src="docs/assets/pill.jpg" width="49%" alt="Cantio floating lyrics pill over the desktop" />
   <br/>
-  <em>Floating pill over the desktop · fullscreen karaoke view above</em>
+  <em>Fullscreen karaoke view · floating pill over the desktop</em>
 </p>
 
 ---
