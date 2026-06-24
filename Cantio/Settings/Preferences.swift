@@ -141,6 +141,7 @@ final class Preferences: ObservableObject {
         static let windowVisible = "windowVisible"
         static let launchAtLogin = "launchAtLogin"
         static let linesVisible = "linesVisible"
+        static let didCompleteOnboarding = "didCompleteOnboarding"
         static let hotKeyKeyCode = "hotKey.keyCode"
         static let hotKeyModifiers = "hotKey.modifiers"
     }
@@ -217,6 +218,10 @@ final class Preferences: ObservableObject {
             defaults.set(linesVisible, forKey: Key.linesVisible)
             displayMode = (linesVisible <= 1) ? .singleLine : .multiLine
         }
+    }
+
+    @Published var didCompleteOnboarding: Bool {
+        didSet { defaults.set(didCompleteOnboarding, forKey: Key.didCompleteOnboarding) }
     }
 
     @Published var toggleHotKey: HotKey {
@@ -306,6 +311,7 @@ final class Preferences: ObservableObject {
         let storedLaunch = defaults.object(forKey: Key.launchAtLogin) as? Bool ?? false
         self.launchAtLogin = Self.currentLoginItemEnabled(fallback: storedLaunch)
         self.linesVisible = defaults.object(forKey: Key.linesVisible) as? Int ?? 3
+        self.didCompleteOnboarding = defaults.bool(forKey: Key.didCompleteOnboarding)
         if defaults.object(forKey: Key.hotKeyKeyCode) == nil {
             self.toggleHotKey = .defaultToggle
         } else {

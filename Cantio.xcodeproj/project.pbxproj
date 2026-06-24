@@ -10,6 +10,7 @@
 		00F02305D8B4E274AC00C080 /* test_pillCapsule_dark_glass_medium.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 90E0B63645FB05CA62D8C417 /* test_pillCapsule_dark_glass_medium.1.png */; };
 		01E3582204682303609BD096 /* test_menuBarPanel_light_emptyState.1.png in Resources */ = {isa = PBXBuildFile; fileRef = 663B7BB7FBD972AF38E61021 /* test_menuBarPanel_light_emptyState.1.png */; };
 		0522AC18EE6F6B443902D4D7 /* SpotifyPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 693106C5C78806AFE48E56BB /* SpotifyPermission.swift */; };
+		0C26DBCADE89CF0860AE268F /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE199C1302F0C8D534B641DE /* OnboardingView.swift */; };
 		0DE3450364AE995BF17D2511 /* PillCapsuleShadowLeakTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFB4B53028BF3D673354014E /* PillCapsuleShadowLeakTests.swift */; };
 		1181D71920125E757F7D4DAB /* CantioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30905A5F0B92B181340F9ECE /* CantioApp.swift */; };
 		1B558CD9511712B1F4F3A5E8 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 5E9402E43F51986C7CBF16D2 /* SnapshotTesting */; };
@@ -30,7 +31,9 @@
 		5219B8E712185144DD77F0FA /* HotKeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96CA78C08E49C668D0AAF8E6 /* HotKeyRecorder.swift */; };
 		5348738A3CD123BD787C470B /* MenuBarPanelSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1BB12B799FD48F04D74C881 /* MenuBarPanelSnapshotTests.swift */; };
 		5509E6C84853C27E9DB26D14 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C4C452508C81798332C029 /* HotKeyManager.swift */; };
+		5FE0312B65529202F0445ACB /* OnboardingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56EDC07A6B29FCB5ADFEC23C /* OnboardingController.swift */; };
 		61EB49AEA6F72ADEE585F174 /* EffectiveClickThroughTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAAFE72ADAE71B25BE909CB /* EffectiveClickThroughTests.swift */; };
+		68B438F35EE6A9F76C850254 /* OnboardingChime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52928EF2746437928B4E3A84 /* OnboardingChime.swift */; };
 		7225EF353D7B33E643A92D63 /* PlaybackControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20AB587C551993227203AFA8 /* PlaybackControlTests.swift */; };
 		74E616C9F174B49E9387B907 /* StatusBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FD127A703C4B9D4D3F5F5BA /* StatusBarPopover.swift */; };
 		7CBB780A66A59EAA5052C977 /* DragSnap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510997F9A9D7408B13E7CE65 /* DragSnap.swift */; };
@@ -43,6 +46,7 @@
 		842EA36FFAAC65A6DFAA76DB /* test_pillCapsule_light_glass_short.1.png in Resources */ = {isa = PBXBuildFile; fileRef = FA5D4AD943CED971601B0C5E /* test_pillCapsule_light_glass_short.1.png */; };
 		8F98BC35EADBEDDDCC2EB015 /* test_pillCapsule_dark_solid_medium.1.png in Resources */ = {isa = PBXBuildFile; fileRef = E1A2F03900657E7EDD8E08D7 /* test_pillCapsule_dark_solid_medium.1.png */; };
 		92F225108C1CC65E91A6282F /* ExtrapolatePositionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62AD1262757FF1DA812D59D /* ExtrapolatePositionTests.swift */; };
+		954897FE30F0DDA3D0D945E4 /* OnboardingSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD21251A8E5D1D499E4A938 /* OnboardingSplashView.swift */; };
 		997FCFB5B61D3B651BCF8C9B /* test_pillCapsule_light_glass.1.png in Resources */ = {isa = PBXBuildFile; fileRef = A9950B6E3DC5BB6AC664B798 /* test_pillCapsule_light_glass.1.png */; };
 		9FE0818D227CF6D34B551903 /* Lyrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 651091B40402074B91276B83 /* Lyrics.swift */; };
 		A19096088693DC802B38B94B /* LyricsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E33CC1DC0EA12D3DB8BEDF /* LyricsCache.swift */; };
@@ -111,8 +115,10 @@
 		4B3D0E7A60F167BCBFE39891 /* test_pillCapsule_dark_glass.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass.1.png; sourceTree = "<group>"; };
 		5044BBAAFC38966233674A8C /* GlassStyleMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassStyleMigrationTests.swift; sourceTree = "<group>"; };
 		510997F9A9D7408B13E7CE65 /* DragSnap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragSnap.swift; sourceTree = "<group>"; };
+		52928EF2746437928B4E3A84 /* OnboardingChime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingChime.swift; sourceTree = "<group>"; };
 		529B3DE95D32DAA6D46BACB9 /* test_pillCapsule_dark_solid.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_solid.1.png; sourceTree = "<group>"; };
 		56C8668D27EF4BC6DA0D886C /* MenuBarPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPanel.swift; sourceTree = "<group>"; };
+		56EDC07A6B29FCB5ADFEC23C /* OnboardingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingController.swift; sourceTree = "<group>"; };
 		596525E6F5D61D14AB50B0DB /* HotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKey.swift; sourceTree = "<group>"; };
 		64EB3C3766E2F6AAA8CE5153 /* LyricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
 		651091B40402074B91276B83 /* Lyrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lyrics.swift; sourceTree = "<group>"; };
@@ -121,6 +127,7 @@
 		693106C5C78806AFE48E56BB /* SpotifyPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyPermission.swift; sourceTree = "<group>"; };
 		6B967254DE8FEC7C77E3424A /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
 		7EB6ABB76F505FE000D47551 /* FontSizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontSizeTests.swift; sourceTree = "<group>"; };
+		7FD21251A8E5D1D499E4A938 /* OnboardingSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSplashView.swift; sourceTree = "<group>"; };
 		87EFAB8BAAC09B5E3C0A5D0D /* SpotifyMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMonitor.swift; sourceTree = "<group>"; };
 		89E33CC1DC0EA12D3DB8BEDF /* LyricsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsCache.swift; sourceTree = "<group>"; };
 		8FD127A703C4B9D4D3F5F5BA /* StatusBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarPopover.swift; sourceTree = "<group>"; };
@@ -145,6 +152,7 @@
 		C1E3DA72098CD5BBB461A24E /* test_pillCapsule_dark_glass_short.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_short.1.png; sourceTree = "<group>"; };
 		C34F0B4FF65B471FC65E399A /* LRCParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCParserTests.swift; sourceTree = "<group>"; };
 		C83794AC56CD0BBE70301EA1 /* LyricPositionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricPositionTests.swift; sourceTree = "<group>"; };
+		CE199C1302F0C8D534B641DE /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		D16748A263A3A0DE25DF9D76 /* test_pillCapsule_dark_glass_inactive.1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = test_pillCapsule_dark_glass_inactive.1.png; sourceTree = "<group>"; };
 		D402F04CDF4DB488F45EA588 /* DragSnapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragSnapTests.swift; sourceTree = "<group>"; };
 		D4FA1E40894B81CDC6B7AADB /* FloatingLyricsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingLyricsController.swift; sourceTree = "<group>"; };
@@ -272,6 +280,17 @@
 			path = Spotify;
 			sourceTree = "<group>";
 		};
+		5E21796F19C101B9D88381BB /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				52928EF2746437928B4E3A84 /* OnboardingChime.swift */,
+				56EDC07A6B29FCB5ADFEC23C /* OnboardingController.swift */,
+				7FD21251A8E5D1D499E4A938 /* OnboardingSplashView.swift */,
+				CE199C1302F0C8D534B641DE /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		671301F56245E7915D46CE66 /* Spotify */ = {
 			isa = PBXGroup;
 			children = (
@@ -337,6 +356,7 @@
 				2D495D34F944DDBC1D8B4F50 /* Design */,
 				7D28B98B1F1E5DE9430DEFF0 /* Hotkey */,
 				2A51BBF29D115D4BDF262C43 /* Lyrics */,
+				5E21796F19C101B9D88381BB /* Onboarding */,
 				3887A475515F165C8B82922A /* Settings */,
 				4E4A1B6732444D1B252584E1 /* Spotify */,
 				ECC53F8C79ABFF8020140905 /* Updates */,
@@ -556,6 +576,10 @@
 				E5436D5E061DF8B958001EBB /* LyricsStore.swift in Sources */,
 				4B5D48036F77B4B84DF38E92 /* MenuBarPanel.swift in Sources */,
 				4BF39E336F97F0BA935A8EF6 /* NowPlaying.swift in Sources */,
+				68B438F35EE6A9F76C850254 /* OnboardingChime.swift in Sources */,
+				5FE0312B65529202F0445ACB /* OnboardingController.swift in Sources */,
+				954897FE30F0DDA3D0D945E4 /* OnboardingSplashView.swift in Sources */,
+				0C26DBCADE89CF0860AE268F /* OnboardingView.swift in Sources */,
 				7DAEC7FB95DD4C845587A75D /* Preferences.swift in Sources */,
 				CCAC74653FCCBD56688DBD4B /* PreferencesView.swift in Sources */,
 				D627547BB4621A59424C4B99 /* SpotifyMonitor.swift in Sources */,
@@ -643,7 +667,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -658,7 +682,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
@@ -767,7 +791,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -788,7 +812,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

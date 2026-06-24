@@ -20,12 +20,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let pillHitTarget = PillHitTarget()
     private var floatingController: FloatingLyricsController?
     private var statusBar: StatusBarPopover?
+    private var onboarding: OnboardingController?
     private var didBootstrap = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         installStatusBar()
         bootstrapIfNeeded()
+        presentOnboardingIfNeeded()
+    }
+
+    private func presentOnboardingIfNeeded() {
+        let controller = OnboardingController(prefs: prefs)
+        onboarding = controller
+        controller.presentIfNeeded()
     }
 
     private func installStatusBar() {
