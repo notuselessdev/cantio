@@ -25,18 +25,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        // Decide prompt suppression BEFORE the monitor starts polling: while the
+        // assistant is up, the Spotify consent prompt must come only from its
+        // dedicated step, never as a standalone popup over the splash. Setting
+        // the gate after `monitor.start()` would race the loop's first poll.
+        let needsOnboarding = !prefs.didCompleteOnboarding
+        monitor.allowsPermissionPrompt = !needsOnboarding
         installStatusBar()
         bootstrapIfNeeded()
-        presentOnboardingIfNeeded()
+        if needsOnboarding { presentOnboarding() }
     }
 
-    private func presentOnboardingIfNeeded() {
-        // While the assistant is up, the Spotify consent prompt must come only
-        // from its dedicated step — hold off the polling loop's lazy prompt so
-        // it can't pop standalone over the splash. Re-enable on completion.
-        guard !prefs.didCompleteOnboarding else { return }
-        monitor.allowsPermissionPrompt = false
+    private func presentOnboarding() {
         let controller = OnboardingController(prefs: prefs) { [weak self] in
+            // Re-enable the lazy prompt once setup closes so a later revoke can
+            // still re-prompt on first use.
             self?.monitor.allowsPermissionPrompt = true
         }
         onboarding = controller

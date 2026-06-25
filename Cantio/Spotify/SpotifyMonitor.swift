@@ -227,41 +227,51 @@ final class SpotifyMonitor: ObservableObject, PlaybackSource {
         if NSRunningApplication.runningApplications(withBundleIdentifier: spotifyBundleId).isEmpty {
             return .notRunning
         }
-        let directRead = await runSpotifyScript()
-        if case .running = directRead {
+        // The *first* AppleEvent to Spotify surfaces the TCC consent prompt —
+        // and a ScriptingBridge read is an AppleEvent. So resolve permission
+        // with the no-ask query BEFORE any read; never touch ScriptingBridge
+        // until it's granted, or the prompt would pop regardless of the gate.
+        switch await resolvePermission(askUser: false) {
+        case .granted:
             didRequestPermission = true
-            return directRead
+            return await runSpotifyScript()
+        case .denied:
+            didRequestPermission = true
+            return .permissionDenied
+        case .notDetermined, .targetNotRunning, .unknown:
+            break
         }
-        // Spotify is running. Surface the consent prompt until TCC reaches a
-        // terminal decision (granted/denied). Dismissed prompts and post-login
-        // TCC resets both leave the state at `.notDetermined` — a one-shot
-        // gate would silently strand the app there.
-        let askUser = allowsPermissionPrompt && !didRequestPermission
-        if askUser, permission != .notDetermined {
-            permission = .notDetermined
-            if availability != .notRunning { availability = .notRunning }
-            if nowPlaying != nil { nowPlaying = nil }
-            if positionAnchor != nil { positionAnchor = nil }
-            emitIfChanged(nil)
+        // Undecided. Surface the consent prompt only when allowed — onboarding
+        // holds it off so its dedicated Spotify step owns the ask, never a
+        // standalone popup over the splash. Dismissed prompts and post-login
+        // TCC resets leave the state `.notDetermined`; re-asking on the next
+        // poll (rather than one-shot) keeps the app from stranding there.
+        guard allowsPermissionPrompt, !didRequestPermission else {
+            return .permissionNotDetermined
         }
-        let permState: AutomationPermission = await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                let result = askUser
-                    ? SpotifyPermission.request()
-                    : SpotifyPermission.check()
-                continuation.resume(returning: result)
-            }
-        }
-        switch permState {
+        switch await resolvePermission(askUser: true) {
+        case .granted:
+            didRequestPermission = true
+            return await runSpotifyScript()
         case .denied:
             didRequestPermission = true
             return .permissionDenied
         case .notDetermined, .targetNotRunning, .unknown:
             return .permissionNotDetermined
-        case .granted:
-            didRequestPermission = true
         }
-        return await runSpotifyScript()
+    }
+
+    /// Queries (or, with `askUser`, prompts for) automation permission off the
+    /// main thread — `AEDeterminePermissionToAutomateTarget` blocks while the
+    /// prompt is up. `askUser: false` never surfaces a prompt.
+    private func resolvePermission(askUser: Bool) async -> AutomationPermission {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .utility).async {
+                continuation.resume(returning: askUser
+                    ? SpotifyPermission.request()
+                    : SpotifyPermission.check())
+            }
+        }
     }
 
     private func runSpotifyScript() async -> SpotifyPollResult {

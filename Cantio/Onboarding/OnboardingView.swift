@@ -162,7 +162,7 @@ struct OnboardingView: View {
     private var spotifyPage: some View {
         stepScaffold(
             title: "Connect Spotify",
-            subtitle: "Cantio reads your current track to match lyrics. It only talks to Spotify on this Mac — nothing leaves your device."
+            subtitle: "Cantio reads your current track to match lyrics. It only talks to Spotify on this Mac. Nothing leaves your device."
         ) {
             OBSpotifyStep(palette: palette)
         }
@@ -233,11 +233,11 @@ struct OnboardingView: View {
     /// stack. Reflects accent, font size, and line count as the user picks them.
     private var lyricPreview: some View {
         let lines = [
-            "Just a small town girl",
-            "Living in a lonely world",
-            "She took the midnight train going anywhere",
-            "Just a city boy",
-            "Born and raised in South Detroit",
+            "Lights drift across the room",
+            "A quiet song begins to play",
+            "Words appear and fade in time",
+            "Follow along, line by line",
+            "The night is young, the music's ours",
         ]
         let count = max(1, min(prefs.linesVisible, lines.count))
         let activeIndex = count / 2
