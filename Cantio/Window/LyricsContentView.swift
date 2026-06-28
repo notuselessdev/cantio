@@ -29,12 +29,18 @@ struct LyricsContentView: View {
     /// can report its frame relative to the NSHostingView's contentView.
     private static let pillCoordinateSpace = "pillContent"
 
-    /// Upper bound on pill-line width, a hair inside the fixed pill window
-    /// (`FloatingLyricsController.pillDefaultSize` = 520pt). Bounding the
-    /// proposed width here keeps a long line from reporting an unbounded
-    /// intrinsic size, which previously let the borderless window grow past
-    /// its fixed footprint and the centered capsule creep sideways over a song.
-    private static let pillContentMaxWidth: CGFloat = 496
+    /// Upper bound on pill-line width: the active screen's visible width minus
+    /// a side margin. A line shorter than this renders on one line at full
+    /// size; a longer one *wraps* (never shrinks). The window grows from its
+    /// center to fit the line up to this screen bound (see
+    /// `FloatingLyricsController.resizePillToContent`).
+    private var pillContentMaxWidth: CGFloat {
+        let visible = NSScreen.main?.visibleFrame.width ?? 1440
+        // 70% of the screen: wide enough that virtually every lyric fits on
+        // one line, while leaving horizontal slack so a grown pill isn't
+        // clamped to screen-center on release (which read as a "pull back").
+        return max(360, visible * 0.7)
+    }
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -290,8 +296,11 @@ struct LyricsContentView: View {
                 let lp = LyricPosition.compute(lines: lines, position: pos)
                 syncedRender(lp: lp, forPill: forPill, linesAround: linesAround,
                              fullscreenActiveSize: fullscreenActiveSize)
-                    // Reduce Motion: hard-cut between lines (no crossfade).
-                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.3),
+                    // Pill swaps lines instantly: the capsule + window resize
+                    // per line, and animating that geometry made the siblings
+                    // visibly slide across the screen. Fullscreen keeps the
+                    // crossfade (fixed-size, no resize). Reduce Motion: hard-cut.
+                    .animation(reduceMotion || forPill ? nil : .easeInOut(duration: 0.3),
                                value: lp.current?.timestamp)
             }
         }
@@ -342,7 +351,7 @@ struct LyricsContentView: View {
                                 size: pillFar, opacity: 0.6)
                 }
             }
-            .frame(maxWidth: Self.pillContentMaxWidth)
+            .frame(maxWidth: pillContentMaxWidth)
             .help("Double-click for fullscreen")
         } else {
             VStack(spacing: large ? 26 : 10) {
@@ -373,23 +382,21 @@ struct LyricsContentView: View {
     @ViewBuilder
     private func pillSibling(words: [String]?, exists: Bool,
                              size: CGFloat, opacity: Double) -> some View {
-        // Single-line truncation with one trailing ellipsis — `LyricLineView`
-        // wraps each word independently and produces per-word "..." when
-        // the line overflows the pill window, which reads as garbled.
+        // Plain wrapped Text (not `LyricLineView`, which wraps each word
+        // independently and would produce per-word "..." on overflow).
+        // Bounded by the parent's screen-width max; wraps past it.
         // Sibling lines are blurred so attention stays on the active line.
         Text(words?.joined(separator: " ") ?? "♪")
             .font(.system(size: size, weight: .semibold))
             .tracking(max(0.3, size * 0.04))
             .foregroundStyle(palette.textFaint)
-            .lineLimit(1)
-            .truncationMode(.tail)
+            .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
             .blur(radius: 1.5)
             .opacity(exists ? opacity : 0)
-            // Sibling fades go through the pill's shadow if they share the
-            // parent's easeInOut(0.3); strip transactions and use a short
-            // explicit fade instead.
-            .transaction { $0.animation = .easeOut(duration: 0.18) }
+            // Instant: the pill window resizes per line, and animating the
+            // siblings' reflow made them visibly slide across the screen.
+            .transaction { $0.animation = nil }
     }
 
     @ViewBuilder
@@ -569,16 +576,19 @@ struct PillCapsule: View {
 
     private var pillContent: some View {
         // Capsule hugs the rendered text so short lines stay tight; a long
-        // line is bounded by the parent's proposed width (the pill window) and
-        // truncates with a tail ellipsis. The capsule must NOT report an
-        // unbounded intrinsic width (no `.fixedSize(horizontal:)`) — that let
-        // the borderless window grow and the centered pill drift sideways.
+        // line is bounded by the parent's screen-width max and wraps onto
+        // additional lines instead of truncating. `.fixedSize(horizontal:
+        // false, vertical: true)` keeps the width flexible (no unbounded
+        // intrinsic width that would let the window run away) while letting
+        // wrapped lines grow the height.
         Text(words.joined(separator: " "))
             .font(.system(size: fontSize, weight: .semibold))
             .tracking(max(0.4, fontSize * 0.04))
             .foregroundStyle(palette.accent)
-            .lineLimit(1)
-            .truncationMode(.tail)
+            // Wrap (don't truncate or shrink): with no line limit, the Text
+            // hugs its intrinsic width when short and wraps only when it would
+            // exceed the parent's screen-width max. The window grows to fit.
+            .multilineTextAlignment(.center)
             .padding(.horizontal, max(12, fontSize * 0.9))
             .padding(.vertical, max(7, fontSize * 0.5))
     }

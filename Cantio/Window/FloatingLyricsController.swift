@@ -43,6 +43,15 @@ final class FloatingLyricsController {
 
     private static let pillDefaultSize = NSSize(width: 520, height: 80)
 
+    /// Fixed pill window footprint: 70% of the screen wide (matching the
+    /// view's `pillContentMaxWidth` line-wrap cap) plus margin for the capsule
+    /// shadow, and tall enough for a wrapped line plus siblings. The capsule
+    /// hugs + centers its text inside, so the window never resizes per line.
+    private static func pillFixedSize(on screen: NSScreen?) -> NSSize {
+        let visible = (screen ?? NSScreen.main)?.visibleFrame.width ?? 1440
+        return NSSize(width: max(360, visible * 0.7) + 56, height: 220)
+    }
+
     init(monitor: SpotifyMonitor, lyrics: LyricsStore, prefs: Preferences,
          hitTarget: PillHitTarget) {
         self.monitor = monitor
@@ -122,18 +131,27 @@ final class FloatingLyricsController {
             window.level = .floating
             window.setFrameAutosaveName("")
             window.setFrameAutosaveName(Self.pillAutosaveName)
-            window.contentMinSize = Self.pillDefaultSize
-            window.contentMaxSize = Self.pillDefaultSize
+            // Fixed footprint, sized so a long lyric line fits (and wraps
+            // within it). The capsule hugs + centers its text inside this
+            // window, so nothing resizes per line — no slide, no jitter, no
+            // post-release jump. The transparent margins are click-through
+            // (shape hit-test), so the wide window doesn't block the desktop.
+            let fixed = Self.pillFixedSize(on: window.screen)
+            window.contentMinSize = fixed
+            window.contentMaxSize = fixed
             // Disable clamping while we place the frame so a position near a
             // screen edge is honored exactly — otherwise constrainFrameRect
             // nudges the restored pill inward (up/left of where it was).
             window.clampToVisibleFrame = false
             let restored = window.setFrameUsingName(Self.pillAutosaveName)
             var f = window.frame
-            f.size = Self.pillDefaultSize
-            if !restored { f.origin = Self.defaultOrigin(for: Self.pillDefaultSize, on: window.screen) }
+            f.size = fixed
+            if !restored { f.origin = Self.defaultOrigin(for: fixed, on: window.screen) }
             window.setFrame(f, display: true)
             window.clampToVisibleFrame = true
+            // Pill: clamp only the capsule center so it can be parked at a
+            // screen edge (transparent margins overhang).
+            window.clampCenterOnly = true
             window.isMovable = true
 
         case .fullscreen:

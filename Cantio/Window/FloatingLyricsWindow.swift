@@ -14,6 +14,13 @@ final class FloatingLyricsWindow: NSWindow {
     /// occupy the full screen.frame (menu bar + Dock area).
     var clampToVisibleFrame: Bool = true
 
+    /// When true (pill), clamp only the window *center* to the visible frame
+    /// instead of the whole rect — the pill is a fixed wide footprint with the
+    /// visible capsule centered in it, so this lets the user park the capsule
+    /// right up to a screen edge (the transparent margins overhang off-screen)
+    /// without the frame being yanked back inward.
+    var clampCenterOnly: Bool = false
+
     init(contentRect: NSRect) {
         super.init(
             contentRect: contentRect,
@@ -54,6 +61,16 @@ final class FloatingLyricsWindow: NSWindow {
         let target = screen ?? self.screen ?? NSScreen.main
         guard let visible = target?.visibleFrame else {
             return super.constrainFrameRect(frameRect, to: screen)
+        }
+        if clampCenterOnly {
+            // Keep the window center (≈ the centered capsule) on-screen; let
+            // the transparent margins overhang so the pill can reach an edge.
+            var f = frameRect
+            let cx = min(max(f.midX, visible.minX), visible.maxX)
+            let cy = min(max(f.midY, visible.minY), visible.maxY)
+            f.origin.x += cx - f.midX
+            f.origin.y += cy - f.midY
+            return f
         }
         var f = frameRect
         f.size.width = min(f.size.width, visible.width)
